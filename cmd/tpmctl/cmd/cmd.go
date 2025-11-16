@@ -41,9 +41,11 @@ func newRootCmd() cli.Command {
 	}
 
 	return cli.Command{
-		Name:    "snap-tpmctl",
-		Usage:   "Ubuntu TPM and FDE management tool",
-		Version: "0.1.0",
+		Name:                   "snap-tpmctl",
+		Usage:                  "Ubuntu TPM and FDE management tool",
+		Version:                "0.1.0",
+		UseShortOptionHandling: true,
+		EnableShellCompletion:  true,
 		Commands: []*cli.Command{
 			newStatusCmd(),
 			newCreateKeyCmd(),
@@ -53,7 +55,6 @@ func newRootCmd() cli.Command {
 			newMountVolumeCmd(),
 			newGetLuksPassphraseCmd(),
 		},
-		UseShortOptionHandling: true,
 		Flags: []cli.Flag{
 			&cli.BoolFlag{
 				Name:    "verbosity",
