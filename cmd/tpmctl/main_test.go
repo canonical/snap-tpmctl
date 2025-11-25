@@ -19,7 +19,7 @@ func (m mockApp) Run() error {
 }
 
 func TestRun(t *testing.T) {
-	//t.Parallel()
+	t.Parallel()
 
 	tests := map[string]struct {
 		app mockApp
@@ -33,16 +33,14 @@ func TestRun(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			// TODO: Didier: Run this in parallel (log in context)
 			// TODO: Didier: Check for testify replacement
-			//t.Parallel()
+			t.Parallel()
 
 			var logs bytes.Buffer
 
 			// write logs to both the buffer and the test output.
 			out := io.MultiWriter(&logs, t.Output())
 			h := slog.NewTextHandler(out, nil)
-			slog.SetDefault(slog.New(h))
 			ctx := context.WithValue(context.Background(), loggerKey, slog.New(h))
 
 			got := run(ctx, tc.app)
