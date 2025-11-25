@@ -30,13 +30,21 @@ func createKey(ctx context.Context) error {
 	}
 
 	// Generate the recovery key
-	result, err := c.GenerateRecoveryKey(ctx)
+	key, err := c.GenerateRecoveryKey(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to generate recovery key: %w", err)
 	}
 
-	fmt.Printf("Recovery Key: %s\n", result.RecoveryKey)
-	fmt.Printf("Key ID: %s\n", result.KeyID)
+	fmt.Printf("Recovery Key: %s\n", key.RecoveryKey)
+	fmt.Printf("Key ID: %s\n", key.KeyID)
+
+	// TODO: when the API is ready add `add-recovery-key` call
+	// resp, err := c.AddRecoveryKey(ctx, key.KeyID, nil)
+	// if err != nil {
+	// 	return err
+	// }
+
+	// fmt.Println(resp)
 
 	return nil
 }

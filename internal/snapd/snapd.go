@@ -123,15 +123,8 @@ type snapdResponse struct {
 	Change     string          `json:"change,omitempty"`
 }
 
-// errorResponse describes an error response.
-type errorResponse struct {
-	Message string         `json:"message"`
-	Kind    string         `json:"kind,omitempty"`
-	Value   map[string]any `json:"value,omitempty"`
-}
-
-// SnapdError represents an error from snapd.
-type SnapdError struct {
+// snapdError represents an error from snapd.
+type snapdError struct {
 	Message    string
 	Kind       string
 	StatusCode int
@@ -139,7 +132,7 @@ type SnapdError struct {
 	Value      any
 }
 
-func (e *SnapdError) Error() string {
+func (e *snapdError) Error() string {
 	if e.Kind != "" {
 		return fmt.Sprintf("snapd error: %s (%s)", e.Message, e.Kind)
 	}
@@ -195,11 +188,17 @@ func (c *Client) doRequest(ctx context.Context, method, path string, query url.V
 	}
 
 	if snapdResp.Type == "error" {
-		var errResp errorResponse
+		var errResp struct {
+			Message string         `json:"message"`
+			Kind    string         `json:"kind,omitempty"`
+			Value   map[string]any `json:"value,omitempty"`
+		}
+
 		if err := json.Unmarshal(snapdResp.Result, &errResp); err != nil {
 			return nil, err
 		}
-		return nil, &SnapdError{
+
+		return nil, &snapdError{
 			Message:    errResp.Message,
 			Kind:       errResp.Kind,
 			StatusCode: snapdResp.StatusCode,

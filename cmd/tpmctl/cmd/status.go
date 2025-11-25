@@ -20,6 +20,8 @@ func newStatusCmd() *cli.Command {
 }
 
 func status(ctx context.Context) error {
+	// TODO: implement the status API when lands on snapd
+
 	fmt.Println("This is my status for the system")
 
 	c := snapd.NewClient()

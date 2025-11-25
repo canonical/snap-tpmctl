@@ -7,7 +7,6 @@ import (
 )
 
 // RecoveryKeySlot describes a recovery keyslot target.
-//
 // If ContainerRole is omitted, the keyslot will be implicitly expanded
 // into two target keyslots for both "system-data" and "system-save".
 type RecoveryKeySlot struct {
