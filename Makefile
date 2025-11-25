@@ -1,4 +1,5 @@
 ##### Remote VM testing Makefile #####
+
 # Default VM connection (override with: make VM_HOST=...)
 VM_USER ?= ubuntu
 VM_HOST ?= 192.168.122.105
