@@ -2,7 +2,9 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"errors"
+	"io"
 	"log/slog"
 	"testing"
 
@@ -36,10 +38,14 @@ func TestRun(t *testing.T) {
 			//t.Parallel()
 
 			var logs bytes.Buffer
-			h := slog.NewTextHandler(&logs, nil)
-			slog.SetDefault(slog.New(h))
 
-			got := run(tc.app)
+			// write logs to both the buffer and the test output.
+			out := io.MultiWriter(&logs, t.Output())
+			h := slog.NewTextHandler(out, nil)
+			slog.SetDefault(slog.New(h))
+			ctx := context.WithValue(context.Background(), loggerKey, slog.New(h))
+
+			got := run(ctx, tc.app)
 			require.Equal(t, tc.want, got, "Return value does not match")
 
 			require.Contains(t, logs.String(), tc.wantInLog, "Logged expected output")
