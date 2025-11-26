@@ -6,9 +6,10 @@ import (
 	"errors"
 	"io"
 	"log/slog"
+	"strings"
 	"testing"
 
-	"github.com/stretchr/testify/require"
+	"github.com/nalgeon/be"
 )
 
 type mockApp struct{ err error }
@@ -44,10 +45,8 @@ func TestRun(t *testing.T) {
 			ctx := context.WithValue(context.Background(), loggerKey, slog.New(h))
 
 			got := run(ctx, tc.app)
-			require.Equal(t, tc.want, got, "Return value does not match")
-
-			require.Contains(t, logs.String(), tc.wantInLog, "Logged expected output")
-
+			be.Equal(t, got, tc.want)
+			be.True(t, strings.Contains(logs.String(), tc.wantInLog))
 		})
 	}
 }
