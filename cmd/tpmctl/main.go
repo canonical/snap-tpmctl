@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log/slog"
 	"os"
 	"snap-tpmctl/cmd/tpmctl/cmd"
@@ -12,14 +13,27 @@ type app interface {
 
 func main() {
 	a := cmd.New(os.Args)
-	os.Exit(run(a))
+	os.Exit(run(context.Background(), a))
 }
 
-func run(a app) int {
+func run(ctx context.Context, a app) int {
 	if err := a.Run(); err != nil {
-		slog.Error(err.Error())
+		logError(ctx, err.Error())
 		return 1
 	}
 
 	return 0
+}
+
+type loggerKeyType string
+
+const loggerKey loggerKeyType = "logger"
+
+func logError(ctx context.Context, msg string, args ...any) {
+	logger, ok := ctx.Value(loggerKey).(*slog.Logger)
+	if !ok {
+		// If no logger is set, fallback to the default logger.
+		logger = slog.Default()
+	}
+	logger.Error(msg, args...)
 }
