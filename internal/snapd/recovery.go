@@ -23,7 +23,7 @@ type GenerateRecoveryKeyResult struct {
 // RecoveryKeyRequest represents a request to manage recovery keys in snapd.
 type RecoveryKeyRequest struct {
 	Action         string            `json:"action"`
-	KeyId          string            `json:"key-id,omitempty"`
+	KeyID          string            `json:"key-id,omitempty"`
 	KeySlots       []RecoveryKeySlot `json:"keyslots,omitempty"`
 	RecoveryKey    string            `json:"recovery-key,omitempty"`
 	ContainerRoles []string          `json:"container-role,omitempty"`
@@ -49,10 +49,10 @@ func (c *Client) GenerateRecoveryKey(ctx context.Context) (*GenerateRecoveryKeyR
 }
 
 // AddRecoveryKey adds a recovery key to the specified keyslots.
-func (c *Client) AddRecoveryKey(ctx context.Context, keyID string, keySlots []RecoveryKeySlot) (*snapdResponse, error) {
+func (c *Client) AddRecoveryKey(ctx context.Context, keyID string, keySlots []RecoveryKeySlot) (*Response, error) {
 	body := RecoveryKeyRequest{
 		Action:   "add-recovery-key",
-		KeyId:    keyID,
+		KeyID:    keyID,
 		KeySlots: keySlots,
 	}
 
@@ -65,10 +65,10 @@ func (c *Client) AddRecoveryKey(ctx context.Context, keyID string, keySlots []Re
 }
 
 // ReplaceRecoveryKey replaces a recovery key to the specified keyslots.
-func (c *Client) ReplaceRecoveryKey(ctx context.Context, keyID string, keySlots []RecoveryKeySlot) (*snapdResponse, error) {
+func (c *Client) ReplaceRecoveryKey(ctx context.Context, keyID string, keySlots []RecoveryKeySlot) (*Response, error) {
 	body := RecoveryKeyRequest{
 		Action:   "replace-recovery-key",
-		KeyId:    keyID,
+		KeyID:    keyID,
 		KeySlots: keySlots,
 	}
 
@@ -81,7 +81,7 @@ func (c *Client) ReplaceRecoveryKey(ctx context.Context, keyID string, keySlots 
 }
 
 // CheckRecoveryKey check a recovery key to the specified keyslots.
-func (c *Client) CheckRecoveryKey(ctx context.Context, recoveryKey string, containerRoles []string) (*snapdResponse, error) {
+func (c *Client) CheckRecoveryKey(ctx context.Context, recoveryKey string, containerRoles []string) (*Response, error) {
 	body := RecoveryKeyRequest{
 		Action:         "check-recovery-key",
 		RecoveryKey:    recoveryKey,

@@ -1,9 +1,11 @@
+// Package main is the entry point for snap-tpmctl.
 package main
 
 import (
 	"context"
 	"log/slog"
 	"os"
+
 	"snap-tpmctl/cmd/tpmctl/cmd"
 )
 

@@ -4,10 +4,10 @@ import (
 	"bytes"
 	"io"
 	"log/slog"
-	"snap-tpmctl/cmd/tpmctl/cmd"
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"snap-tpmctl/cmd/tpmctl/cmd"
 )
 
 func TestIsValidRecoveryKey(t *testing.T) {

@@ -57,7 +57,7 @@ func (c *Client) EnumerateKeySlots(ctx context.Context) (*SystemVolumesResult, e
 }
 
 // AddSystemVolumeKeySlots adds keyslots to a system volume.
-func (c *Client) AddSystemVolumeKeySlots(ctx context.Context, volume string, keySlots []VolumeKeySlot) (*snapdResponse, error) {
+func (c *Client) AddSystemVolumeKeySlots(ctx context.Context, volume string, keySlots []VolumeKeySlot) (*Response, error) {
 	body := SystemVolumesRequest{
 		Action:   "add-key",
 		Volume:   volume,
@@ -73,7 +73,7 @@ func (c *Client) AddSystemVolumeKeySlots(ctx context.Context, volume string, key
 }
 
 // RemoveSystemVolumeKeySlots removes keyslots from a system volume.
-func (c *Client) RemoveSystemVolumeKeySlots(ctx context.Context, volume string, keySlots []VolumeKeySlot) (*snapdResponse, error) {
+func (c *Client) RemoveSystemVolumeKeySlots(ctx context.Context, volume string, keySlots []VolumeKeySlot) (*Response, error) {
 	body := SystemVolumesRequest{
 		Action:   "remove-key",
 		Volume:   volume,

@@ -1,3 +1,4 @@
+// Package cmd implements the cli for exposing the cli commands snap-tpmctl supports
 package cmd
 
 import (
@@ -6,10 +7,10 @@ import (
 	"fmt"
 	"os"
 	"regexp"
-	"snap-tpmctl/internal/snapd"
 	"strings"
 
 	"github.com/urfave/cli/v3"
+	"snap-tpmctl/internal/snapd"
 )
 
 func newCheckCmd() *cli.Command {
@@ -71,6 +72,7 @@ func readUserInput() (string, error) {
 	return key, nil
 }
 
+// IsValidRecoveryKey checks to see if a recovery key matches expected formatting.
 func IsValidRecoveryKey(key string) error {
 	if key == "" {
 		return fmt.Errorf("recovery key cannot be empty")

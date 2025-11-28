@@ -1,3 +1,4 @@
+// Package snapd provides a client for making calls to the systems local snapd service
 package snapd
 
 import (
@@ -18,7 +19,7 @@ const (
 	defaultUserAgent  = "snapd.go"
 )
 
-// Client is a snapd client
+// Client is a snapd client.
 type Client struct {
 	httpClient       *http.Client
 	socketPath       string
@@ -96,8 +97,8 @@ func (c *Client) NewRequestBody(body any) (io.Reader, error) {
 	return reqBody, nil
 }
 
-// NewUrl constructs a new URL for the snapd REST API.
-func (c *Client) NewUrl(path string, query url.Values) url.URL {
+// NewURL constructs a new URL for the snapd REST API.
+func (c *Client) NewURL(path string, query url.Values) url.URL {
 	u := url.URL{
 		Scheme: "http",
 		Host:   "localhost",
@@ -111,8 +112,8 @@ func (c *Client) NewUrl(path string, query url.Values) url.URL {
 	return u
 }
 
-// snapdResponse is the base response structure from snapd.
-type snapdResponse struct {
+// Response is the base response structure from snapd.
+type Response struct {
 	Type       string          `json:"type"`
 	StatusCode int             `json:"status-code"`
 	Status     string          `json:"status"`
@@ -120,7 +121,8 @@ type snapdResponse struct {
 	Change     string          `json:"change,omitempty"`
 }
 
-func (r *snapdResponse) IsOK() bool {
+// IsOK checks if a commonly know snapd accepted status was returned.
+func (r *Response) IsOK() bool {
 	return r.Status == "Accepted" || r.Status == "OK"
 }
 
@@ -142,8 +144,8 @@ func (e *snapdError) Error() string {
 
 // NewResponseBody parses a JSON response body from snapd and returns a snapdResponse.
 // If the response type is "error", it extracts error details from the Result field and returns a snapdError.
-func (c *Client) NewResponseBody(body []byte) (*snapdResponse, error) {
-	var snapdResp snapdResponse
+func (c *Client) NewResponseBody(body []byte) (*Response, error) {
+	var snapdResp Response
 	if err := json.Unmarshal(body, &snapdResp); err != nil {
 		return nil, err
 	}
@@ -209,13 +211,15 @@ func (c *Client) LoadAuthFromHome() error {
 }
 
 // doRequest performs an HTTP request to snapd.
-func (c *Client) doRequest(ctx context.Context, method, path string, query url.Values, body any) (*snapdResponse, error) {
+//
+//nolint:unparam // path parameter may vary in future
+func (c *Client) doRequest(ctx context.Context, method, path string, query url.Values, body any) (*Response, error) {
 	reqBody, err := c.NewRequestBody(body)
 	if err != nil {
 		return nil, err
 	}
 
-	u := c.NewUrl(path, query)
+	u := c.NewURL(path, query)
 
 	req, err := http.NewRequestWithContext(ctx, method, u.String(), reqBody)
 	if err != nil {

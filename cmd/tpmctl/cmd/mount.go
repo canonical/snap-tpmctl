@@ -71,7 +71,7 @@ func getLuksPassphrase(ctx context.Context, cmd *cli.Command) error {
 	}
 	fmt.Println(msg)
 
-	println("Get LUKS passphrase for key", cmd.IntArg("key-id"))
+	fmt.Println("Get LUKS passphrase for key", cmd.IntArg("key-id"))
 
 	return nil
 }

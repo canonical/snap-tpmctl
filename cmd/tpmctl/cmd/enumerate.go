@@ -4,13 +4,12 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"snap-tpmctl/internal/snapd"
 	"strings"
 
+	sm "github.com/egregors/sortedmap"
 	"github.com/olekukonko/tablewriter"
 	"github.com/urfave/cli/v3"
-
-	sm "github.com/egregors/sortedmap"
+	"snap-tpmctl/internal/snapd"
 )
 
 func newEnumerateCmd() *cli.Command {
@@ -39,14 +38,14 @@ func enumerate(ctx context.Context) error {
 		return err
 	}
 
-	if err = printTable(res); err != nil {
+	if err = displayTable(res); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func printTable(data *snapd.SystemVolumesResult) error {
+func displayTable(data *snapd.SystemVolumesResult) error {
 	dashIfEmpty := func(s string) string {
 		if strings.TrimSpace(s) == "" {
 			return "-"
@@ -69,7 +68,7 @@ func printTable(data *snapd.SystemVolumesResult) error {
 		// TODO: find a better way to do this
 
 		if keyslots.Len() == 0 {
-			table.Append(
+			err := table.Append(
 				role,
 				volume.Name,
 				volume.VolumeName,
@@ -80,10 +79,13 @@ func printTable(data *snapd.SystemVolumesResult) error {
 				"-",
 				"-",
 			)
+			if err != nil {
+				return fmt.Errorf("failed to append table row: %w", err)
+			}
 		}
 
 		for name, slot := range keyslots.All() {
-			table.Append(
+			err := table.Append(
 				role,
 				volume.Name,
 				volume.VolumeName,
@@ -94,6 +96,9 @@ func printTable(data *snapd.SystemVolumesResult) error {
 				dashIfEmpty(strings.Join(slot.Roles, "+")),
 				dashIfEmpty(slot.Type),
 			)
+			if err != nil {
+				return fmt.Errorf("failed to append table row: %w", err)
+			}
 		}
 	}
 
@@ -102,5 +107,4 @@ func printTable(data *snapd.SystemVolumesResult) error {
 	}
 
 	return nil
-
 }

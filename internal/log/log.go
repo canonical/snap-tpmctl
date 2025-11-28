@@ -1,3 +1,4 @@
+// Package log is a temporary package until we forge our log structure.
 package log
 
 import (

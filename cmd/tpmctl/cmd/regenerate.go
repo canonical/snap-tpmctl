@@ -3,9 +3,9 @@ package cmd
 import (
 	"context"
 	"fmt"
-	"snap-tpmctl/internal/snapd"
 
 	"github.com/urfave/cli/v3"
+	"snap-tpmctl/internal/snapd"
 )
 
 func newRegenerateKeyCmd() *cli.Command {

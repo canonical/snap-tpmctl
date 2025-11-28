@@ -5,9 +5,8 @@ import (
 	"fmt"
 	"testing"
 
-	"snap-tpmctl/internal/log"
-
 	"github.com/stretchr/testify/require"
+	"snap-tpmctl/internal/log"
 )
 
 var supportedLevels = []log.Level{

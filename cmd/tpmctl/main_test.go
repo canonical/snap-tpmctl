@@ -14,7 +14,6 @@ import (
 type mockApp struct{ err error }
 
 func (m mockApp) Run() error {
-
 	return m.err
 }
 
@@ -47,7 +46,6 @@ func TestRun(t *testing.T) {
 			require.Equal(t, tc.want, got, "Return value does not match")
 
 			require.Contains(t, logs.String(), tc.wantInLog, "Logged expected output")
-
 		})
 	}
 }

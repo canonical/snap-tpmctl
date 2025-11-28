@@ -1,8 +1,9 @@
 package snapd_test
 
 import (
-	"snap-tpmctl/internal/snapd"
 	"testing"
+
+	"snap-tpmctl/internal/snapd"
 )
 
 func TestFoo(t *testing.T) {

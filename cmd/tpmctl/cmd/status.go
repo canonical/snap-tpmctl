@@ -3,9 +3,9 @@ package cmd
 import (
 	"context"
 	"errors"
-	"snap-tpmctl/internal/log"
 
 	"github.com/urfave/cli/v3"
+	"snap-tpmctl/internal/log"
 )
 
 func newStatusCmd() *cli.Command {

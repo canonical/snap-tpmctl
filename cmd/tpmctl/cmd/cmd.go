@@ -4,9 +4,8 @@ import (
 	"context"
 	"os"
 
-	"snap-tpmctl/internal/log"
-
 	"github.com/urfave/cli/v3"
+	"snap-tpmctl/internal/log"
 )
 
 /*
