@@ -5,5 +5,7 @@
 package tools
 
 import (
+	_ "github.com/AlekSi/gocov-xml"
+	_ "github.com/axw/gocov/gocov"
 	_ "github.com/golangci/golangci-lint/v2/cmd/golangci-lint"
 )
