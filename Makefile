@@ -16,7 +16,7 @@ RSYNC_OPTS ?= -az --delete --exclude .git --exclude bin --exclude '*.snap' --exc
 BIN_NAME := tpmctl
 LOCAL_BIN := bin/$(BIN_NAME)
 
-.PHONY: help build clean sync remote-build remote-test remote-status remote-run remote-shell remote-clean run test
+.PHONY: help build clean sync remote-build remote-test remote-status remote-run remote-shell remote-clean run test check
 
 # Catch-all rule to prevent Make from treating arguments as targets
 %:
@@ -50,3 +50,6 @@ remote-clean:
 	@echo 'Cleaning remote artifacts...'
 	@ssh $(SSH_OPTS) $(VM) 'cd $(REMOTE_DIR) && rm -rf bin'
 	@echo 'Remote artifacts cleaned.'
+
+check:
+	@golangci-lint-v2 run ./... --fix

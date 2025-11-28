@@ -2,15 +2,13 @@
 package cmd
 
 import (
-	"bufio"
 	"context"
 	"fmt"
-	"os"
 	"regexp"
-	"strings"
 
 	"github.com/urfave/cli/v3"
 	"snap-tpmctl/internal/snapd"
+	"snap-tpmctl/internal/tui"
 )
 
 func newCheckCmd() *cli.Command {
@@ -19,7 +17,7 @@ func newCheckCmd() *cli.Command {
 		Usage:   "Check recovery key",
 		Suggest: true,
 		Action: func(ctx context.Context, cmd *cli.Command) error {
-			key, err := readUserInput()
+			key, err := tui.ReadUserSecret("Enter recovery key: ")
 			if err != nil {
 				return err
 			}
@@ -54,22 +52,6 @@ func check(ctx context.Context, key string) error {
 	fmt.Println(msg)
 
 	return nil
-}
-
-func readUserInput() (string, error) {
-	fmt.Print("Enter recovery key: ")
-
-	reader := bufio.NewReader(os.Stdin)
-	key, err := reader.ReadString('\n')
-	if err != nil {
-		return "", fmt.Errorf("failed to read recovery key: %w", err)
-	}
-	key = strings.TrimSpace(key)
-
-	// Clear the terminal line to hide the recovery key from stdout
-	fmt.Print("\033[1A\033[2K")
-
-	return key, nil
 }
 
 // IsValidRecoveryKey checks to see if a recovery key matches expected formatting.

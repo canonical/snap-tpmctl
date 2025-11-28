@@ -123,7 +123,7 @@ type Response struct {
 
 // IsOK checks if a commonly know snapd accepted status was returned.
 func (r *Response) IsOK() bool {
-	return r.Status == "Accepted" || r.Status == "OK"
+	return r.Status == "Accepted" || r.Status == "OK" || r.StatusCode == 200 || r.StatusCode == 202
 }
 
 // snapdError represents an error from snapd.
@@ -142,7 +142,7 @@ func (e *snapdError) Error() string {
 	return fmt.Sprintf("snapd error: %s", e.Message)
 }
 
-// NewResponseBody parses a JSON response body from snapd and returns a snapdResponse.
+// NewResponseBody parses a JSON response body from snapd and returns a Response.
 // If the response type is "error", it extracts error details from the Result field and returns a snapdError.
 func (c *Client) NewResponseBody(body []byte) (*Response, error) {
 	var snapdResp Response

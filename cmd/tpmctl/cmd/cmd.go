@@ -56,6 +56,8 @@ func newRootCmd() cli.Command {
 			newEnumerateCmd(),
 			newGetLuksPassphraseCmd(),
 			newMountVolumeCmd(),
+			newReplacePassphraseCmd(),
+			newReplacePinCmd(),
 			newRegenerateEnterpriseKeyCmd(),
 			newRegenerateKeyCmd(),
 			newStatusCmd(),

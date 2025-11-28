@@ -6,10 +6,10 @@ import (
 	"net/http"
 )
 
-// RecoveryKeySlot describes a recovery keyslot target.
+// KeySlot describes a recovery keyslot target.
 // If ContainerRole is omitted, the keyslot will be implicitly expanded
 // into two target keyslots for both "system-data" and "system-save".
-type RecoveryKeySlot struct {
+type KeySlot struct {
 	ContainerRole string `json:"container-role,omitempty"`
 	Name          string `json:"name"`
 }
@@ -22,11 +22,11 @@ type GenerateRecoveryKeyResult struct {
 
 // RecoveryKeyRequest represents a request to manage recovery keys in snapd.
 type RecoveryKeyRequest struct {
-	Action         string            `json:"action"`
-	KeyID          string            `json:"key-id,omitempty"`
-	KeySlots       []RecoveryKeySlot `json:"keyslots,omitempty"`
-	RecoveryKey    string            `json:"recovery-key,omitempty"`
-	ContainerRoles []string          `json:"container-role,omitempty"`
+	Action         string    `json:"action"`
+	KeyID          string    `json:"key-id,omitempty"`
+	KeySlots       []KeySlot `json:"keyslots,omitempty"`
+	RecoveryKey    string    `json:"recovery-key,omitempty"`
+	ContainerRoles []string  `json:"container-role,omitempty"`
 }
 
 // GenerateRecoveryKey creates a new recovery key and returns the key and its ID.
@@ -49,7 +49,7 @@ func (c *Client) GenerateRecoveryKey(ctx context.Context) (*GenerateRecoveryKeyR
 }
 
 // AddRecoveryKey adds a recovery key to the specified keyslots.
-func (c *Client) AddRecoveryKey(ctx context.Context, keyID string, keySlots []RecoveryKeySlot) (*Response, error) {
+func (c *Client) AddRecoveryKey(ctx context.Context, keyID string, keySlots []KeySlot) (*Response, error) {
 	body := RecoveryKeyRequest{
 		Action:   "add-recovery-key",
 		KeyID:    keyID,
@@ -65,7 +65,7 @@ func (c *Client) AddRecoveryKey(ctx context.Context, keyID string, keySlots []Re
 }
 
 // ReplaceRecoveryKey replaces a recovery key to the specified keyslots.
-func (c *Client) ReplaceRecoveryKey(ctx context.Context, keyID string, keySlots []RecoveryKeySlot) (*Response, error) {
+func (c *Client) ReplaceRecoveryKey(ctx context.Context, keyID string, keySlots []KeySlot) (*Response, error) {
 	body := RecoveryKeyRequest{
 		Action:   "replace-recovery-key",
 		KeyID:    keyID,

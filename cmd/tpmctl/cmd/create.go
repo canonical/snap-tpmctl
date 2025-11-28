@@ -13,8 +13,6 @@ func newCreateKeyCmd() *cli.Command {
 		Name:  "create-key",
 		Usage: "Create a new local recovery key",
 		Action: func(ctx context.Context, cmd *cli.Command) error {
-			// TODO: let req fail if not root
-
 			return createKey(ctx)
 		},
 	}
