@@ -9,6 +9,15 @@ import (
 	"snap-tpmctl/internal/snapd"
 )
 
+// FIXME: Didier? :D
+type snapdClienter interface {
+	LoadAuthFromHome() error
+	GenerateRecoveryKey(ctx context.Context) (*snapd.GenerateRecoveryKeyResult, error)
+	EnumerateKeySlots(ctx context.Context) (*snapd.SystemVolumesResult, error)
+	AddRecoveryKey(ctx context.Context, keyID string, slots []snapd.KeySlot) (*snapd.AsyncResponse, error)
+	Close() error
+}
+
 func newCreateKeyCmd() *cli.Command {
 	var recoveryKeyName string
 
@@ -23,30 +32,25 @@ func newCreateKeyCmd() *cli.Command {
 			},
 		},
 		Action: func(ctx context.Context, cmd *cli.Command) error {
-			return createKey(ctx, recoveryKeyName)
+			c := snapd.NewClient()
+			defer c.Close()
+			return createKey(ctx, c, recoveryKeyName)
 		},
 	}
 }
 
-func createKey(ctx context.Context, recoveryKeyName string) error {
-	c := snapd.NewClient()
-	defer c.Close()
-
-	if err := c.LoadAuthFromHome(); err != nil {
+func createKey(ctx context.Context, client snapdClienter, recoveryKeyName string) error {
+	if err := client.LoadAuthFromHome(); err != nil {
 		return fmt.Errorf("failed to load auth: %w", err)
 	}
 
-	if recoveryKeyName == "" {
-		return fmt.Errorf("recovery key name cannot be empty")
-	}
-
-	if strings.HasPrefix(recoveryKeyName, "snap") || strings.HasPrefix(recoveryKeyName, "default") {
-		return fmt.Errorf("recovery key name cannot start with 'snap' or 'default'")
-	}
-
-	key, err := c.GenerateRecoveryKey(ctx)
+	key, err := client.GenerateRecoveryKey(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to generate recovery key: %w", err)
+	}
+
+	if err := isValidRecoveryKeyName(ctx, client, recoveryKeyName); err != nil {
+		return err
 	}
 
 	fmt.Printf("Recovery Key: %s\n", key.RecoveryKey)
@@ -54,12 +58,40 @@ func createKey(ctx context.Context, recoveryKeyName string) error {
 
 	keySlots := []snapd.KeySlot{{Name: recoveryKeyName}}
 
-	resp, err := c.AddRecoveryKey(ctx, key.KeyID, keySlots)
+	resp, err := client.AddRecoveryKey(ctx, key.KeyID, keySlots)
 	if err != nil {
 		return fmt.Errorf("failed to add recovery key: %w", err)
 	}
 
 	fmt.Println(resp.Status)
+
+	return nil
+}
+
+func isValidRecoveryKeyName(ctx context.Context, client snapdClienter, recoveryKeyName string) error {
+	// Recovery key name cannot be empty.
+	if recoveryKeyName == "" {
+		return fmt.Errorf("recovery key name cannot be empty")
+	}
+
+	// Recovery key name cannot start with 'snap' or 'default'.
+	if strings.HasPrefix(recoveryKeyName, "snap") || strings.HasPrefix(recoveryKeyName, "default") {
+		return fmt.Errorf("recovery key name cannot start with 'snap' or 'default'")
+	}
+
+	// Recovery key name cannot already be in use.
+	result, err := client.EnumerateKeySlots(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to enumerate key slots: %w", err)
+	}
+
+	for _, volumeInfo := range result.ByContainerRole {
+		for slotName := range volumeInfo.KeySlots {
+			if slotName == recoveryKeyName {
+				return fmt.Errorf("recovery key name %q is already in use", recoveryKeyName)
+			}
+		}
+	}
 
 	return nil
 }
