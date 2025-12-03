@@ -9,8 +9,7 @@ import (
 	"snap-tpmctl/internal/snapd"
 )
 
-// FIXME: Didier? :D
-type snapdClienter interface {
+type keyCreator interface {
 	LoadAuthFromHome() error
 	GenerateRecoveryKey(ctx context.Context) (*snapd.GenerateRecoveryKeyResult, error)
 	EnumerateKeySlots(ctx context.Context) (*snapd.SystemVolumesResult, error)
@@ -39,11 +38,13 @@ func newCreateKeyCmd() *cli.Command {
 	}
 }
 
-func createKey(ctx context.Context, client snapdClienter, recoveryKeyName string) error {
+// FIXME: Keep io here
+func createKey(ctx context.Context, client keyCreator, recoveryKeyName string) error {
 	if err := client.LoadAuthFromHome(); err != nil {
 		return fmt.Errorf("failed to load auth: %w", err)
 	}
 
+	// FIXME: move this out such that only the printf remains, move to internal to do the snapd interactions, returning err, key, etc.
 	key, err := client.GenerateRecoveryKey(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to generate recovery key: %w", err)
@@ -68,7 +69,7 @@ func createKey(ctx context.Context, client snapdClienter, recoveryKeyName string
 	return nil
 }
 
-func isValidRecoveryKeyName(ctx context.Context, client snapdClienter, recoveryKeyName string) error {
+func isValidRecoveryKeyName(ctx context.Context, client keyCreator, recoveryKeyName string) error {
 	// Recovery key name cannot be empty.
 	if recoveryKeyName == "" {
 		return fmt.Errorf("recovery key name cannot be empty")

@@ -27,7 +27,8 @@ func TestCreateKey(t *testing.T) {
 		"Success": {
 			recoveryKeyName: "my-key",
 		},
-
+		
+		// FIXME: drop wantInErr
 		// Validation errors
 		"Error when name empty": {
 			recoveryKeyName: "",
@@ -99,7 +100,8 @@ func TestCreateKey(t *testing.T) {
 			mockClient.AddKeyError = tc.addKeyFails
 
 			err := cmd.CreateKey(ctx, mockClient, tc.recoveryKeyName)
-
+			
+			// FIXME: this pattern needs work
 			if tc.wantErr {
 				be.Err(t, err, tc.wantInErr)
 			} else {
