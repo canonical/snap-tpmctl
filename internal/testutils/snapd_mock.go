@@ -8,8 +8,6 @@ import (
 	"snap-tpmctl/internal/snapd"
 )
 
-// FIXME: move this into a submodule, testutils_snapd/
-
 // MockSnapdClient is a mock implementation of the snapdClienter interface for testing.
 type MockSnapdClient struct {
 	// Error flags
