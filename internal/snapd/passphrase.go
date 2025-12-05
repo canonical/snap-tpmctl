@@ -77,3 +77,21 @@ func (c *Client) CheckPIN(ctx context.Context, pin string) (*Response, error) {
 
 	return resp, nil
 }
+
+// ReplacePIN replaces a PIN to the specified keyslots.
+// This is an async operation that waits for completion.
+func (c *Client) ReplacePIN(ctx context.Context, oldPin string, newPin string, keySlots []KeySlot) (*AsyncResponse, error) {
+	body := PINRequest{
+		Action:   "change-pin",
+		NewPin:   newPin,
+		OldPin:   oldPin,
+		KeySlots: keySlots,
+	}
+
+	resp, err := c.doAsyncRequest(ctx, http.MethodPost, "/v2/system-volumes", nil, body)
+	if err != nil {
+		return nil, err
+	}
+
+	return resp, nil
+}

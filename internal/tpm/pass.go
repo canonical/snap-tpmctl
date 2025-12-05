@@ -15,6 +15,7 @@ type passphraseReplacer interface {
 	CheckPassphrase(ctx context.Context, passphrase string) (*snapd.Response, error)
 	CheckPIN(ctx context.Context, pin string) (*snapd.Response, error)
 	ReplacePassphrase(ctx context.Context, oldPassphrase string, newPassphrase string, keySlots []snapd.KeySlot) (*snapd.AsyncResponse, error)
+	ReplacePIN(ctx context.Context, oldPin string, newPin string, keySlots []snapd.KeySlot) (*snapd.AsyncResponse, error)
 }
 
 // resultValue represents the value field in validation error responses from snapd.
@@ -125,6 +126,20 @@ func ReplacePassphrase(ctx context.Context, client passphraseReplacer, oldPassph
 
 	if !ares.IsOK() {
 		return fmt.Errorf("unable to replace passphrase")
+	}
+
+	return nil
+}
+
+// ReplacePIN replaces the PIN using the provided client.
+func ReplacePIN(ctx context.Context, client passphraseReplacer, oldPin, newPin string) error {
+	ares, err := client.ReplacePIN(ctx, oldPin, newPin, nil)
+	if err != nil {
+		return fmt.Errorf("failed to change PIN: %w", err)
+	}
+
+	if !ares.IsOK() {
+		return fmt.Errorf("unable to replace PIN")
 	}
 
 	return nil
