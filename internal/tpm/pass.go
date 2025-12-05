@@ -123,12 +123,9 @@ func ReplacePassphrase(ctx context.Context, client passphraseReplacer, oldPassph
 		return fmt.Errorf("failed to change passphrase: %w", err)
 	}
 
-	msg := "Unable to replace passphrase"
-	if ares.IsOK() {
-		msg = "Passphrase replaced successfully"
+	if !ares.IsOK() {
+		return fmt.Errorf("unable to replace passphrase")
 	}
-
-	fmt.Println(msg)
 
 	return nil
 }

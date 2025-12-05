@@ -5,7 +5,7 @@ import (
 	"net/http"
 )
 
-// PassphraseRequest represents a request to manage passphrase in snapd.
+// PassphraseRequest represents a request to manage passphrases in snapd.
 type PassphraseRequest struct {
 	Action        string    `json:"action"`
 	KeySlots      []KeySlot `json:"keyslots,omitempty"`
@@ -14,13 +14,13 @@ type PassphraseRequest struct {
 	Passphrase    string    `json:"passphrase,omitempty"`
 }
 
-// PinRequest represents a request to manage passphrase in snapd.
-type PinRequest struct {
+// PINRequest represents a request to manage a PINs in snapd.
+type PINRequest struct {
 	Action   string    `json:"action"`
 	KeySlots []KeySlot `json:"keyslots,omitempty"`
-	NewPin   string    `json:"new-passphrase,omitempty"`
-	OldPin   string    `json:"old-passphrase,omitempty"`
-	Pin      string    `json:"passphrase,omitempty"`
+	NewPin   string    `json:"new-pin,omitempty"`
+	OldPin   string    `json:"old-pin,omitempty"`
+	Pin      string    `json:"pin,omitempty"`
 }
 
 // ReplacePassphrase replaces a passphrase to the specified keyslots.
@@ -64,10 +64,10 @@ func (c *Client) CheckPassphrase(ctx context.Context, passphrase string) (*Respo
 }
 
 // CheckPIN checks if the provided PIN is valid.
-func (c *Client) CheckPIN(ctx context.Context, passphrase string) (*Response, error) {
-	body := PinRequest{
+func (c *Client) CheckPIN(ctx context.Context, pin string) (*Response, error) {
+	body := PINRequest{
 		Action: "check-pin",
-		Pin:    passphrase,
+		Pin:    pin,
 	}
 
 	resp, err := c.doRequest(ctx, http.MethodPost, "/v2/system-volumes", nil, body)

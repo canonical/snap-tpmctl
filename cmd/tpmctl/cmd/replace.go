@@ -50,7 +50,7 @@ func newReplacePassphraseCmd() *cli.Command {
 func newReplacePinCmd() *cli.Command {
 	return &cli.Command{
 		Name:  "replace-pin",
-		Usage: "Repalce encryption pin",
+		Usage: "Replace encryption PIN",
 		Action: func(ctx context.Context, cmd *cli.Command) error {
 			return replacePin(ctx)
 		},
@@ -58,6 +58,6 @@ func newReplacePinCmd() *cli.Command {
 }
 
 func replacePin(_ context.Context) error {
-	fmt.Println("Repalce encryption pin")
+	fmt.Println("Replace encryption pin")
 	return nil
 }

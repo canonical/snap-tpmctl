@@ -170,7 +170,7 @@ func (e *Error) Error() string {
 }
 
 // NewResponseBody parses a JSON response body from snapd and returns a Response.
-// If the response type is "error", it extracts error details from the Result field and returns a SnapdError.
+// If the response type is "error", it extracts error details from the Result field and returns an Error.
 func (c *Client) NewResponseBody(body []byte) (*Response, error) {
 	var snapdResp Response
 	if err := json.Unmarshal(body, &snapdResp); err != nil {
