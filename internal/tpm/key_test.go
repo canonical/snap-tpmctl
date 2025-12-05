@@ -49,9 +49,9 @@ func TestValidateRecoveryKeyName(t *testing.T) {
 
 			ctx := context.Background()
 
-			// Configure mock based on test case flags
-			mockClient := testutils.NewMockSnapdClient()
-			mockClient.EnumerateError = tc.enumerateFails
+			mockClient := testutils.NewMockSnapdClient(testutils.MockConfig{
+				EnumerateError: tc.enumerateFails,
+			})
 
 			err := tpm.ValidateRecoveryKeyName(ctx, mockClient, tc.recoveryKeyName)
 
@@ -95,11 +95,10 @@ func TestCreateKey(t *testing.T) {
 			t.Parallel()
 
 			ctx := context.Background()
-			mockClient := testutils.NewMockSnapdClient()
-
-			// Configure mock based on test case flags
-			mockClient.GenerateKeyError = tc.generateKeyFails
-			mockClient.AddKeyError = tc.addKeyFails
+			mockClient := testutils.NewMockSnapdClient(testutils.MockConfig{
+				GenerateKeyError: tc.generateKeyFails,
+				AddKeyError:      tc.addKeyFails,
+			})
 
 			res, err := tpm.CreateKey(ctx, mockClient, tc.recoveryKeyName)
 

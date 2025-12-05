@@ -6,6 +6,7 @@ import (
 
 	"github.com/urfave/cli/v3"
 	"snap-tpmctl/internal/snapd"
+	"snap-tpmctl/internal/tpm"
 	"snap-tpmctl/internal/tui"
 )
 
@@ -14,6 +15,14 @@ func newReplacePassphraseCmd() *cli.Command {
 		Name:  "replace-passphrase",
 		Usage: "Replace encryption passphrase",
 		Action: func(ctx context.Context, cmd *cli.Command) error {
+			c := snapd.NewClient()
+			defer c.Close()
+
+			// Load auth before validation
+			if err := c.LoadAuthFromHome(); err != nil {
+				return fmt.Errorf("failed to load auth: %w", err)
+			}
+
 			oldPassphrase, err := tui.ReadUserSecret("Enter current passphrase: ")
 			if err != nil {
 				return err
@@ -29,73 +38,48 @@ func newReplacePassphraseCmd() *cli.Command {
 				return err
 			}
 
-			if err := IsValidPassphrase(newPassphrase, confirmPassphrase); err != nil {
+			if err := tpm.IsValidPassphrase(ctx, c, newPassphrase, confirmPassphrase); err != nil {
 				return err
 			}
 
-			return replacePassphrase(ctx, oldPassphrase, newPassphrase)
+			return tpm.ReplacePassphrase(ctx, c, oldPassphrase, newPassphrase)
 		},
 	}
-}
-
-func replacePassphrase(ctx context.Context, oldPassphrase, newPassphrase string) error {
-	c := snapd.NewClient()
-	defer c.Close()
-
-	if err := c.LoadAuthFromHome(); err != nil {
-		return fmt.Errorf("failed to load auth: %w", err)
-	}
-
-	res, err := c.CheckPassphrase(ctx, newPassphrase)
-	if err != nil {
-		return fmt.Errorf("failed to check passphrase: %w", err)
-	}
-
-	if !res.IsOK() {
-		return fmt.Errorf("weak passphrase, make it longer or more complex")
-	}
-
-	ares, err := c.ReplacePassphrase(ctx, oldPassphrase, newPassphrase, nil)
-	if err != nil {
-		return fmt.Errorf("failed to change passphrase: %w", err)
-	}
-
-	msg := "Unable to replace passphrase"
-	if ares.IsOK() {
-		msg = "Passphrase replaced successfully"
-	}
-
-	fmt.Println(msg)
-
-	return nil
 }
 
 func newReplacePinCmd() *cli.Command {
 	return &cli.Command{
 		Name:  "replace-pin",
-		Usage: "Repalce encryption pin",
+		Usage: "Replace encryption PIN",
 		Action: func(ctx context.Context, cmd *cli.Command) error {
-			return replacePin(ctx)
+			c := snapd.NewClient()
+			defer c.Close()
+
+			// Load auth before validation
+			if err := c.LoadAuthFromHome(); err != nil {
+				return fmt.Errorf("failed to load auth: %w", err)
+			}
+
+			oldPin, err := tui.ReadUserSecret("Enter current PIN: ")
+			if err != nil {
+				return err
+			}
+
+			newPin, err := tui.ReadUserSecret("Enter new PIN: ")
+			if err != nil {
+				return err
+			}
+
+			confirmPin, err := tui.ReadUserSecret("Confirm new PIN: ")
+			if err != nil {
+				return err
+			}
+
+			if err := tpm.IsValidPIN(ctx, c, newPin, confirmPin); err != nil {
+				return err
+			}
+
+			return tpm.ReplacePIN(ctx, c, oldPin, newPin)
 		},
 	}
-}
-
-func replacePin(_ context.Context) error {
-	fmt.Println("Repalce encryption pin")
-	return nil
-}
-
-// IsValidPassphrase validates that the passphrase and confirmation match and are not empty.
-func IsValidPassphrase(passphrase, confirm string) error {
-	if passphrase == "" || confirm == "" {
-		return fmt.Errorf("passphrase cannot be empty, try again")
-	}
-
-	if passphrase != confirm {
-		return fmt.Errorf("passphrases do not match, try again")
-	}
-
-	// TODO: do we need to add a regex for valid char?
-
-	return nil
 }

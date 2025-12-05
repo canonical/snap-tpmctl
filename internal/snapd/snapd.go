@@ -122,6 +122,13 @@ type Response struct {
 	Change     string          `json:"change,omitempty"`
 }
 
+// Result is the result structure returned from snapd in a response.
+type Result struct {
+	Kind    string          `json:"kind"`
+	Message string          `json:"message"`
+	Value   json.RawMessage `json:"value,omitempty"`
+}
+
 // IsOK checks if a commonly know snapd accepted status was returned.
 func (r *Response) IsOK() bool {
 	return r.Status == "Accepted" || r.Status == "OK" || r.StatusCode == 200 || r.StatusCode == 202
@@ -146,16 +153,16 @@ func (r *AsyncResponse) IsOK() bool {
 	return r.Ready && r.Status == "Done"
 }
 
-// snapdError represents an error from snapd.
-type snapdError struct {
+// Error represents an error from snapd.
+type Error struct {
 	Message    string
 	Kind       string
 	StatusCode int
 	Status     string
-	Value      any
+	Value      json.RawMessage
 }
 
-func (e *snapdError) Error() string {
+func (e *Error) Error() string {
 	if e.Kind != "" {
 		return fmt.Sprintf("snapd error: %s (%s)", e.Message, e.Kind)
 	}
@@ -163,7 +170,7 @@ func (e *snapdError) Error() string {
 }
 
 // NewResponseBody parses a JSON response body from snapd and returns a Response.
-// If the response type is "error", it extracts error details from the Result field and returns a snapdError.
+// If the response type is "error", it extracts error details from the Result field and returns an Error.
 func (c *Client) NewResponseBody(body []byte) (*Response, error) {
 	var snapdResp Response
 	if err := json.Unmarshal(body, &snapdResp); err != nil {
@@ -172,16 +179,16 @@ func (c *Client) NewResponseBody(body []byte) (*Response, error) {
 
 	if snapdResp.Type == "error" {
 		var errResp struct {
-			Message string         `json:"message"`
-			Kind    string         `json:"kind,omitempty"`
-			Value   map[string]any `json:"value,omitempty"`
+			Message string          `json:"message"`
+			Kind    string          `json:"kind,omitempty"`
+			Value   json.RawMessage `json:"value,omitempty"`
 		}
 
 		if err := json.Unmarshal(snapdResp.Result, &errResp); err != nil {
 			return nil, err
 		}
 
-		return nil, &snapdError{
+		return nil, &Error{
 			Message:    errResp.Message,
 			Kind:       errResp.Kind,
 			StatusCode: snapdResp.StatusCode,
