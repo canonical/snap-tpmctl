@@ -14,15 +14,6 @@ type PassphraseRequest struct {
 	Passphrase    string    `json:"passphrase,omitempty"`
 }
 
-// PINRequest represents a request to manage PINs in snapd.
-type PINRequest struct {
-	Action   string    `json:"action"`
-	KeySlots []KeySlot `json:"keyslots,omitempty"`
-	NewPin   string    `json:"new-pin,omitempty"`
-	OldPin   string    `json:"old-pin,omitempty"`
-	Pin      string    `json:"pin,omitempty"`
-}
-
 // ReplacePassphrase replaces a passphrase to the specified keyslots.
 // This is an async operation that waits for completion.
 func (c *Client) ReplacePassphrase(ctx context.Context, oldPassphrase string, newPassphrase string, keySlots []KeySlot) (*AsyncResponse, error) {
@@ -41,13 +32,6 @@ func (c *Client) ReplacePassphrase(ctx context.Context, oldPassphrase string, ne
 	return resp, nil
 }
 
-// EntropyResponse contains entropy calculation results.
-// type EntropyResponse struct {
-// 	Entropy            uint `json:"entropy-bits"`
-// 	MinEntropyBits     uint `json:"min-entropy-bits"`
-// 	OptimalEntropyBits uint `json:"optimal-entropy-bits"`
-// }
-
 // CheckPassphrase checks if the provided passphrase is valid.
 func (c *Client) CheckPassphrase(ctx context.Context, passphrase string) (*Response, error) {
 	body := PassphraseRequest{
@@ -61,6 +45,15 @@ func (c *Client) CheckPassphrase(ctx context.Context, passphrase string) (*Respo
 	}
 
 	return resp, nil
+}
+
+// PINRequest represents a request to manage PINs in snapd.
+type PINRequest struct {
+	Action   string    `json:"action"`
+	KeySlots []KeySlot `json:"keyslots,omitempty"`
+	NewPin   string    `json:"new-pin,omitempty"`
+	OldPin   string    `json:"old-pin,omitempty"`
+	Pin      string    `json:"pin,omitempty"`
 }
 
 // CheckPIN checks if the provided PIN is valid.
@@ -134,9 +127,6 @@ func (c *Client) ReplacePlatformKey(ctx context.Context, authMode AuthMode, pin,
 		AuthMode:   authMode,
 		Pin:        pin,
 		Passphrase: passphrase,
-		KDFTime:    nil,
-		KDFType:    "",
-		KeySlots:   nil,
 	}
 
 	resp, err := c.doAsyncRequest(ctx, http.MethodPost,

@@ -62,7 +62,7 @@ func newAddPassphraseCmd() *cli.Command {
 func newAddPINCmd() *cli.Command {
 	return &cli.Command{
 		Name:  "add-pin",
-		Usage: "Add pin authentication",
+		Usage: "Add PIN authentication",
 		Action: func(ctx context.Context, cmd *cli.Command) error {
 			// Ensure that the user's effective ID is root
 			if os.Geteuid() != 0 {
