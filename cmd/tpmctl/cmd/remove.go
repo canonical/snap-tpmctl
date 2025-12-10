@@ -45,7 +45,7 @@ func newRemovePassphraseCmd() *cli.Command {
 func newRemovePINCmd() *cli.Command {
 	return &cli.Command{
 		Name:  "remove-pin",
-		Usage: "Remove pin authentication",
+		Usage: "Remove PIN authentication",
 		Action: func(ctx context.Context, cmd *cli.Command) error {
 			// Ensure that the user's effective ID is root
 			if os.Geteuid() != 0 {
