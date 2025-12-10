@@ -9,61 +9,6 @@ import (
 	"snap-tpmctl/internal/tpm"
 )
 
-func TestValidateRecoveryKeyName(t *testing.T) {
-	t.Parallel()
-
-	tests := map[string]struct {
-		recoveryKeyName string
-		enumerateFails  bool
-		wantErr         bool
-	}{
-		"Success": {
-			recoveryKeyName: "my-key",
-		},
-		"Error when name empty": {
-			recoveryKeyName: "",
-			wantErr:         true,
-		},
-		"Error when name starts with snap": {
-			recoveryKeyName: "snap-key",
-			wantErr:         true,
-		},
-		"Error when name starts with default": {
-			recoveryKeyName: "default-key",
-			wantErr:         true,
-		},
-		"Error when name matches existing recovery Key": {
-			recoveryKeyName: "additional-recovery",
-			wantErr:         true,
-		},
-		"Error when enumerate fails": {
-			recoveryKeyName: "my-key",
-			enumerateFails:  true,
-			wantErr:         true,
-		},
-	}
-
-	for name, tc := range tests {
-		t.Run(name, func(t *testing.T) {
-			t.Parallel()
-
-			ctx := context.Background()
-
-			mockClient := testutils.NewMockSnapdClient(testutils.MockConfig{
-				EnumerateError: tc.enumerateFails,
-			})
-
-			err := tpm.ValidateRecoveryKeyName(ctx, mockClient, tc.recoveryKeyName)
-
-			if tc.wantErr {
-				be.Err(t, err)
-				return
-			}
-			be.Err(t, err, nil)
-		})
-	}
-}
-
 func TestCreateKey(t *testing.T) {
 	t.Parallel()
 

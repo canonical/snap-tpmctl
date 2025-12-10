@@ -35,8 +35,14 @@ type MockConfig struct {
 	PINNotOK       bool
 
 	// Replace operation flags
-	ReplacePassphraseNotOK bool
-	ReplacePINNotOK        bool
+	ReplacePassphraseNotOK  bool
+	ReplacePINNotOK         bool
+	ReplacePlatformKeyError bool
+	ReplacePlatformKeyNotOK bool
+
+	// AuthMode configuration for EnumerateKeySlots
+	// If not set, defaults to "passphrase"
+	AuthMode string
 }
 
 // MockSnapdClient is a mock implementation of the snapdClienter interface for testing.
@@ -51,6 +57,12 @@ type MockSnapdClient struct {
 
 // NewMockSnapdClient creates a new mock snapd client with the given configuration.
 func NewMockSnapdClient(cfg MockConfig) *MockSnapdClient {
+	// Default to passphrase if not set
+	authMode := cfg.AuthMode
+	if authMode == "" {
+		authMode = "passphrase"
+	}
+
 	return &MockSnapdClient{
 		config: cfg,
 		generatedKey: &snapd.GenerateRecoveryKeyResult{
@@ -66,13 +78,13 @@ func NewMockSnapdClient(cfg MockConfig) *MockSnapdClient {
 					KeySlots: map[string]snapd.KeySlotInfo{
 						"default": {
 							Type:         "platform",
-							AuthMode:     "passphrase",
+							AuthMode:     authMode,
 							PlatformName: "tpm2",
 							Roles:        []string{"run+recover"},
 						},
 						"default-fallback": {
 							Type:         "platform",
-							AuthMode:     "passphrase",
+							AuthMode:     authMode,
 							PlatformName: "tpm2",
 							Roles:        []string{"recover"},
 						},
@@ -96,7 +108,7 @@ func NewMockSnapdClient(cfg MockConfig) *MockSnapdClient {
 						},
 						"default-fallback": {
 							Type:         "platform",
-							AuthMode:     "passphrase",
+							AuthMode:     authMode,
 							PlatformName: "tpm2",
 							Roles:        []string{"recover"},
 						},
@@ -254,6 +266,21 @@ func (m MockSnapdClient) ReplacePIN(ctx context.Context, oldPin string, newPin s
 		return nil, errors.New("mocked error for ReplacePIN: cannot replace PIN: permission denied")
 	}
 	if m.config.ReplacePINNotOK {
+		return &snapd.AsyncResponse{
+			ID:     "change-123",
+			Status: "Error",
+			Ready:  false,
+		}, nil
+	}
+	return m.asyncResp, nil
+}
+
+// ReplacePlatformKey simulates replacing a platform key.
+func (m MockSnapdClient) ReplacePlatformKey(ctx context.Context, authMode snapd.AuthMode, pin, passphrase string) (*snapd.AsyncResponse, error) {
+	if m.config.ReplacePlatformKeyError {
+		return nil, errors.New("mocked error for ReplacePlatformKey: cannot replace platform key: permission denied")
+	}
+	if m.config.ReplacePlatformKeyNotOK {
 		return &snapd.AsyncResponse{
 			ID:     "change-123",
 			Status: "Error",

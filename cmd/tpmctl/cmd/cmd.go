@@ -61,6 +61,10 @@ func newRootCmd() cli.Command {
 			newRegenerateEnterpriseKeyCmd(),
 			newRegenerateKeyCmd(),
 			newStatusCmd(),
+			newAddPINCmd(),
+			newAddPassphraseCmd(),
+			newRemovePINCmd(),
+			newRemovePassphraseCmd(),
 		},
 		Flags: []cli.Flag{
 			&cli.BoolFlag{

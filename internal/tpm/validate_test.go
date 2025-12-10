@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/nalgeon/be"
+	"snap-tpmctl/internal/snapd"
 	"snap-tpmctl/internal/testutils"
 	"snap-tpmctl/internal/tpm"
 )
@@ -137,23 +138,38 @@ func TestIsValidPIN(t *testing.T) {
 	}
 }
 
-//nolint:dupl // Similar test pattern for different function (ReplacePassphrase vs ReplacePIN)
-func TestReplacePassphrase(t *testing.T) {
+func TestValidateRecoveryKeyName(t *testing.T) {
 	t.Parallel()
 
 	tests := map[string]struct {
-		oldPassphrase string
-		newPassphrase string
-
-		replacePassphraseError bool
-		replacePassphraseNotOK bool
-
-		wantErr bool
+		recoveryKeyName string
+		enumerateFails  bool
+		wantErr         bool
 	}{
-		"Success": {oldPassphrase: "old-passphrase", newPassphrase: "new-passphrase"},
-
-		"Error when snapd down":      {oldPassphrase: "old-passphrase", newPassphrase: "new-passphrase", replacePassphraseError: true, wantErr: true},
-		"Error when response not ok": {oldPassphrase: "old-passphrase", newPassphrase: "new-passphrase", replacePassphraseNotOK: true, wantErr: true},
+		"Success": {
+			recoveryKeyName: "my-key",
+		},
+		"Error when name empty": {
+			recoveryKeyName: "",
+			wantErr:         true,
+		},
+		"Error when name starts with snap": {
+			recoveryKeyName: "snap-key",
+			wantErr:         true,
+		},
+		"Error when name starts with default": {
+			recoveryKeyName: "default-key",
+			wantErr:         true,
+		},
+		"Error when name matches existing recovery Key": {
+			recoveryKeyName: "additional-recovery",
+			wantErr:         true,
+		},
+		"Error when enumerate fails": {
+			recoveryKeyName: "my-key",
+			enumerateFails:  true,
+			wantErr:         true,
+		},
 	}
 
 	for name, tc := range tests {
@@ -161,12 +177,12 @@ func TestReplacePassphrase(t *testing.T) {
 			t.Parallel()
 
 			ctx := context.Background()
+
 			mockClient := testutils.NewMockSnapdClient(testutils.MockConfig{
-				ReplacePassphraseError: tc.replacePassphraseError,
-				ReplacePassphraseNotOK: tc.replacePassphraseNotOK,
+				EnumerateError: tc.enumerateFails,
 			})
 
-			err := tpm.ReplacePassphrase(ctx, mockClient, tc.oldPassphrase, tc.newPassphrase)
+			err := tpm.ValidateRecoveryKeyName(ctx, mockClient, tc.recoveryKeyName)
 
 			if tc.wantErr {
 				be.Err(t, err)
@@ -177,23 +193,34 @@ func TestReplacePassphrase(t *testing.T) {
 	}
 }
 
-//nolint:dupl // Similar test pattern for different function (ReplacePassphrase vs ReplacePIN)
-func TestReplacePIN(t *testing.T) {
+func TestValidateAuthMode(t *testing.T) {
 	t.Parallel()
 
 	tests := map[string]struct {
-		oldPin string
-		newPin string
-
-		replacePINError bool
-		replacePINNotOK bool
-
-		wantErr bool
+		expectedAuthMode snapd.AuthMode
+		mockAuthMode     string
+		enumerateFails   bool
+		wantErr          bool
 	}{
-		"Success": {oldPin: "123456", newPin: "654321"},
-
-		"Error when snapd down":      {oldPin: "123456", newPin: "654321", replacePINError: true, wantErr: true},
-		"Error when response not ok": {oldPin: "123456", newPin: "654321", replacePINNotOK: true, wantErr: true},
+		"Validates passphrase authentication in use": {
+			expectedAuthMode: snapd.AuthModePassphrase,
+		},
+		"Validates PIN authentication in use": {
+			expectedAuthMode: snapd.AuthModePin,
+		},
+		"Validates no authentication in use": {
+			expectedAuthMode: snapd.AuthModeNone,
+		},
+		"Error when enumerate fails": {
+			expectedAuthMode: snapd.AuthModePassphrase,
+			enumerateFails:   true,
+			wantErr:          true,
+		},
+		"Error when auth mode mismatch": {
+			expectedAuthMode: snapd.AuthModePin,
+			mockAuthMode:     "passphrase",
+			wantErr:          true,
+		},
 	}
 
 	for name, tc := range tests {
@@ -201,12 +228,19 @@ func TestReplacePIN(t *testing.T) {
 			t.Parallel()
 
 			ctx := context.Background()
+
+			// Default mock auth mode to expected if not specified
+			mockAuthMode := tc.mockAuthMode
+			if mockAuthMode == "" {
+				mockAuthMode = string(tc.expectedAuthMode)
+			}
+
 			mockClient := testutils.NewMockSnapdClient(testutils.MockConfig{
-				ReplacePINError: tc.replacePINError,
-				ReplacePINNotOK: tc.replacePINNotOK,
+				EnumerateError: tc.enumerateFails,
+				AuthMode:       mockAuthMode,
 			})
 
-			err := tpm.ReplacePIN(ctx, mockClient, tc.oldPin, tc.newPin)
+			err := tpm.ValidateAuthMode(ctx, mockClient, tc.expectedAuthMode)
 
 			if tc.wantErr {
 				be.Err(t, err)

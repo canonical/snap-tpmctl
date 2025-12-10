@@ -6,16 +6,16 @@ import (
 	"errors"
 	"fmt"
 	"slices"
+	"strings"
 
 	"snap-tpmctl/internal/snapd"
 )
 
-// authReplacer defines the interface for snapd operations needed for key management.
-type authReplacer interface {
+// authValidator defines the interface for snapd operations needed for validation.
+type authValidator interface {
 	CheckPassphrase(ctx context.Context, passphrase string) (*snapd.Response, error)
 	CheckPIN(ctx context.Context, pin string) (*snapd.Response, error)
-	ReplacePassphrase(ctx context.Context, oldPassphrase string, newPassphrase string, keySlots []snapd.KeySlot) (*snapd.AsyncResponse, error)
-	ReplacePIN(ctx context.Context, oldPin string, newPin string, keySlots []snapd.KeySlot) (*snapd.AsyncResponse, error)
+	EnumerateKeySlots(ctx context.Context) (*snapd.SystemVolumesResult, error)
 }
 
 // resultValue represents the value field in validation error responses from snapd.
@@ -67,7 +67,7 @@ func handleValidationError(err error, authMode string) error {
 }
 
 // IsValidPassphrase validates that the passphrase and confirmation match and are not empty.
-func IsValidPassphrase(ctx context.Context, client authReplacer, passphrase, confirm string) error {
+func IsValidPassphrase(ctx context.Context, client authValidator, passphrase, confirm string) error {
 	if passphrase == "" || confirm == "" {
 		return fmt.Errorf("passphrase cannot be empty, try again")
 	}
@@ -89,7 +89,7 @@ func IsValidPassphrase(ctx context.Context, client authReplacer, passphrase, con
 }
 
 // IsValidPIN validates that the PIN and confirmation match and are not empty.
-func IsValidPIN(ctx context.Context, client authReplacer, pin, confirm string) error {
+func IsValidPIN(ctx context.Context, client authValidator, pin, confirm string) error {
 	if pin == "" || confirm == "" {
 		return fmt.Errorf("PIN cannot be empty, try again")
 	}
@@ -117,29 +117,63 @@ func IsValidPIN(ctx context.Context, client authReplacer, pin, confirm string) e
 	return nil
 }
 
-// ReplacePassphrase replaces the passphrase using the provided client.
-func ReplacePassphrase(ctx context.Context, client authReplacer, oldPassphrase, newPassphrase string) error {
-	ares, err := client.ReplacePassphrase(ctx, oldPassphrase, newPassphrase, nil)
+// ValidateAuthMode checks if the current authentication mode matches the expected mode.
+func ValidateAuthMode(ctx context.Context, client authValidator, expectedAuthMode snapd.AuthMode) error {
+	result, err := client.EnumerateKeySlots(ctx)
 	if err != nil {
-		return fmt.Errorf("failed to change passphrase: %w", err)
+		return fmt.Errorf("failed to enumerate key slots: %w", err)
 	}
 
-	if !ares.IsOK() {
-		return fmt.Errorf("unable to replace passphrase: %s", ares.Err)
+	systemData, ok := result.ByContainerRole["system-data"]
+	if !ok {
+		return fmt.Errorf("system-data container role not found")
+	}
+
+	defaultKeyslot, ok := systemData.KeySlots["default"]
+	if !ok {
+		return fmt.Errorf("default key slot not found in system-data")
+	}
+
+	defaultFallbackKeyslot, ok := systemData.KeySlots["default-fallback"]
+	if !ok {
+		return fmt.Errorf("default-fallback key slot not found in system-data")
+	}
+
+	if defaultKeyslot.AuthMode != string(expectedAuthMode) || defaultFallbackKeyslot.AuthMode != string(expectedAuthMode) {
+		return fmt.Errorf("authentication mode mismatch: expected %s, got default=%s, default-fallback=%s",
+			expectedAuthMode,
+			defaultKeyslot.AuthMode,
+			defaultFallbackKeyslot.AuthMode,
+		)
 	}
 
 	return nil
 }
 
-// ReplacePIN replaces the PIN using the provided client.
-func ReplacePIN(ctx context.Context, client authReplacer, oldPin, newPin string) error {
-	ares, err := client.ReplacePIN(ctx, oldPin, newPin, nil)
-	if err != nil {
-		return fmt.Errorf("failed to change PIN: %w", err)
+// ValidateRecoveryKeyName validates that a recovery key name is valid and not in use.
+func ValidateRecoveryKeyName(ctx context.Context, client authValidator, recoveryKeyName string) error {
+	// Recovery key name cannot be empty.
+	if recoveryKeyName == "" {
+		return fmt.Errorf("recovery key name cannot be empty")
 	}
 
-	if !ares.IsOK() {
-		return fmt.Errorf("unable to replace PIN: %s", ares.Err)
+	// Recovery key name cannot start with 'snap' or 'default'.
+	if strings.HasPrefix(recoveryKeyName, "snap") || strings.HasPrefix(recoveryKeyName, "default") {
+		return fmt.Errorf("recovery key name cannot start with 'snap' or 'default'")
+	}
+
+	// Recovery key name cannot already be in use.
+	result, err := client.EnumerateKeySlots(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to enumerate key slots: %w", err)
+	}
+
+	for _, volumeInfo := range result.ByContainerRole {
+		for slotName := range volumeInfo.KeySlots {
+			if slotName == recoveryKeyName {
+				return fmt.Errorf("recovery key name %q is already in use", recoveryKeyName)
+			}
+		}
 	}
 
 	return nil
