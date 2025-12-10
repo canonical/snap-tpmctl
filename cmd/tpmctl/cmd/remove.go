@@ -28,8 +28,10 @@ func newRemovePassphraseCmd() *cli.Command {
 				return fmt.Errorf("failed to load auth: %w", err)
 			}
 
-			// TODO:
-			// Validate auth is a Passphrase
+			// Validate auth mode is currently passphrase
+			if err := tpm.ValidateAuthMode(ctx, c, snapd.AuthModePassphrase); err != nil {
+				return err
+			}
 
 			if err := tpm.RemovePassphrase(ctx, c); err != nil {
 				return err
@@ -58,8 +60,10 @@ func newRemovePINCmd() *cli.Command {
 				return fmt.Errorf("failed to load auth: %w", err)
 			}
 
-			// TODO:
-			// Validate auth is a PIN
+			// Validate auth mode is currently PIN
+			if err := tpm.ValidateAuthMode(ctx, c, snapd.AuthModePin); err != nil {
+				return err
+			}
 
 			if err := tpm.RemovePIN(ctx, c); err != nil {
 				return err

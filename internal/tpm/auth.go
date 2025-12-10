@@ -17,6 +17,7 @@ type authReplacer interface {
 	ReplacePassphrase(ctx context.Context, oldPassphrase string, newPassphrase string, keySlots []snapd.KeySlot) (*snapd.AsyncResponse, error)
 	ReplacePIN(ctx context.Context, oldPin string, newPin string, keySlots []snapd.KeySlot) (*snapd.AsyncResponse, error)
 	ReplacePlatformKey(ctx context.Context, authMode snapd.AuthMode, pin, passphrase string) (*snapd.AsyncResponse, error)
+	EnumerateKeySlots(ctx context.Context) (*snapd.SystemVolumesResult, error)
 }
 
 // resultValue represents the value field in validation error responses from snapd.
@@ -197,6 +198,39 @@ func RemovePIN(ctx context.Context, client authReplacer) error {
 
 	if !ares.IsOK() {
 		return fmt.Errorf("unable to remove PIN: %s", ares.Err)
+	}
+
+	return nil
+}
+
+// ValidateAuthMode checks if the current authentication mode matches the expected mode.
+func ValidateAuthMode(ctx context.Context, client authReplacer, expectedAuthMode snapd.AuthMode) error {
+	result, err := client.EnumerateKeySlots(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to enumerate key slots: %w", err)
+	}
+
+	systemData, ok := result.ByContainerRole["system-data"]
+	if !ok {
+		return fmt.Errorf("system-data container role not found")
+	}
+
+	defaultKeyslot, ok := systemData.KeySlots["default"]
+	if !ok {
+		return fmt.Errorf("default key slot not found in system-data")
+	}
+
+	defaultFallbackKeyslot, ok := systemData.KeySlots["default-fallback"]
+	if !ok {
+		return fmt.Errorf("default-fallback key slot not found in system-data")
+	}
+
+	if defaultKeyslot.AuthMode != string(expectedAuthMode) || defaultFallbackKeyslot.AuthMode != string(expectedAuthMode) {
+		return fmt.Errorf("authentication mode mismatch: expected %s, got default=%s, default-fallback=%s",
+			expectedAuthMode,
+			string(defaultKeyslot.AuthMode),
+			string(defaultFallbackKeyslot.AuthMode),
+		)
 	}
 
 	return nil

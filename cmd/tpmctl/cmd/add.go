@@ -29,8 +29,10 @@ func newAddPassphraseCmd() *cli.Command {
 				return fmt.Errorf("failed to load auth: %w", err)
 			}
 
-			// TODO:
-			// Validate auth is none
+			// Validate auth mode is currently none
+			if err := tpm.ValidateAuthMode(ctx, c, snapd.AuthModeNone); err != nil {
+				return err
+			}
 
 			newPassphrase, err := tui.ReadUserSecret("Enter new passphrase: ")
 			if err != nil {
@@ -73,8 +75,10 @@ func newAddPINCmd() *cli.Command {
 				return fmt.Errorf("failed to load auth: %w", err)
 			}
 
-			// TODO:
-			// Validate auth is none
+			// Validate auth mode is currently none
+			if err := tpm.ValidateAuthMode(ctx, c, snapd.AuthModeNone); err != nil {
+				return err
+			}
 
 			newPin, err := tui.ReadUserSecret("Enter new PIN: ")
 			if err != nil {
