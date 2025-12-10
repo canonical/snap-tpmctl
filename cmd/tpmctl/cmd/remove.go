@@ -4,10 +4,10 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"snap-tpmctl/internal/snapd"
-	"snap-tpmctl/internal/tpm"
 
 	"github.com/urfave/cli/v3"
+	"snap-tpmctl/internal/snapd"
+	"snap-tpmctl/internal/tpm"
 )
 
 func newRemovePassphraseCmd() *cli.Command {

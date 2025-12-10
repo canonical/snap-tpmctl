@@ -5,9 +5,10 @@ import (
 	"net/http"
 )
 
+// AuthMode represents the authentication mode for platform keys.
 type AuthMode string
 
-// AuthMode represents the authentication mode for platform keys.
+// Supported authentication modes for platform keys.
 const (
 	AuthModePin        AuthMode = "pin"
 	AuthModePassphrase AuthMode = "passphrase"
@@ -17,13 +18,14 @@ const (
 // KDFType represents the key derivation function type.
 type KDFType string
 
+// KDF (Key Derivation Function) types supported for password-based key derivation.
 const (
 	KDFTypeArgon2id KDFType = "argon2id"
 	KDFTypeArgon2i  KDFType = "argon2i"
 	KDFTypePBKDF2   KDFType = "pbkdf2"
 )
 
-// ReplacePlatformKey replaces the platform key with the specified authentication.
+// PlatformKeyRequest represents the request body for replacing a platform key.
 type PlatformKeyRequest struct {
 	Action     string    `json:"action"`
 	AuthMode   AuthMode  `json:"auth-mode"`

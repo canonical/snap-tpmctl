@@ -142,8 +142,8 @@ func ValidateAuthMode(ctx context.Context, client authValidator, expectedAuthMod
 	if defaultKeyslot.AuthMode != string(expectedAuthMode) || defaultFallbackKeyslot.AuthMode != string(expectedAuthMode) {
 		return fmt.Errorf("authentication mode mismatch: expected %s, got default=%s, default-fallback=%s",
 			expectedAuthMode,
-			string(defaultKeyslot.AuthMode),
-			string(defaultFallbackKeyslot.AuthMode),
+			defaultKeyslot.AuthMode,
+			defaultFallbackKeyslot.AuthMode,
 		)
 	}
 

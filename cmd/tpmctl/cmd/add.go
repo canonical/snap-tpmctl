@@ -4,13 +4,14 @@ import (
 	"context"
 	"fmt"
 	"os"
+
+	"github.com/urfave/cli/v3"
 	"snap-tpmctl/internal/snapd"
 	"snap-tpmctl/internal/tpm"
 	"snap-tpmctl/internal/tui"
-
-	"github.com/urfave/cli/v3"
 )
 
+//nolint:dupl // PIN and passphrase commands have intentionally similar structure
 func newAddPassphraseCmd() *cli.Command {
 	return &cli.Command{
 		Name:  "add-passphrase",
@@ -57,6 +58,7 @@ func newAddPassphraseCmd() *cli.Command {
 	}
 }
 
+//nolint:dupl // PIN and passphrase commands have intentionally similar structure
 func newAddPINCmd() *cli.Command {
 	return &cli.Command{
 		Name:  "add-pin",
