@@ -25,7 +25,6 @@ func newCheckCmd() *cli.Command {
 			if err := IsValidRecoveryKey(key); err != nil {
 				return err
 			}
-
 			return check(ctx, key)
 		},
 	}
@@ -39,7 +38,9 @@ func check(ctx context.Context, key string) error {
 		return fmt.Errorf("failed to load auth: %w", err)
 	}
 
-	res, err := c.CheckRecoveryKey(ctx, key, nil)
+	res, err := tui.WithSpinnerResult("Checking recovery key...", func() (*snapd.Response, error) {
+		return c.CheckRecoveryKey(ctx, key, nil)
+	})
 	if err != nil {
 		return fmt.Errorf("failed to check recovery key: %w", err)
 	}

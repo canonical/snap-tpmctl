@@ -7,6 +7,7 @@ import (
 	"github.com/urfave/cli/v3"
 	"snap-tpmctl/internal/snapd"
 	"snap-tpmctl/internal/tpm"
+	"snap-tpmctl/internal/tui"
 )
 
 func newCreateKeyCmd() *cli.Command {
@@ -36,7 +37,9 @@ func newCreateKeyCmd() *cli.Command {
 				return err
 			}
 
-			result, err := tpm.CreateKey(ctx, c, recoveryKeyName)
+			result, err := tui.WithSpinnerResult("Generating recovery key...", func() (*tpm.CreateKeyResult, error) {
+				return tpm.CreateKey(ctx, c, recoveryKeyName)
+			})
 			if err != nil {
 				return err
 			}

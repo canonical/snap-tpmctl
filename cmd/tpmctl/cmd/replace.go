@@ -43,7 +43,9 @@ func newReplacePassphraseCmd() *cli.Command {
 				return err
 			}
 
-			if err := tpm.ReplacePassphrase(ctx, c, oldPassphrase, newPassphrase); err != nil {
+			if err := tui.WithSpinner("Replacing passphrase...", func() error {
+				return tpm.ReplacePassphrase(ctx, c, oldPassphrase, newPassphrase)
+			}); err != nil {
 				return err
 			}
 			fmt.Println("Passphrase replaced successfully")
@@ -85,7 +87,9 @@ func newReplacePinCmd() *cli.Command {
 				return err
 			}
 
-			if err := tpm.ReplacePIN(ctx, c, oldPin, newPin); err != nil {
+			if err := tui.WithSpinner("Replacing PIN...", func() error {
+				return tpm.ReplacePIN(ctx, c, oldPin, newPin)
+			}); err != nil {
 				return err
 			}
 			fmt.Println("PIN replaced successfully")
