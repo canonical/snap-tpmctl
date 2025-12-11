@@ -5,9 +5,11 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/urfave/cli/v3"
 	"snap-tpmctl/internal/snapd"
 	"snap-tpmctl/internal/tpm"
+	"snap-tpmctl/internal/tui"
+
+	"github.com/urfave/cli/v3"
 )
 
 func newRemovePassphraseCmd() *cli.Command {
@@ -33,9 +35,13 @@ func newRemovePassphraseCmd() *cli.Command {
 				return err
 			}
 
-			if err := tpm.RemovePassphrase(ctx, c); err != nil {
+			_, err := tui.DoWithSpinner("Removing passphrase...", func() (struct{}, error) {
+				return struct{}{}, tpm.RemovePassphrase(ctx, c)
+			})
+			if err != nil {
 				return err
 			}
+			
 			fmt.Println("Passphrase removed successfully")
 			return nil
 		},
