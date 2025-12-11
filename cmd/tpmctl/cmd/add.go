@@ -48,11 +48,10 @@ func newAddPassphraseCmd() *cli.Command {
 			if err := tpm.IsValidPassphrase(ctx, c, newPassphrase, confirmPassphrase); err != nil {
 				return err
 			}
-			
-			_, err = tui.DoWithSpinner("Adding passphrase...", func() (struct{}, error) {
-				return struct{}{}, tpm.AddPassphrase(ctx, c, newPassphrase)
-			})
-			if err != nil {
+
+			if err := tui.WithSpinner("Adding passphrase...", func() error {
+				return tpm.AddPassphrase(ctx, c, newPassphrase)
+			}); err != nil {
 				return err
 			}
 			fmt.Println("Passphrase added successfully")
@@ -98,7 +97,10 @@ func newAddPINCmd() *cli.Command {
 			if err := tpm.IsValidPIN(ctx, c, newPin, confirmPin); err != nil {
 				return err
 			}
-			if err := tpm.AddPIN(ctx, c, newPin); err != nil {
+
+			if err := tui.WithSpinner("Adding PIN...", func() error {
+				return tpm.AddPIN(ctx, c, newPin)
+			}); err != nil {
 				return err
 			}
 			fmt.Println("PIN added successfully")

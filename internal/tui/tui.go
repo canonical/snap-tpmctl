@@ -44,13 +44,21 @@ func ReadUserSecret(form string) (string, error) {
 	return input, nil
 }
 
-// DoWithSpinner executes a function while displaying a spinner in the terminal.
-func DoWithSpinner[T any](message string, fn func() (T, error)) (T, error) {
+// WithSpinner executes an error-only function while displaying a spinner in the terminal.
+func WithSpinner(message string, fn func() error) error {
+	_, err := WithSpinnerResult(message, func() (struct{}, error) {
+		return struct{}{}, fn()
+	})
+	return err
+}
+
+// WithSpinnerResult executes a function while displaying a spinner in the terminal.
+func WithSpinnerResult[T any](message string, fn func() (T, error)) (T, error) {
 	spinnerChars := []string{"-", "\\", "|", "/"}
 	i := 0
 	
 	// Timer to triger changing the spinner char to produce a loading spinner
-	ticker := time.NewTicker(200 * time.Millisecond)
+	ticker := time.NewTicker(100 * time.Millisecond)
 	defer ticker.Stop()
 	
 	// Generic result channel

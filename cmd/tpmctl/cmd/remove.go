@@ -35,13 +35,12 @@ func newRemovePassphraseCmd() *cli.Command {
 				return err
 			}
 
-			_, err := tui.DoWithSpinner("Removing passphrase...", func() (struct{}, error) {
-				return struct{}{}, tpm.RemovePassphrase(ctx, c)
-			})
-			if err != nil {
+			if err := tui.WithSpinner("Removing passphrase...", func() error {
+				return tpm.RemovePassphrase(ctx, c)
+			}); err != nil {
 				return err
 			}
-			
+
 			fmt.Println("Passphrase removed successfully")
 			return nil
 		},
@@ -71,7 +70,9 @@ func newRemovePINCmd() *cli.Command {
 				return err
 			}
 
-			if err := tpm.RemovePIN(ctx, c); err != nil {
+			if err := tui.WithSpinner("Removing PIN...", func() error {
+				return tpm.RemovePIN(ctx, c)
+			}); err != nil {
 				return err
 			}
 			fmt.Println("PIN removed successfully")
