@@ -56,11 +56,11 @@ func WithSpinner(message string, fn func() error) error {
 func WithSpinnerResult[T any](message string, fn func() (T, error)) (T, error) {
 	spinnerChars := []string{"-", "\\", "|", "/"}
 	i := 0
-	
+
 	// Timer to triger changing the spinner char to produce a loading spinner
 	ticker := time.NewTicker(100 * time.Millisecond)
 	defer ticker.Stop()
-	
+
 	// Generic result channel
 	done := make(chan struct {
 		result T
@@ -75,19 +75,18 @@ func WithSpinnerResult[T any](message string, fn func() (T, error)) (T, error) {
 			err    error
 		}{result, err}
 	}()
-	
 
 	// Spin until we get a result from the function
 	fmt.Printf("%s %s", message, spinnerChars[0])
 	for {
 		select {
-		case res := <- done:
-				clearCurrentLine()
-				return res.result, res.err
-		case <- ticker.C:
-				clearCurrentLine()
-				i++
-				fmt.Printf("%s %s", message, spinnerChars[i%len(spinnerChars)])
+		case res := <-done:
+			clearCurrentLine()
+			return res.result, res.err
+		case <-ticker.C:
+			clearCurrentLine()
+			i++
+			fmt.Printf("%s %s", message, spinnerChars[i%len(spinnerChars)])
 		}
 	}
 }
