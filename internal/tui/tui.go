@@ -76,6 +76,10 @@ func WithSpinnerResult[T any](message string, fn func() (T, error)) (T, error) {
 		}{result, err}
 	}()
 
+	// Hide cursor while spinning
+	fmt.Print("\033[?25l")
+	defer fmt.Print("\033[?25h")
+
 	// Spin until we get a result from the function
 	fmt.Printf("%s %s", message, spinnerChars[0])
 	for {
