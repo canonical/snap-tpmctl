@@ -6,6 +6,7 @@ import (
 
 	"github.com/urfave/cli/v3"
 	"snap-tpmctl/internal/snapd"
+	"snap-tpmctl/internal/tui"
 )
 
 func newRegenerateKeyCmd() *cli.Command {
@@ -40,7 +41,9 @@ func regenerateKey(ctx context.Context, _ string) error {
 		return fmt.Errorf("failed to load auth: %w", err)
 	}
 
-	key, err := c.GenerateRecoveryKey(ctx)
+	key, err := tui.WithSpinnerResult("Generating recovery key...", func() (*snapd.GenerateRecoveryKeyResult, error) {
+		return c.GenerateRecoveryKey(ctx)
+	})
 	if err != nil {
 		return fmt.Errorf("failed to generate recovery key: %w", err)
 	}
@@ -48,7 +51,9 @@ func regenerateKey(ctx context.Context, _ string) error {
 	fmt.Printf("Recovery Key: %s\n", key.RecoveryKey)
 	fmt.Printf("Key ID: %s\n", key.KeyID)
 
-	res, err := c.ReplaceRecoveryKey(ctx, key.KeyID, nil)
+	res, err := tui.WithSpinnerResult("Replacing recovery key...", func() (*snapd.AsyncResponse, error) {
+		return c.ReplaceRecoveryKey(ctx, key.KeyID, nil)
+	})
 	if err != nil {
 		return fmt.Errorf("failed to replace recovery key: %w", err)
 	}
