@@ -97,14 +97,14 @@ jobs:
 
       - name: Upload coverage report as artifact
         if: matrix.test == 'coverage' && github.ref == 'refs/heads/main'
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: coverage
           path: ${{ env.COVERAGE_DIR }}
 
       - name: Upload test artifacts
         if: failure()
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: tpmctl-${{ github.job }}-${{ matrix.test }}-artifacts-${{ github.run_attempt }}
           path: ${{ env.TPMCTL_TEST_ARTIFACTS_DIR }}
