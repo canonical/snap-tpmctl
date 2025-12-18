@@ -5,8 +5,9 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/stretchr/testify/require"
 	"snap-tpmctl/internal/log"
+
+	"github.com/nalgeon/be"
 )
 
 var supportedLevels = []log.Level{
@@ -27,8 +28,8 @@ func TestLevelEnabled(t *testing.T) {
 	for _, level := range supportedLevels {
 		t.Run(fmt.Sprintf("Set log level to %s", level), func(t *testing.T) {
 			log.SetLevel(level)
-			require.Equal(t, level, log.GetLevel(), "Log Level should not match %v", level)
-			require.True(t, log.IsLevelEnabled(level), "Log level %v should be enabled", level)
+			be.Equal(t, level, log.GetLevel())    // Mismatched log level
+			be.True(t, log.IsLevelEnabled(level)) // Log level should be enabled
 		})
 	}
 }
@@ -79,25 +80,25 @@ func TestSetLevelHandler(t *testing.T) {
 			wantCtx := context.TODO()
 			log.SetLevelHandler(level, func(ctx context.Context, l log.Level, format string, args ...any) {
 				handlerCalled = true
-				require.Equal(t, wantCtx, ctx, "Context should match expected")
-				require.Equal(t, level, l, "Log level should match %v", l)
-				require.Equal(t, fmt.Sprint(wantArgs...), format, "Format should match")
+				be.Equal(t, wantCtx, ctx)                    // Mismatched log context
+				be.Equal(t, level, l)                        // Mismatched log level
+				be.Equal(t, fmt.Sprint(wantArgs...), format) // Mismatched log format
 			})
 
 			log.SetLevel(level)
 
 			callLogHandler(wantCtx, level, wantArgs...)
-			require.True(t, handlerCalled, "Handler should have been called")
+			be.True(t, handlerCalled) // Expected handler to be called
 
 			handlerCalled = false
 			callLogHandler(wantCtx, level+1, wantArgs...)
-			require.False(t, handlerCalled, "Handler should not have been called")
+			be.True(t, !handlerCalled) // Expected handler not to be called
 
 			handlerCalled = false
 			log.SetLevelHandler(level, nil)
 
 			callLogHandler(wantCtx, level, wantArgs...)
-			require.False(t, handlerCalled, "Handler should not have been called")
+			be.True(t, !handlerCalled) // Expected handler not to be called
 		})
 	}
 
@@ -109,10 +110,10 @@ func TestSetLevelHandler(t *testing.T) {
 			wantCtx := context.TODO()
 			log.SetLevelHandler(level, func(ctx context.Context, l log.Level, format string, args ...any) {
 				handlerCalled = true
-				require.Equal(t, wantCtx, ctx, "Context should match expected")
-				require.Equal(t, level, l, "Log level should match %v", l)
-				require.Equal(t, wantFormat, format, "Format should match")
-				require.Equal(t, wantArgs, args, "Arguments should match")
+				be.Equal(t, wantCtx, ctx)       // Mismatched log context
+				be.Equal(t, level, l)           // Mismatched log level
+				be.Equal(t, wantFormat, format) // Mismatched log format
+				be.Equal(t, wantArgs, args)     // Mismatched log args
 			})
 
 			handlerCalled = false
@@ -120,13 +121,13 @@ func TestSetLevelHandler(t *testing.T) {
 
 			handlerCalled = false
 			callLogHandlerf(wantCtx, level+1, wantFormat, wantArgs...)
-			require.False(t, handlerCalled, "Handler should not have been called")
+			be.True(t, !handlerCalled) // Expected handler not to be called
 
 			handlerCalled = false
 			log.SetLevelHandler(level, nil)
 
 			callLogHandlerf(wantCtx, level, wantFormat, wantArgs...)
-			require.False(t, handlerCalled, "Handle should not have been called")
+			be.True(t, !handlerCalled) // Expected handler not to be called
 		})
 	}
 
@@ -147,9 +148,9 @@ func TestSetHandler(t *testing.T) {
 
 	log.SetHandler(func(ctx context.Context, l log.Level, format string, args ...any) {
 		handlerCalled = true
-		require.Equal(t, wantCtx, ctx, "Context should match expected")
-		require.Equal(t, wantLevel, l, "Log level should match %v", l)
-		require.Equal(t, fmt.Sprint(wantArgs...), format, "Format should match")
+		be.Equal(t, wantCtx, ctx)                    // Mismatched log context
+		be.Equal(t, wantLevel, l)                    // Mismatched log level
+		be.Equal(t, fmt.Sprint(wantArgs...), format) // Mismatched log format
 	})
 	for idx, level := range supportedLevels {
 		t.Run(fmt.Sprintf("Set log handler, testing level %s", level), func(t *testing.T) {})
@@ -158,8 +159,9 @@ func TestSetHandler(t *testing.T) {
 		handlerCalled = false
 		log.SetLevel(level)
 		fmt.Println("Logging at level", level)
+
 		callLogHandler(wantCtx, level, wantArgs...)
-		require.True(t, handlerCalled, "Handler should have been called")
+		be.True(t, handlerCalled) // Expected handler to be called
 
 		handlerCalled = false
 		nextLevel := level + 1
@@ -168,7 +170,7 @@ func TestSetHandler(t *testing.T) {
 		}
 		log.SetLevel(nextLevel)
 		callLogHandler(wantCtx, level, wantArgs...)
-		require.False(t, handlerCalled, "Handler should not have been called")
+		be.True(t, !handlerCalled) // Expected handler not to be called
 	}
 
 	log.SetHandler(nil)
@@ -179,16 +181,16 @@ func TestSetHandler(t *testing.T) {
 		handlerCalled = false
 		log.SetLevel(level)
 		callLogHandler(wantCtx, level, wantArgs...)
-		require.False(t, handlerCalled, "Handler should not have been called")
+		be.True(t, !handlerCalled) // Expected handler not to be called
 	}
 
 	wantFormat := "Bool is %v, float is %f, array is %v"
 	log.SetHandler(func(ctx context.Context, l log.Level, format string, args ...any) {
 		handlerCalled = true
-		require.Equal(t, wantCtx, ctx, "Context should match expected")
-		require.Equal(t, wantLevel, l, "Log level should match %v", l)
-		require.Equal(t, wantFormat, format, "Format should match")
-		require.Equal(t, wantArgs, args, "Arguments should match")
+		be.Equal(t, wantCtx, ctx)       // Mismatched log context
+		be.Equal(t, wantLevel, l)       // Mismatched log level
+		be.Equal(t, wantFormat, format) // Mismatched log format
+		be.Equal(t, wantArgs, args)     // Mismatched log args
 	})
 	for idx, level := range supportedLevels {
 		t.Run(fmt.Sprintf("Set log handler, testing level %s", level), func(t *testing.T) {})
@@ -197,7 +199,7 @@ func TestSetHandler(t *testing.T) {
 		handlerCalled = false
 		log.SetLevel(level)
 		callLogHandlerf(wantCtx, level, wantFormat, wantArgs...)
-		require.True(t, handlerCalled, "Handler should have been called")
+		be.True(t, handlerCalled) // Expected handler to be called
 
 		handlerCalled = false
 		nextLevel := level + 1
@@ -206,7 +208,7 @@ func TestSetHandler(t *testing.T) {
 		}
 		log.SetLevel(nextLevel)
 		callLogHandlerf(wantCtx, level, wantFormat, wantArgs...)
-		require.False(t, handlerCalled, "Handler should not have been called")
+		be.True(t, !handlerCalled) // Expected handler not to be called
 	}
 
 	log.SetHandler(nil)
@@ -217,6 +219,6 @@ func TestSetHandler(t *testing.T) {
 		handlerCalled = false
 		log.SetLevel(level)
 		callLogHandlerf(wantCtx, level, wantFormat, wantArgs...)
-		require.False(t, handlerCalled, "Handler should not have been called")
+		be.True(t, !handlerCalled) // Expected handler not to be called
 	}
 }

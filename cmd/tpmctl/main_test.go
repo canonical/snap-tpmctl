@@ -8,7 +8,7 @@ import (
 	"log/slog"
 	"testing"
 
-	"github.com/stretchr/testify/require"
+	"github.com/nalgeon/be"
 )
 
 type mockApp struct{ err error }
@@ -43,9 +43,13 @@ func TestRun(t *testing.T) {
 			ctx := context.WithValue(context.Background(), loggerKey, slog.New(h))
 
 			got := run(ctx, tc.app)
-			require.Equal(t, tc.want, got, "Return value does not match")
+			be.Equal(t, tc.want, got) // Return value does not match
 
-			require.Contains(t, logs.String(), tc.wantInLog, "Logged expected output")
+			if tc.wantInLog != "" {
+				if !bytes.Contains(logs.Bytes(), []byte(tc.wantInLog)) {
+					t.Errorf("expected log to contain %q, but it didn't. Got: %s", tc.wantInLog, logs.String())
+				}
+			}
 		})
 	}
 }
