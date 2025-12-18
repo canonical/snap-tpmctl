@@ -12,15 +12,17 @@ import (
 // MockConfig holds configuration for MockSnapdClient behavior.
 type MockConfig struct {
 	// Error flags (for exceptional cases like snapd being down)
-	LoadAuthError          bool
-	GenerateKeyError       bool
-	EnumerateError         bool
-	AddKeyError            bool
-	CheckPassphraseError   bool
-	CheckPINError          bool
-	CheckRecoveryKeyError  bool
-	ReplacePassphraseError bool
-	ReplacePINError        bool
+	LoadAuthError           bool
+	GenerateKeyError        bool
+	EnumerateError          bool
+	AddRecoveryKeyError     bool
+	CheckPassphraseError    bool
+	CheckPINError           bool
+	CheckRecoveryKeyError   bool
+	ReplacePassphraseError  bool
+	ReplacePINError         bool
+	ReplaceRecoveryKeyError bool
+	ReplacePlatformKeyError bool
 
 	// Validation error flags for CheckPassphrase
 	PassphraseLowEntropy   bool
@@ -41,7 +43,7 @@ type MockConfig struct {
 	// Replace operation flags
 	ReplacePassphraseNotOK  bool
 	ReplacePINNotOK         bool
-	ReplacePlatformKeyError bool
+	ReplaceRecoveryKeyNotOK bool
 	ReplacePlatformKeyNotOK bool
 
 	// AuthMode configuration for EnumerateKeySlots
@@ -161,9 +163,18 @@ func (m MockSnapdClient) EnumerateKeySlots(ctx context.Context) (*snapd.SystemVo
 
 // AddRecoveryKey simulates adding a recovery key to specified slots.
 func (m MockSnapdClient) AddRecoveryKey(ctx context.Context, keyID string, slots []snapd.KeySlot) (*snapd.AsyncResponse, error) {
-	if m.config.AddKeyError {
+	if m.config.AddRecoveryKeyError {
 		return nil, errors.New("mocked error for AddRecoveryKey: cannot add recovery key: permission denied")
 	}
+	return m.asyncResp, nil
+}
+
+// ReplaceRecoveryKey simulates replacing a recovery key to specified slots.
+func (m MockSnapdClient) ReplaceRecoveryKey(ctx context.Context, keyID string, slots []snapd.KeySlot) (*snapd.AsyncResponse, error) {
+	if m.config.ReplaceRecoveryKeyError {
+		return nil, errors.New("mocked error for ReaplaceRecoveryKey: cannot replace recovery key: permission denied")
+	}
+
 	return m.asyncResp, nil
 }
 

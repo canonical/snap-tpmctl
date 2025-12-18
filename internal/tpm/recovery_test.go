@@ -44,8 +44,8 @@ func TestCreateKey(t *testing.T) {
 
 			ctx := context.Background()
 			mockClient := testutils.NewMockSnapdClient(testutils.MockConfig{
-				GenerateKeyError: tc.generateKeyFails,
-				AddKeyError:      tc.addKeyFails,
+				GenerateKeyError:    tc.generateKeyFails,
+				AddRecoveryKeyError: tc.addKeyFails,
 			})
 
 			res, err := tpm.CreateKey(ctx, mockClient, tc.recoveryKeyName)
