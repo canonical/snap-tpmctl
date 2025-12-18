@@ -18,6 +18,7 @@ type MockConfig struct {
 	AddKeyError            bool
 	CheckPassphraseError   bool
 	CheckPINError          bool
+	CheckRecoveryKeyError  bool
 	ReplacePassphraseError bool
 	ReplacePINError        bool
 
@@ -33,6 +34,9 @@ type MockConfig struct {
 	PINInvalid     bool
 	PINUnsupported bool
 	PINNotOK       bool
+
+	// Validation error flags for CheckRecoveryKey
+	RecoveryKeyValid bool
 
 	// Replace operation flags
 	ReplacePassphraseNotOK  bool
@@ -161,6 +165,22 @@ func (m MockSnapdClient) AddRecoveryKey(ctx context.Context, keyID string, slots
 		return nil, errors.New("mocked error for AddRecoveryKey: cannot add recovery key: permission denied")
 	}
 	return m.asyncResp, nil
+}
+
+// CheckRecoveryKey simulates checking if a recovery key is valid.
+func (m MockSnapdClient) CheckRecoveryKey(ctx context.Context, recoveryKey string, containerRoles []string) (*snapd.Response, error) {
+	if m.config.CheckRecoveryKeyError {
+		return nil, errors.New("mocked error for CheckRecoveryKey: cannot check recovery key: snapd error")
+	}
+
+	if !m.config.RecoveryKeyValid {
+		return nil, &snapd.Error{
+			Kind:    "invalid-recovery-key",
+			Message: "Mocked error for CheckRecoveryKey: recovery key is invalid",
+		}
+	}
+
+	return &snapd.Response{Status: "OK", StatusCode: 200}, nil
 }
 
 // Close closes the mock client connection.

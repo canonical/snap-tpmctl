@@ -40,3 +40,17 @@ func CreateKey(ctx context.Context, client keyCreator, recoveryKeyName string) (
 		Status:      resp.Status,
 	}, nil
 }
+
+type keyChecker interface {
+	CheckRecoveryKey(ctx context.Context, recoveryKey string, containerRoles []string) (*snapd.Response, error)
+}
+
+// CheckKey verifies if a recovery key is valid by checking it against the system.
+func CheckKey(ctx context.Context, client keyChecker, recoveryKey string) (bool, error) {
+	res, err := client.CheckRecoveryKey(ctx, recoveryKey, nil)
+	if err != nil {
+		return false, fmt.Errorf("failed to check recovery key: %w", err)
+	}
+
+	return res.IsOK(), nil
+}

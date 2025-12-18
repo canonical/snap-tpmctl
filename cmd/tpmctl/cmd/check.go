@@ -4,71 +4,52 @@ package cmd
 import (
 	"context"
 	"fmt"
-	"regexp"
 
 	"github.com/urfave/cli/v3"
 	"snap-tpmctl/internal/snapd"
+	"snap-tpmctl/internal/tpm"
 	"snap-tpmctl/internal/tui"
 )
 
 func newCheckCmd() *cli.Command {
 	return &cli.Command{
-		Name:    "check-key",
+		Name:    "check-recovery-key",
 		Usage:   "Check recovery key",
 		Suggest: true,
 		Action: func(ctx context.Context, cmd *cli.Command) error {
+			c := snapd.NewClient()
+			defer c.Close()
+
+			// Load auth before validation
+			if err := c.LoadAuthFromHome(); err != nil {
+				return fmt.Errorf("failed to load auth: %w", err)
+			}
+
 			key, err := tui.ReadUserSecret("Enter recovery key: ")
 			if err != nil {
 				return err
 			}
 
-			if err := IsValidRecoveryKey(key); err != nil {
+			if err := tpm.ValidateRecoveryKey(key); err != nil {
 				return err
 			}
-			return check(ctx, key)
+
+			ok, err := tui.WithSpinnerResult("Checking recovery key...", func() (bool, error) {
+				return tpm.CheckKey(ctx, c, key)
+			})
+			if err != nil {
+				return err
+			}
+
+			// TODO: print better messages
+			msg := "Recovery key does not work"
+			if ok {
+				msg = "Recovery key works"
+			}
+
+			fmt.Println(msg)
+
+			return nil
 		},
 	}
-}
-
-func check(ctx context.Context, key string) error {
-	c := snapd.NewClient()
-	defer c.Close()
-
-	if err := c.LoadAuthFromHome(); err != nil {
-		return fmt.Errorf("failed to load auth: %w", err)
-	}
-
-	res, err := tui.WithSpinnerResult("Checking recovery key...", func() (*snapd.Response, error) {
-		return c.CheckRecoveryKey(ctx, key, nil)
-	})
-	if err != nil {
-		return fmt.Errorf("failed to check recovery key: %w", err)
-	}
-
-	msg := "Recovery key does not work"
-	if res.IsOK() {
-		msg = "Recovery key works"
-	}
-
-	fmt.Println(msg)
-
-	return nil
-}
-
-// IsValidRecoveryKey checks to see if a recovery key matches expected formatting.
-func IsValidRecoveryKey(key string) error {
-	if key == "" {
-		return fmt.Errorf("recovery key cannot be empty")
-	}
-
-	matched, err := regexp.MatchString(`^([0-9]{5}-){7}[0-9]{5}$`, key)
-	if err != nil {
-		return fmt.Errorf("regex validation error: %w", err)
-	}
-
-	if !matched {
-		return fmt.Errorf("invalid recovery key format: must contain only alphanumeric characters, hyphens, or underscores")
-	}
-
-	return nil
 }

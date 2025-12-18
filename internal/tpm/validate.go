@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"regexp"
 	"slices"
 	"strings"
 
@@ -174,6 +175,21 @@ func ValidateRecoveryKeyName(ctx context.Context, client authValidator, recovery
 				return fmt.Errorf("recovery key name %q is already in use", recoveryKeyName)
 			}
 		}
+	}
+
+	return nil
+}
+
+var isValidRecoveryKey = regexp.MustCompile("^([0-9]{5}-){7}[0-9]{5}$").MatchString
+
+// ValidateRecoveryKey validates that recovery key matches expected formatting.
+func ValidateRecoveryKey(key string) error {
+	if key == "" {
+		return fmt.Errorf("recovery key cannot be empty")
+	}
+
+	if !isValidRecoveryKey(key) {
+		return fmt.Errorf("invalid recovery key format: must contain only alphanumeric characters, hyphens, or underscores")
 	}
 
 	return nil
