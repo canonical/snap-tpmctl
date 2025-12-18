@@ -50,7 +50,6 @@ func newRootCmd() cli.Command {
 		UseShortOptionHandling: true,
 		EnableShellCompletion:  true,
 		Commands: []*cli.Command{
-			newCreateEnterpriseKeyCmd(),
 			newCreateKeyCmd(),
 			newCheckCmd(),
 			newEnumerateCmd(),
@@ -58,7 +57,6 @@ func newRootCmd() cli.Command {
 			newMountVolumeCmd(),
 			newReplacePassphraseCmd(),
 			newReplacePinCmd(),
-			newRegenerateEnterpriseKeyCmd(),
 			newRegenerateKeyCmd(),
 			newStatusCmd(),
 			newAddPINCmd(),

@@ -32,7 +32,6 @@ func TestRun(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			// TODO: Didier: Check for testify replacement
 			t.Parallel()
 
 			var logs bytes.Buffer

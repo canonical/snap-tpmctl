@@ -14,8 +14,8 @@ func newCreateKeyCmd() *cli.Command {
 	var recoveryKeyName string
 
 	return &cli.Command{
-		Name:  "create-key",
-		Usage: "Create a new local recovery key",
+		Name:  "create-recovery-key",
+		Usage: "Create a new recovery key",
 		Arguments: []cli.Argument{
 			&cli.StringArg{
 				Name:        "key-id",
@@ -51,19 +51,4 @@ func newCreateKeyCmd() *cli.Command {
 			return nil
 		},
 	}
-}
-
-func newCreateEnterpriseKeyCmd() *cli.Command {
-	return &cli.Command{
-		Name:  "create-enterprise-key",
-		Usage: "Create a new enterprise recovery key for Landscape",
-		Action: func(ctx context.Context, cmd *cli.Command) error {
-			return createEnterpriseKey(ctx)
-		},
-	}
-}
-
-func createEnterpriseKey(_ context.Context) error {
-	fmt.Println("Created enterprise key")
-	return nil
 }

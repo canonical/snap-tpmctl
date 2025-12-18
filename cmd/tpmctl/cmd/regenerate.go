@@ -13,8 +13,8 @@ func newRegenerateKeyCmd() *cli.Command {
 	var recoveryKey string
 
 	return &cli.Command{
-		Name:    "regenerate-key",
-		Usage:   "Regenerate an existing local recovery key",
+		Name:    "regenerate-recovery-key",
+		Usage:   "Regenerate an existing recovery key",
 		Suggest: true,
 		Arguments: []cli.Argument{
 			&cli.StringArg{
@@ -61,30 +61,5 @@ func regenerateKey(ctx context.Context, _ string) error {
 	fmt.Println(res.Status)
 	fmt.Println(res.Summary)
 
-	return nil
-}
-
-func newRegenerateEnterpriseKeyCmd() *cli.Command {
-	var recoveryKey string
-
-	return &cli.Command{
-		Name:    "regenerate-enterprise-key",
-		Usage:   "Regenerate an existing enterprise recovery key",
-		Suggest: true,
-		Arguments: []cli.Argument{
-			&cli.StringArg{
-				Name:        "key-id",
-				UsageText:   "<key-id>",
-				Destination: &recoveryKey,
-			},
-		},
-		Action: func(ctx context.Context, c *cli.Command) error {
-			return regenerateEnterpriseKey(ctx, recoveryKey)
-		},
-	}
-}
-
-func regenerateEnterpriseKey(_ context.Context, key string) error {
-	fmt.Println("Regenerated enterprise key with id", key)
 	return nil
 }
