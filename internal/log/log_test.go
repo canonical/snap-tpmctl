@@ -5,9 +5,8 @@ import (
 	"fmt"
 	"testing"
 
-	"snap-tpmctl/internal/log"
-
 	"github.com/nalgeon/be"
+	"snap-tpmctl/internal/log"
 )
 
 var supportedLevels = []log.Level{

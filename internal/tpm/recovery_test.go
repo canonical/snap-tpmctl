@@ -128,42 +128,42 @@ func TestIsValidRecoveryKey(t *testing.T) {
 		"key with letters": {
 			key:       "12345-67890-abcde-67890-12345-67890-12345-67890",
 			wantErr:   true,
-			wantInErr: "invalid recovery key format: must contain only alphanumeric characters, hyphens, or underscores",
+			wantInErr: "invalid recovery key format: must contain only alphanumeric characters and hyphens",
 		},
 		"key too short": {
 			key:       "12345-67890-12345",
 			wantErr:   true,
-			wantInErr: "invalid recovery key format: must contain only alphanumeric characters, hyphens, or underscores",
+			wantInErr: "invalid recovery key format: must contain only alphanumeric characters and hyphens",
 		},
 		"key too long": {
 			key:       "12345-67890-12345-67890-12345-67890-12345-67890-12345",
 			wantErr:   true,
-			wantInErr: "invalid recovery key format: must contain only alphanumeric characters, hyphens, or underscores",
+			wantInErr: "invalid recovery key format: must contain only alphanumeric characters and hyphens",
 		},
 		"key with wrong separator": {
 			key:       "12345_67890_12345_67890_12345_67890_12345_67890",
 			wantErr:   true,
-			wantInErr: "invalid recovery key format: must contain only alphanumeric characters, hyphens, or underscores",
+			wantInErr: "invalid recovery key format: must contain only alphanumeric characters and hyphens",
 		},
 		"key with missing separator": {
 			key:       "123456789012345678901234567890123456789012345",
 			wantErr:   true,
-			wantInErr: "invalid recovery key format: must contain only alphanumeric characters, hyphens, or underscores",
+			wantInErr: "invalid recovery key format: must contain only alphanumeric characters and hyphens",
 		},
 		"key with four digits": {
 			key:       "1234-67890-12345-67890-12345-67890-12345-67890",
 			wantErr:   true,
-			wantInErr: "invalid recovery key format: must contain only alphanumeric characters, hyphens, or underscores",
+			wantInErr: "invalid recovery key format: must contain only alphanumeric characters and hyphens",
 		},
 		"key with six digits": {
 			key:       "123456-67890-12345-67890-12345-67890-12345-67890",
 			wantErr:   true,
-			wantInErr: "invalid recovery key format: must contain only alphanumeric characters, hyphens, or underscores",
+			wantInErr: "invalid recovery key format: must contain only alphanumeric characters and hyphens",
 		},
 		"key with spaces": {
 			key:       "12345 67890 12345 67890 12345 67890 12345 67890",
 			wantErr:   true,
-			wantInErr: "invalid recovery key format: must contain only alphanumeric characters, hyphens, or underscores",
+			wantInErr: "invalid recovery key format: must contain only alphanumeric characters and hyphens",
 		},
 	}
 

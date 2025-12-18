@@ -189,7 +189,7 @@ func ValidateRecoveryKey(key string) error {
 	}
 
 	if !isValidRecoveryKey(key) {
-		return fmt.Errorf("invalid recovery key format: must contain only alphanumeric characters, hyphens, or underscores")
+		return fmt.Errorf("invalid recovery key format: must contain only alphanumeric characters and hyphens")
 	}
 
 	return nil
