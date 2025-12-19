@@ -21,7 +21,7 @@ type CreateKeyResult struct {
 	Status      string
 }
 
-// CreateKey creates a new recovery key with the given name. Input should be validated using ValidateRecoveryKeyName first.
+// CreateKey creates a new recovery key with the given name. Input should be validated using ValidateRecoveryKeyNameUnique first.
 func CreateKey(ctx context.Context, client keyCreator, recoveryKeyName string) (result *CreateKeyResult, err error) {
 	key, err := client.GenerateRecoveryKey(ctx)
 	if err != nil {

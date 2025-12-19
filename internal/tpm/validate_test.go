@@ -222,7 +222,7 @@ func TestIsValidRecoveryKey(t *testing.T) {
 	}
 }
 
-func TestValidateRecoveryKeyName(t *testing.T) {
+func TestValidateRecoveryKeyNameUnique(t *testing.T) {
 	t.Parallel()
 
 	tests := map[string]struct {
@@ -266,7 +266,7 @@ func TestValidateRecoveryKeyName(t *testing.T) {
 				EnumerateError: tc.enumerateFails,
 			})
 
-			err := tpm.ValidateRecoveryKeyName(ctx, mockClient, tc.recoveryKeyName)
+			err := tpm.ValidateRecoveryKeyNameUnique(ctx, mockClient, tc.recoveryKeyName)
 
 			if tc.wantErr {
 				be.Err(t, err)

@@ -33,7 +33,7 @@ func newCreateKeyCmd() *cli.Command {
 			}
 
 			// Validate the recovery key name
-			if err := tpm.ValidateRecoveryKeyName(ctx, c, recoveryKeyName); err != nil {
+			if err := tpm.ValidateRecoveryKeyNameUnique(ctx, c, recoveryKeyName); err != nil {
 				return err
 			}
 

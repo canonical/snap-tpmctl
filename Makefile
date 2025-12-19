@@ -46,6 +46,9 @@ remote-test: sync
 	@echo 'Running tests on remote VM...'
 	@ssh $(SSH_OPTS) $(VM) 'cd $(REMOTE_DIR) && go test -v ./...'
 
+remote-shell:
+	@ssh $(SSH_OPTS) $(VM)
+
 remote-clean:
 	@echo 'Cleaning remote artifacts...'
 	@ssh $(SSH_OPTS) $(VM) 'cd $(REMOTE_DIR) && rm -rf bin'

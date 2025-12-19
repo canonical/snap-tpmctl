@@ -151,7 +151,7 @@ func ValidateAuthMode(ctx context.Context, client authValidator, expectedAuthMod
 	return nil
 }
 
-// ValidateRecoveryKeyName validates that a recovery key name is valid and not in use.
+// ValidateRecoveryKeyName validates that a recovery key name is valid.
 func ValidateRecoveryKeyName(ctx context.Context, client authValidator, recoveryKeyName string) error {
 	// Recovery key name cannot be empty.
 	if recoveryKeyName == "" {
@@ -161,6 +161,15 @@ func ValidateRecoveryKeyName(ctx context.Context, client authValidator, recovery
 	// Recovery key name cannot start with 'snap' or 'default'.
 	if strings.HasPrefix(recoveryKeyName, "snap") || strings.HasPrefix(recoveryKeyName, "default") {
 		return fmt.Errorf("recovery key name cannot start with 'snap' or 'default'")
+	}
+
+	return nil
+}
+
+// ValidateRecoveryKeyNameUnique validates that a recovery key name is valid and not in use.
+func ValidateRecoveryKeyNameUnique(ctx context.Context, client authValidator, recoveryKeyName string) error {
+	if err := ValidateRecoveryKeyName(ctx, client, recoveryKeyName); err != nil {
+		return err
 	}
 
 	// Recovery key name cannot already be in use.

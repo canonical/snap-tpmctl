@@ -43,7 +43,7 @@ func newRegenerateKeyCmd() *cli.Command {
 			}
 
 			result, err := tui.WithSpinnerResult("Regenerating recovery key...", func() (*tpm.CreateKeyResult, error) {
-				return tpm.CreateKey(ctx, c, recoveryKeyName)
+				return tpm.RegenerateKey(ctx, c, recoveryKeyName)
 			})
 			if err != nil {
 				return err
