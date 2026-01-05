@@ -14,13 +14,6 @@ type KeySlotInfo struct {
 	Roles        []string `json:"roles,omitempty"`
 }
 
-// VolumeKeySlot describes a keyslot configuration.
-type VolumeKeySlot struct {
-	Number   int    `json:"number"`
-	Name     string `json:"name,omitempty"`
-	Priority int    `json:"priority,omitempty"`
-}
-
 // VolumeInfo describes a system volume.
 type VolumeInfo struct {
 	Name       string                 `json:"name"`
@@ -32,13 +25,6 @@ type VolumeInfo struct {
 // SystemVolumesResult describes the system volumes response.
 type SystemVolumesResult struct {
 	ByContainerRole map[string]VolumeInfo `json:"by-container-role"`
-}
-
-// SystemVolumesRequest represents a request to manage volumes in snapd.
-type SystemVolumesRequest struct {
-	Action   string          `json:"action"`
-	Volume   string          `json:"volume,omitempty"`
-	KeySlots []VolumeKeySlot `json:"keyslots,omitempty"`
 }
 
 // EnumerateKeySlots gets information about system volumes.
@@ -54,36 +40,4 @@ func (c *Client) EnumerateKeySlots(ctx context.Context) (*SystemVolumesResult, e
 	}
 
 	return &volumes, nil
-}
-
-// AddSystemVolumeKeySlots adds keyslots to a system volume.
-func (c *Client) AddSystemVolumeKeySlots(ctx context.Context, volume string, keySlots []VolumeKeySlot) (*Response, error) {
-	body := SystemVolumesRequest{
-		Action:   "add-key",
-		Volume:   volume,
-		KeySlots: keySlots,
-	}
-
-	resp, err := c.doRequest(ctx, http.MethodPost, "/v2/system-volumes", nil, body)
-	if err != nil {
-		return nil, err
-	}
-
-	return resp, nil
-}
-
-// RemoveSystemVolumeKeySlots removes keyslots from a system volume.
-func (c *Client) RemoveSystemVolumeKeySlots(ctx context.Context, volume string, keySlots []VolumeKeySlot) (*Response, error) {
-	body := SystemVolumesRequest{
-		Action:   "remove-key",
-		Volume:   volume,
-		KeySlots: keySlots,
-	}
-
-	resp, err := c.doRequest(ctx, http.MethodPost, "/v2/system-volumes", nil, body)
-	if err != nil {
-		return nil, err
-	}
-
-	return resp, nil
 }

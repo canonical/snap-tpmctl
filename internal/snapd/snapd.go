@@ -238,8 +238,6 @@ func (c *Client) LoadAuthFromHome() error {
 }
 
 // doRequest performs an HTTP request to snapd.
-//
-
 func (c *Client) doRequest(ctx context.Context, method, path string, query url.Values, body any) (*Response, error) {
 	reqBody, err := c.NewRequestBody(body)
 	if err != nil {

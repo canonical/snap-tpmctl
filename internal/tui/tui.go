@@ -3,9 +3,12 @@ package tui
 
 import (
 	"bufio"
+	"bytes"
 	"fmt"
+	"io"
 	"os"
 	"strings"
+	"text/tabwriter"
 	"time"
 )
 
@@ -93,4 +96,36 @@ func WithSpinnerResult[T any](message string, fn func() (T, error)) (T, error) {
 			fmt.Printf("%s %s", message, spinnerChars[i%len(spinnerChars)])
 		}
 	}
+}
+
+// DisplayTable writes a formatted table to the given writer with optional headers.
+func DisplayTable(w io.Writer, headers []string, rows [][]string, hideHeaders bool) error {
+	if len(rows) == 0 {
+		return nil
+	}
+
+	var buf bytes.Buffer
+	tw := tabwriter.NewWriter(&buf, 0, 0, 2, ' ', 0)
+
+	if !hideHeaders {
+		if _, err := fmt.Fprintln(tw, strings.Join(headers, "\t")); err != nil {
+			return err
+		}
+	}
+
+	for _, row := range rows {
+		if _, err := fmt.Fprintln(tw, strings.Join(row, "\t")); err != nil {
+			return err
+		}
+	}
+
+	if err := tw.Flush(); err != nil {
+		return err
+	}
+
+	if _, err := io.Copy(w, &buf); err != nil {
+		return err
+	}
+
+	return nil
 }

@@ -3,49 +3,154 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"io"
 	"os"
+	"slices"
 	"strings"
 
 	sm "github.com/egregors/sortedmap"
-	"github.com/olekukonko/tablewriter"
 	"github.com/urfave/cli/v3"
 	"snap-tpmctl/internal/snapd"
+	"snap-tpmctl/internal/tui"
 )
 
-func newEnumerateCmd() *cli.Command {
-	// TODO: add possibility to filter by volume or container role
+func newListDetailCmd() *cli.Command {
+	var hideHeaders bool
 
 	return &cli.Command{
-		Name:    "list",
-		Usage:   "Enumerate all the keyslots",
+		Name:    "list-details",
+		Usage:   "List all the keyslots with details",
 		Suggest: true,
+		Flags: []cli.Flag{
+			&cli.BoolFlag{
+				Name:        "no-headers",
+				Usage:       "Show column headers",
+				Destination: &hideHeaders,
+			},
+		},
 		Action: func(ctx context.Context, cmd *cli.Command) error {
-			return enumerate(ctx)
+			c := snapd.NewClient()
+			defer c.Close()
+
+			// Load auth before validation
+			if err := c.LoadAuthFromHome(); err != nil {
+				return fmt.Errorf("failed to load auth: %w", err)
+			}
+
+			result, err := c.EnumerateKeySlots(ctx)
+			if err != nil {
+				return err
+			}
+
+			if err := displayKeysWithDetails(os.Stdout, result, hideHeaders); err != nil {
+				return err
+			}
+
+			return nil
 		},
 	}
 }
 
-func enumerate(ctx context.Context) error {
-	c := snapd.NewClient()
-	defer c.Close()
+func newListPassphraseCmd() *cli.Command {
+	return &cli.Command{
+		Name:    "list-passphrases",
+		Usage:   "List passphrases",
+		Suggest: true,
+		Action: func(ctx context.Context, cmd *cli.Command) error {
+			c := snapd.NewClient()
+			defer c.Close()
 
-	if err := c.LoadAuthFromHome(); err != nil {
-		return fmt.Errorf("failed to load auth: %w", err)
+			// Load auth before validation
+			if err := c.LoadAuthFromHome(); err != nil {
+				return fmt.Errorf("failed to load auth: %w", err)
+			}
+
+			result, err := c.EnumerateKeySlots(ctx)
+			if err != nil {
+				return err
+			}
+
+			data := parseKeySlots(result, "passphrase")
+
+			if err := displayKeySlotsFromMap(os.Stdout, "Passphrases", data); err != nil {
+				return err
+			}
+
+			return nil
+		},
 	}
-
-	res, err := c.EnumerateKeySlots(ctx)
-	if err != nil {
-		return err
-	}
-
-	if err = displayTable(res); err != nil {
-		return err
-	}
-
-	return nil
 }
 
-func displayTable(data *snapd.SystemVolumesResult) error {
+func newListRecoveryKeyCmd() *cli.Command {
+	return &cli.Command{
+		Name:    "list-recovery-keys",
+		Usage:   "List recovery keys",
+		Suggest: true,
+		Action: func(ctx context.Context, cmd *cli.Command) error {
+			c := snapd.NewClient()
+			defer c.Close()
+
+			// Load auth before validation
+			if err := c.LoadAuthFromHome(); err != nil {
+				return fmt.Errorf("failed to load auth: %w", err)
+			}
+
+			result, err := c.EnumerateKeySlots(ctx)
+			if err != nil {
+				return err
+			}
+
+			data := parseKeySlots(result, "recovery")
+
+			if err := displayKeySlotsFromMap(os.Stdout, "Recovery Keys", data); err != nil {
+				return err
+			}
+
+			return nil
+		},
+	}
+}
+
+func newListPinCmd() *cli.Command {
+	return &cli.Command{
+		Name:    "list-pins",
+		Usage:   "List pins",
+		Suggest: true,
+		Action: func(ctx context.Context, cmd *cli.Command) error {
+			c := snapd.NewClient()
+			defer c.Close()
+
+			// Load auth before validation
+			if err := c.LoadAuthFromHome(); err != nil {
+				return fmt.Errorf("failed to load auth: %w", err)
+			}
+
+			result, err := c.EnumerateKeySlots(ctx)
+			if err != nil {
+				return err
+			}
+
+			data := parseKeySlots(result, "pin")
+
+			if err := displayKeySlotsFromMap(os.Stdout, "Recovery Keys", data); err != nil {
+				return err
+			}
+
+			return nil
+		},
+	}
+}
+
+func displayKeysWithDetails(w io.Writer, data *snapd.SystemVolumesResult, hideHeaders bool) error {
+	if data == nil {
+		return nil
+	}
+
+	sortedData := sm.NewFromMap(data.ByContainerRole, func(i, j sm.KV[string, snapd.VolumeInfo]) bool {
+		return i.Key < j.Key
+	})
+
+	rows := [][]string{}
 	dashIfEmpty := func(s string) string {
 		if strings.TrimSpace(s) == "" {
 			return "-"
@@ -53,39 +158,17 @@ func displayTable(data *snapd.SystemVolumesResult) error {
 		return s
 	}
 
-	table := tablewriter.NewWriter(os.Stdout)
-	table.Header("ContainerRole", "Volume", "VolumeName", "Encrypted", "Name", "AuthMode", "PlatformName", "Roles", "Type")
-
-	sortedData := sm.NewFromMap(data.ByContainerRole, func(i, j sm.KV[string, snapd.VolumeInfo]) bool {
-		return i.Key < j.Key
-	})
-
 	for role, volume := range sortedData.All() {
 		keyslots := sm.NewFromMap(volume.KeySlots, func(i, j sm.KV[string, snapd.KeySlotInfo]) bool {
 			return i.Key < j.Key
 		})
 
-		// TODO: find a better way to do this
-
 		if keyslots.Len() == 0 {
-			err := table.Append(
-				role,
-				volume.Name,
-				volume.VolumeName,
-				fmt.Sprintf("%v", volume.Encrypted),
-				"-",
-				"-",
-				"-",
-				"-",
-				"-",
-			)
-			if err != nil {
-				return fmt.Errorf("failed to append table row: %w", err)
-			}
+			continue
 		}
 
 		for name, slot := range keyslots.All() {
-			err := table.Append(
+			rows = append(rows, []string{
 				role,
 				volume.Name,
 				volume.VolumeName,
@@ -95,15 +178,57 @@ func displayTable(data *snapd.SystemVolumesResult) error {
 				dashIfEmpty(slot.PlatformName),
 				dashIfEmpty(strings.Join(slot.Roles, "+")),
 				dashIfEmpty(slot.Type),
-			)
-			if err != nil {
-				return fmt.Errorf("failed to append table row: %w", err)
+			})
+		}
+	}
+
+	headers := []string{"ContainerRole", "Volume", "VolumeName", "Encrypted", "Name", "AuthMode", "PlatformName", "Roles", "Type"}
+
+	if err := tui.DisplayTable(w, headers, rows, hideHeaders); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func parseKeySlots(data *snapd.SystemVolumesResult, keyType string) []string {
+	var result []string
+
+	if data == nil {
+		return result
+	}
+
+	for _, volume := range data.ByContainerRole {
+		for name, slot := range volume.KeySlots {
+			if keyType == "recovery" && slot.Type == "recovery" {
+				result = append(result, name)
+			} else if slot.AuthMode == keyType {
+				result = append(result, name)
 			}
 		}
 	}
 
-	if err := table.Render(); err != nil {
-		return fmt.Errorf("failed to render table: %w", err)
+	// Sort and deduplicate entries
+	slices.Sort(result)
+	result = slices.Compact(result)
+
+	return result
+}
+
+func displayKeySlotsFromMap(w io.Writer, title string, entries []string) error {
+	if _, err := fmt.Fprintf(w, "%s:\n", title); err != nil {
+		return err
+	}
+
+	if len(entries) == 0 {
+		_, err := fmt.Fprintln(w, "* none")
+		return err
+	}
+
+	for _, e := range entries {
+		if _, err := fmt.Fprintf(w, "* %s\n", e); err != nil {
+			return err
+		}
 	}
 
 	return nil
