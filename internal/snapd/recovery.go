@@ -1,6 +1,7 @@
 package snapd
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"net/http"
@@ -31,11 +32,18 @@ type RecoveryKeyRequest struct {
 
 // GenerateRecoveryKey creates a new recovery key and returns the key and its ID.
 func (c *Client) GenerateRecoveryKey(ctx context.Context) (*GenerateRecoveryKeyResult, error) {
-	body := RecoveryKeyRequest{
+	var body bytes.Buffer
+	req := struct {
+		Action string `json:"action"`
+	}{
 		Action: "generate-recovery-key",
 	}
 
-	resp, err := c.doRequest(ctx, http.MethodPost, "/v2/system-volumes", nil, body)
+	if err := json.NewEncoder(&body).Encode(&req); err != nil {
+		return nil, err
+	}
+
+	resp, err := c.doSync(http.MethodPost, "/v2/system-volumes", nil, nil, &body)
 	if err != nil {
 		return nil, err
 	}
@@ -50,50 +58,50 @@ func (c *Client) GenerateRecoveryKey(ctx context.Context) (*GenerateRecoveryKeyR
 
 // AddRecoveryKey adds a recovery key to the specified keyslots.
 // This is an async operation that waits for completion.
-func (c *Client) AddRecoveryKey(ctx context.Context, keyID string, keySlots []KeySlot) (*AsyncResponse, error) {
-	body := RecoveryKeyRequest{
-		Action:   "add-recovery-key",
-		KeyID:    keyID,
-		KeySlots: keySlots,
-	}
+// func (c *Client) AddRecoveryKey(ctx context.Context, keyID string, keySlots []KeySlot) (*AsyncResponse, error) {
+// 	body := RecoveryKeyRequest{
+// 		Action:   "add-recovery-key",
+// 		KeyID:    keyID,
+// 		KeySlots: keySlots,
+// 	}
 
-	resp, err := c.doAsyncRequest(ctx, http.MethodPost, "/v2/system-volumes", nil, body)
-	if err != nil {
-		return nil, err
-	}
+// 	resp, err := c.doAsyncRequest(ctx, http.MethodPost, "/v2/system-volumes", nil, body)
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-	return resp, nil
-}
+// 	return resp, nil
+// }
 
-// ReplaceRecoveryKey replaces a recovery key to the specified keyslots.
-// This is an async operation that waits for completion.
-func (c *Client) ReplaceRecoveryKey(ctx context.Context, keyID string, keySlots []KeySlot) (*AsyncResponse, error) {
-	body := RecoveryKeyRequest{
-		Action:   "replace-recovery-key",
-		KeyID:    keyID,
-		KeySlots: keySlots,
-	}
+// // ReplaceRecoveryKey replaces a recovery key to the specified keyslots.
+// // This is an async operation that waits for completion.
+// func (c *Client) ReplaceRecoveryKey(ctx context.Context, keyID string, keySlots []KeySlot) (*AsyncResponse, error) {
+// 	body := RecoveryKeyRequest{
+// 		Action:   "replace-recovery-key",
+// 		KeyID:    keyID,
+// 		KeySlots: keySlots,
+// 	}
 
-	resp, err := c.doAsyncRequest(ctx, http.MethodPost, "/v2/system-volumes", nil, body)
-	if err != nil {
-		return nil, err
-	}
+// 	resp, err := c.doAsyncRequest(ctx, http.MethodPost, "/v2/system-volumes", nil, body)
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-	return resp, nil
-}
+// 	return resp, nil
+// }
 
-// CheckRecoveryKey check a recovery key to the specified keyslots.
-func (c *Client) CheckRecoveryKey(ctx context.Context, recoveryKey string, containerRoles []string) (*Response, error) {
-	body := RecoveryKeyRequest{
-		Action:         "check-recovery-key",
-		RecoveryKey:    recoveryKey,
-		ContainerRoles: containerRoles,
-	}
+// // CheckRecoveryKey check a recovery key to the specified keyslots.
+// func (c *Client) CheckRecoveryKey(ctx context.Context, recoveryKey string, containerRoles []string) (*Response, error) {
+// 	body := RecoveryKeyRequest{
+// 		Action:         "check-recovery-key",
+// 		RecoveryKey:    recoveryKey,
+// 		ContainerRoles: containerRoles,
+// 	}
 
-	resp, err := c.doRequest(ctx, http.MethodPost, "/v2/system-volumes", nil, body)
-	if err != nil {
-		return nil, err
-	}
+// 	resp, err := c.doRequest(ctx, http.MethodPost, "/v2/system-volumes", nil, body)
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-	return resp, nil
-}
+// 	return resp, nil
+// }
