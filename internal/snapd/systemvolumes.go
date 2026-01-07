@@ -14,6 +14,21 @@ type KeySlotInfo struct {
 	Roles        []string `json:"roles,omitempty"`
 }
 
+// IsRecoveryKey returns true if the keyslot is a recovery key.
+func (slot *KeySlotInfo) IsRecoveryKey() bool {
+	return slot.Type == "recovery"
+}
+
+// IsPassphrase returns true if the keyslot uses passphrase authentication.
+func (slot *KeySlotInfo) IsPassphrase() bool {
+	return slot.AuthMode == "passphrase"
+}
+
+// IsPin returns true if the keyslot uses pin authentication.
+func (slot *KeySlotInfo) IsPin() bool {
+	return slot.AuthMode == "pin"
+}
+
 // VolumeInfo describes a system volume.
 type VolumeInfo struct {
 	Name       string                 `json:"name"`

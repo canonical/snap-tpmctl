@@ -24,7 +24,7 @@ func newListDetailCmd() *cli.Command {
 		Flags: []cli.Flag{
 			&cli.BoolFlag{
 				Name:        "no-headers",
-				Usage:       "Show column headers",
+				Usage:       "Hide column headers",
 				Destination: &hideHeaders,
 			},
 		},
@@ -70,7 +70,7 @@ func newListPassphraseCmd() *cli.Command {
 				return err
 			}
 
-			data := parseKeySlots(result, "passphrase")
+			data := parseKeySlots(result, (*snapd.KeySlotInfo).IsPassphrase)
 
 			if err := displayKeySlotsFromMap(os.Stdout, "Passphrases", data); err != nil {
 				return err
@@ -100,7 +100,7 @@ func newListRecoveryKeyCmd() *cli.Command {
 				return err
 			}
 
-			data := parseKeySlots(result, "recovery")
+			data := parseKeySlots(result, (*snapd.KeySlotInfo).IsRecoveryKey)
 
 			if err := displayKeySlotsFromMap(os.Stdout, "Recovery Keys", data); err != nil {
 				return err
@@ -130,7 +130,7 @@ func newListPinCmd() *cli.Command {
 				return err
 			}
 
-			data := parseKeySlots(result, "pin")
+			data := parseKeySlots(result, (*snapd.KeySlotInfo).IsPin)
 
 			if err := displayKeySlotsFromMap(os.Stdout, "Recovery Keys", data); err != nil {
 				return err
@@ -191,7 +191,7 @@ func displayKeysWithDetails(w io.Writer, data *snapd.SystemVolumesResult, hideHe
 	return nil
 }
 
-func parseKeySlots(data *snapd.SystemVolumesResult, keyType string) []string {
+func parseKeySlots(data *snapd.SystemVolumesResult, filter func(*snapd.KeySlotInfo) bool) []string {
 	var result []string
 
 	if data == nil {
@@ -200,9 +200,7 @@ func parseKeySlots(data *snapd.SystemVolumesResult, keyType string) []string {
 
 	for _, volume := range data.ByContainerRole {
 		for name, slot := range volume.KeySlots {
-			if keyType == "recovery" && slot.Type == "recovery" {
-				result = append(result, name)
-			} else if slot.AuthMode == keyType {
+			if filter(&slot) {
 				result = append(result, name)
 			}
 		}
