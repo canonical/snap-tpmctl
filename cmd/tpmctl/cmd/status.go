@@ -27,7 +27,7 @@ func newStatusCmd() *cli.Command {
 				return err
 			}
 
-			fmt.Printf("FDE status: %s\n", result.State)
+			fmt.Printf("FDE status: %s\n", result.Status)
 
 			return nil
 		},
