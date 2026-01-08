@@ -8,17 +8,16 @@ import (
 	"slices"
 	"strings"
 
-	sm "github.com/egregors/sortedmap"
 	"github.com/urfave/cli/v3"
 	"snap-tpmctl/internal/snapd"
 	"snap-tpmctl/internal/tui"
 )
 
-func newListDetailCmd() *cli.Command {
+func newListAllCmd() *cli.Command {
 	var hideHeaders bool
 
 	return &cli.Command{
-		Name:    "list-details",
+		Name:    "list-all",
 		Usage:   "List all the keyslots with details",
 		Suggest: true,
 		Flags: []cli.Flag{
@@ -42,7 +41,7 @@ func newListDetailCmd() *cli.Command {
 				return err
 			}
 
-			if err := displayKeysWithDetails(os.Stdout, result, hideHeaders); err != nil {
+			if err := displayAllKeys(os.Stdout, result, hideHeaders); err != nil {
 				return err
 			}
 
@@ -72,9 +71,7 @@ func newListPassphraseCmd() *cli.Command {
 
 			data := parseKeySlots(result, (*snapd.KeySlotInfo).IsPassphrase)
 
-			if err := displayKeySlotsFromMap(os.Stdout, "Passphrases", data); err != nil {
-				return err
-			}
+			displayKeySlotsFromMap(os.Stdout, "Passphrases", data)
 
 			return nil
 		},
@@ -102,9 +99,7 @@ func newListRecoveryKeyCmd() *cli.Command {
 
 			data := parseKeySlots(result, (*snapd.KeySlotInfo).IsRecoveryKey)
 
-			if err := displayKeySlotsFromMap(os.Stdout, "Recovery Keys", data); err != nil {
-				return err
-			}
+			displayKeySlotsFromMap(os.Stdout, "Recovery Keys", data)
 
 			return nil
 		},
@@ -132,23 +127,63 @@ func newListPinCmd() *cli.Command {
 
 			data := parseKeySlots(result, (*snapd.KeySlotInfo).IsPin)
 
-			if err := displayKeySlotsFromMap(os.Stdout, "Recovery Keys", data); err != nil {
-				return err
-			}
+			displayKeySlotsFromMap(os.Stdout, "Pins", data)
 
 			return nil
 		},
 	}
 }
 
-func displayKeysWithDetails(w io.Writer, data *snapd.SystemVolumesResult, hideHeaders bool) error {
+type key struct {
+	snapd.KeySlotInfo
+	containerRole string
+	encrypted     bool
+	keySlotName   string
+	volume        string
+	volumeName    string
+}
+
+func getAllKeys(data *snapd.SystemVolumesResult) []key {
 	if data == nil {
 		return nil
 	}
 
-	sortedData := sm.NewFromMap(data.ByContainerRole, func(i, j sm.KV[string, snapd.VolumeInfo]) bool {
-		return i.Key < j.Key
-	})
+	var volumes []string
+	for v := range data.ByContainerRole {
+		volumes = append(volumes, v)
+	}
+	slices.Sort(volumes)
+
+	var allKeys []key
+	for _, role := range volumes {
+		name := data.ByContainerRole[role].Name
+		encrypted := data.ByContainerRole[role].Encrypted
+		volumeName := data.ByContainerRole[role].VolumeName
+
+		var keys []key
+		for k, v := range data.ByContainerRole[role].KeySlots {
+			keys = append(keys, key{
+				keySlotName:   k,
+				KeySlotInfo:   v,
+				containerRole: role,
+				volume:        name,
+				encrypted:     encrypted,
+				volumeName:    volumeName,
+			})
+		}
+
+		slices.SortFunc(keys, func(i, j key) int {
+			return strings.Compare(i.keySlotName, j.keySlotName)
+		})
+
+		allKeys = append(allKeys, keys...)
+	}
+
+	return allKeys
+}
+
+func displayAllKeys(w io.Writer, data *snapd.SystemVolumesResult, hideHeaders bool) error {
+	keys := getAllKeys(data)
 
 	rows := [][]string{}
 	dashIfEmpty := func(s string) string {
@@ -158,31 +193,21 @@ func displayKeysWithDetails(w io.Writer, data *snapd.SystemVolumesResult, hideHe
 		return s
 	}
 
-	for role, volume := range sortedData.All() {
-		keyslots := sm.NewFromMap(volume.KeySlots, func(i, j sm.KV[string, snapd.KeySlotInfo]) bool {
-			return i.Key < j.Key
+	for _, k := range keys {
+		rows = append(rows, []string{
+			k.containerRole,
+			k.volume,
+			k.volumeName,
+			fmt.Sprintf("%v", k.encrypted),
+			dashIfEmpty(k.keySlotName),
+			dashIfEmpty(k.AuthMode),
+			dashIfEmpty(k.PlatformName),
+			dashIfEmpty(strings.Join(k.Roles, "+")),
+			dashIfEmpty(k.Type),
 		})
-
-		if keyslots.Len() == 0 {
-			continue
-		}
-
-		for name, slot := range keyslots.All() {
-			rows = append(rows, []string{
-				role,
-				volume.Name,
-				volume.VolumeName,
-				fmt.Sprintf("%v", volume.Encrypted),
-				dashIfEmpty(name),
-				dashIfEmpty(slot.AuthMode),
-				dashIfEmpty(slot.PlatformName),
-				dashIfEmpty(strings.Join(slot.Roles, "+")),
-				dashIfEmpty(slot.Type),
-			})
-		}
 	}
 
-	headers := []string{"ContainerRole", "Volume", "VolumeName", "Encrypted", "Name", "AuthMode", "PlatformName", "Roles", "Type"}
+	headers := []string{"ContainerRole", "Volume", "VolumeName", "Encrypted", "KeyslotName", "AuthMode", "PlatformName", "Roles", "Type"}
 
 	if err := tui.DisplayTable(w, headers, rows, hideHeaders); err != nil {
 		return err
@@ -192,42 +217,29 @@ func displayKeysWithDetails(w io.Writer, data *snapd.SystemVolumesResult, hideHe
 }
 
 func parseKeySlots(data *snapd.SystemVolumesResult, filter func(*snapd.KeySlotInfo) bool) []string {
+	keys := getAllKeys(data)
+
 	var result []string
-
-	if data == nil {
-		return result
-	}
-
-	for _, volume := range data.ByContainerRole {
-		for name, slot := range volume.KeySlots {
-			if filter(&slot) {
-				result = append(result, name)
-			}
+	for _, k := range keys {
+		if !filter(&k.KeySlotInfo) {
+			continue
 		}
-	}
 
-	// Sort and deduplicate entries
-	slices.Sort(result)
-	result = slices.Compact(result)
+		// Deduplicate entries
+		if slices.Contains(result, k.keySlotName) {
+			continue
+		}
+
+		result = append(result, k.keySlotName)
+	}
 
 	return result
 }
 
-func displayKeySlotsFromMap(w io.Writer, title string, entries []string) error {
-	if _, err := fmt.Fprintf(w, "%s:\n", title); err != nil {
-		return err
-	}
-
-	if len(entries) == 0 {
-		_, err := fmt.Fprintln(w, "* none")
-		return err
-	}
+func displayKeySlotsFromMap(w io.Writer, title string, entries []string) {
+	fmt.Fprintf(w, "%s:\n", title)
 
 	for _, e := range entries {
-		if _, err := fmt.Fprintf(w, "* %s\n", e); err != nil {
-			return err
-		}
+		fmt.Fprintf(w, "* %s\n", e)
 	}
-
-	return nil
 }

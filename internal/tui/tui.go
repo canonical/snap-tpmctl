@@ -108,15 +108,11 @@ func DisplayTable(w io.Writer, headers []string, rows [][]string, hideHeaders bo
 	tw := tabwriter.NewWriter(&buf, 0, 0, 2, ' ', 0)
 
 	if !hideHeaders {
-		if _, err := fmt.Fprintln(tw, strings.Join(headers, "\t")); err != nil {
-			return err
-		}
+		fmt.Fprintln(tw, strings.Join(headers, "\t"))
 	}
 
 	for _, row := range rows {
-		if _, err := fmt.Fprintln(tw, strings.Join(row, "\t")); err != nil {
-			return err
-		}
+		fmt.Fprintln(tw, strings.Join(row, "\t"))
 	}
 
 	if err := tw.Flush(); err != nil {
