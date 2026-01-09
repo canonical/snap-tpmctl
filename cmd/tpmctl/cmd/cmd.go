@@ -66,6 +66,7 @@ func newRootCmd() cli.Command {
 			newRemovePINCmd(),
 			newRemovePassphraseCmd(),
 			newStatusCmd(),
+			newUnmountVolumeCmd(),
 		},
 		Flags: []cli.Flag{
 			&cli.BoolFlag{
