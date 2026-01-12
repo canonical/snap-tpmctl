@@ -3,8 +3,9 @@ package cmd
 import (
 	"context"
 
-	"github.com/urfave/cli/v3"
 	"snap-tpmctl/internal/tpm"
+
+	"github.com/urfave/cli/v3"
 )
 
 func newMountVolumeCmd() *cli.Command {
@@ -27,7 +28,13 @@ func newMountVolumeCmd() *cli.Command {
 			},
 		},
 		Action: func(ctx context.Context, cmd *cli.Command) error {
-			// TODO: add validator for devicePath and volumeName
+			if err := tpm.ValidateDevicePath(devicePath); err != nil {
+				return err
+			}
+
+			if err := tpm.ValidateVolumeName(volumeName); err != nil {
+				return err
+			}
 
 			if err := tpm.MountVolume(volumeName, devicePath); err != nil {
 				return err
@@ -53,7 +60,9 @@ func newUnmountVolumeCmd() *cli.Command {
 			},
 		},
 		Action: func(ctx context.Context, cmd *cli.Command) error {
-			// TODO: add validator for volumeName
+			if err := tpm.ValidateVolumeName(volumeName); err != nil {
+				return err
+			}
 
 			if err := tpm.UnmountVolume(volumeName); err != nil {
 				return err

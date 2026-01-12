@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"os"
 	"regexp"
 	"slices"
 	"strings"
@@ -199,6 +200,36 @@ func ValidateRecoveryKey(key string) error {
 
 	if !isValidRecoveryKey(key) {
 		return fmt.Errorf("invalid recovery key format: must contain only alphanumeric characters and hyphens")
+	}
+
+	return nil
+}
+
+// ValidateDevicePath validates that a device path exists in the system.
+func ValidateDevicePath(devicePath string) error {
+	if devicePath == "" {
+		return fmt.Errorf("device path cannot be empty")
+	}
+
+	// Check if the device actually exists
+	if _, err := os.Stat(devicePath); err != nil {
+		if os.IsNotExist(err) {
+			return fmt.Errorf("device %q does not exist", devicePath)
+		}
+		return fmt.Errorf("failed to check device %q: %w", devicePath, err)
+	}
+
+	return nil
+}
+
+// ValidateVolumeName validates that a volume name is not empty and follows valid conventions.
+func ValidateVolumeName(volumeName string) error {
+	if volumeName == "" {
+		return fmt.Errorf("volume name cannot be empty")
+	}
+
+	if strings.Contains(volumeName, "/") {
+		return fmt.Errorf("volume name cannot contain slashes")
 	}
 
 	return nil
