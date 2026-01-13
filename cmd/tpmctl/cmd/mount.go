@@ -3,9 +3,8 @@ package cmd
 import (
 	"context"
 
-	"snap-tpmctl/internal/tpm"
-
 	"github.com/urfave/cli/v3"
+	"snap-tpmctl/internal/tpm"
 )
 
 func newMountVolumeCmd() *cli.Command {
