@@ -4,6 +4,7 @@ package snapd
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/url"
@@ -18,6 +19,7 @@ const (
 )
 
 // Response is the base response structure from snapd.
+// TODO: make this struct private, but export for test mocks
 type Response struct {
 	Type       string          `json:"type"`
 	StatusCode int             `json:"status-code"`
@@ -119,27 +121,16 @@ func NewClient(opts ...ClientOption) *Client {
 	}
 }
 
-// func (c *Client) Foo() error {
-// 	var body bytes.Buffer
-// 	req := struct {
-// 		Action string `json:"action"`
-// 	}{
-// 		Action: "foo",
-// 	}
-
-// 	if err := json.NewEncoder(&body).Encode(&req); err != nil {
-// 		return err
-// 	}
-// 	if _, err := doSync(c.snapd, "POST", "/v2/foo", nil, nil, &body, nil); err != nil {
-// 		return fmt.Errorf("cannot request system reboot: %v", err)
-// 	}
-// 	return nil
-
-// }
-
 func (c *Client) doSyncRequest(ctx context.Context, method, path string, query url.Values, headers map[string]string, body io.Reader) (*Response, error) {
 	var resp response
-	_, err := do(c.snapd, method, path, query, headers, body, &resp, nil)
+	_, err := doSync(c.snapd, method, path, query, headers, body, &resp)
+	var snapdErr snapdClient.Error
+	if errors.As(err, &snapdErr) {
+		return nil, fmt.Errorf("%w %d", snapdErr, snapdErr.StatusCode)
+	}
+	if err != nil {
+		return nil, err
+	}
 
 	bodyBytes, err := io.ReadAll(body)
 	if err != nil {
@@ -196,8 +187,8 @@ func (c *Client) doAsyncRequest(ctx context.Context, method, path string, query 
 	}
 }
 
-// // go:linkname doSync github.com/snapcore/snap/client.(*Client).doSync
-// func doSync(c *snapdClient.Client, method, path string, query url.Values, headers map[string]string, body io.Reader, v any) (*snapdClient.ResultInfo, error)
+// go:linkname doSync github.com/snapcore/snap/client.(*Client).doSync
+func doSync(c *snapdClient.Client, method, path string, query url.Values, headers map[string]string, body io.Reader, v any) (*snapdClient.ResultInfo, error)
 
 // // go:linkname doAsync github.com/snapcore/snap/client.(*Client).doAsync
 // func doAsync(c *snapdClient.Client, method, path string, query url.Values, headers map[string]string, body io.Reader) (changeID string, err error)
