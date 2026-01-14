@@ -40,3 +40,13 @@ func (r *authRequestor) RequestUserCredential(ctx context.Context, name, path st
 
 	return key, nil
 }
+
+// GetLuksKey validates and converts the recovery key to a binary key format by parsing and formatting it.
+func GetLuksKey(recoveryKey string) (secboot.DiskUnlockKey, error) {
+	binKey, err := secboot.ParseRecoveryKey(recoveryKey)
+	if err != nil {
+		return nil, err
+	}
+
+	return binKey[:], nil
+}

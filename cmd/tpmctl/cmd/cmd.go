@@ -54,7 +54,7 @@ func newRootCmd() cli.Command {
 			newAddPassphraseCmd(),
 			newCreateKeyCmd(),
 			newCheckCmd(),
-			newGetLuksPassphraseCmd(),
+			newGetLuksKeyFromRecoveryKeyCmd(),
 			newListAllCmd(),
 			newListPassphraseCmd(),
 			newListPinCmd(),

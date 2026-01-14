@@ -2,9 +2,12 @@ package cmd
 
 import (
 	"context"
+	"fmt"
+	"os"
 
 	"github.com/urfave/cli/v3"
 	"snap-tpmctl/internal/tpm"
+	"snap-tpmctl/internal/tui"
 )
 
 func newMountVolumeCmd() *cli.Command {
@@ -72,12 +75,42 @@ func newUnmountVolumeCmd() *cli.Command {
 	}
 }
 
-func newGetLuksPassphraseCmd() *cli.Command {
+func newGetLuksKeyFromRecoveryKeyCmd() *cli.Command {
+	var outputFile string
+
 	return &cli.Command{
-		Name:    "get-luks-passphrase",
-		Usage:   "Get LUKS passphrase from recovery key",
+		Name:    "get-luks-key",
+		Usage:   "Get LUKS key from recovery key",
 		Suggest: true,
+		Flags: []cli.Flag{
+			&cli.StringFlag{
+				Name:        "file",
+				Usage:       "Write binary key to file with secure permissions (600)",
+				Destination: &outputFile,
+			},
+		},
 		Action: func(ctx context.Context, cmd *cli.Command) error {
+			recoveryKey, err := tui.ReadUserSecret("Enter recovery key: ")
+			if err != nil {
+				return err
+			}
+
+			key, err := tpm.GetLuksKey(recoveryKey)
+			if err != nil {
+				return err
+			}
+
+			if outputFile != "" {
+				if err := os.WriteFile(outputFile, key, 0600); err != nil {
+					return fmt.Errorf("failed to write key to file: %w", err)
+				}
+				fmt.Printf("Binary key written to: %s\n", outputFile)
+			} else {
+				fmt.Printf("LUKS key (bytes): %v\n", key)
+				fmt.Printf("LUKS key (hex): %x\n", key)
+				fmt.Printf("LUKS key (escaped): %q\n", key)
+			}
+
 			return nil
 		},
 	}
