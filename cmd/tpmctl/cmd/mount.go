@@ -77,6 +77,7 @@ func newUnmountVolumeCmd() *cli.Command {
 
 func newGetLuksKeyFromRecoveryKeyCmd() *cli.Command {
 	var outputFile string
+	var hex, escaped bool
 
 	return &cli.Command{
 		Name:    "get-luks-key",
@@ -87,6 +88,16 @@ func newGetLuksKeyFromRecoveryKeyCmd() *cli.Command {
 				Name:        "file",
 				Usage:       "Write binary key to file with secure permissions (600)",
 				Destination: &outputFile,
+			},
+			&cli.BoolFlag{
+				Name:        "hex",
+				Usage:       "Output key in hexadecimal format",
+				Destination: &hex,
+			},
+			&cli.BoolFlag{
+				Name:        "escaped",
+				Usage:       "Output key in escaped string format",
+				Destination: &escaped,
 			},
 		},
 		Action: func(ctx context.Context, cmd *cli.Command) error {
@@ -105,10 +116,17 @@ func newGetLuksKeyFromRecoveryKeyCmd() *cli.Command {
 					return fmt.Errorf("failed to write key to file: %w", err)
 				}
 				fmt.Printf("Binary key written to: %s\n", outputFile)
-			} else {
-				fmt.Printf("LUKS key (bytes): %v\n", key)
+
+				return nil
+			}
+
+			switch {
+			case hex:
+				fmt.Printf("%x\n", key)
+			case escaped:
+				fmt.Printf("%q\n", key)
+			default:
 				fmt.Printf("LUKS key (hex): %x\n", key)
-				fmt.Printf("LUKS key (escaped): %q\n", key)
 			}
 
 			return nil
