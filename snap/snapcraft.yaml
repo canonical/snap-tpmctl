@@ -1,0 +1,50 @@
+name: tpmctl
+base: core24
+version: 0.1.0
+summary: Ubuntu TPM and FDE management tool
+title: TPM Control Tool
+description: |
+  snap-tpmctl is a command-line tool for managing TPM (Trusted Platform Module)
+  and Full Disk Encryption (FDE) features on Ubuntu systems. It provides commands
+  for managing recovery keys, PINs, passphrases, and encrypted volume operations.
+license: GPL-3.0
+issues: https://github.com/canonical/snap-tpmctl/issues
+source-code: https://github.com/canonical/snap-tpmctl
+
+grade: stable
+confinement: strict
+
+apps:
+  tpmctl:
+    command: bin/tpmctl
+    plugs:
+      - snapd-control
+      - hardware-observe
+      - mountctl
+      - mount-observe
+      - block-devices
+      - home
+      - network
+
+plugs:
+  mountctl:
+    interface: mount-control
+    namespace: host
+    mount:
+      - what: /dev/mapper/**
+        where: /run/**
+        type: [ext2, ext3, ext4, xfs, vfat, ntfs]
+        options: [rw, relatime]
+        persistent: true
+
+parts:
+  tpmctl:
+    plugin: go
+    source: .
+    build-snaps:
+      - go/1.25/stable
+    build-packages:
+      - gcc
+      - pkg-config
+    override-build: |
+      go build -o $SNAPCRAFT_PART_INSTALL/bin/tpmctl ./cmd/tpmctl

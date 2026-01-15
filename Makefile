@@ -16,7 +16,10 @@ RSYNC_OPTS ?= -az --delete --exclude .git --exclude bin --exclude '*.snap' --exc
 BIN_NAME := tpmctl
 LOCAL_BIN := bin/$(BIN_NAME)
 
-.PHONY: help build clean sync remote-build remote-test remote-status remote-run remote-shell remote-clean run test check
+# Snapcraft backend (override with: make SNAPCRAFT_BACKEND=--destructive-mode)
+SNAPCRAFT_BACKEND ?= --use-lxd
+
+.PHONY: help build clean sync remote-build remote-test remote-status remote-run remote-shell remote-clean run test check snap snap-clean remote-snap
 
 # Catch-all rule to prevent Make from treating arguments as targets
 %:
@@ -25,6 +28,29 @@ LOCAL_BIN := bin/$(BIN_NAME)
 build:
 	@mkdir -p bin
 	go build -o $(LOCAL_BIN) ./cmd/tpmctl
+
+snap:
+	@echo 'Building snap locally...'
+	@snapcraft pack $(SNAPCRAFT_BACKEND)
+
+snap-clean:
+	@echo 'Cleaning snap artifacts...'
+	@snapcraft clean $(SNAPCRAFT_BACKEND)
+	@rm -f *.snap
+	@echo 'Snap artifacts cleaned.'
+
+remote-snap: sync
+	@echo 'Building snap on remote VM...'
+	@ssh $(SSH_OPTS) $(VM) 'cd $(REMOTE_DIR) && snapcraft pack $(SNAPCRAFT_BACKEND)'
+	@echo 'Installing snap on remote VM...'
+	@ssh $(SSH_OPTS) $(VM) 'cd $(REMOTE_DIR) && snap install *.snap --dangerous --devmode'
+	@echo 'Connecting snap interfaces...'
+	@ssh $(SSH_OPTS) $(VM) 'snap connect tpmctl:snapd-control'
+	@ssh $(SSH_OPTS) $(VM) 'snap connect tpmctl:hardware-observe'
+	@ssh $(SSH_OPTS) $(VM) 'snap connect tpmctl:mountctl'
+	@ssh $(SSH_OPTS) $(VM) 'snap connect tpmctl:mount-observe'
+	@ssh $(SSH_OPTS) $(VM) 'snap connect tpmctl:block-devices'
+	@echo 'Snap installed and configured on remote VM.'
 
 run:
 	@go run ./cmd/tpmctl $(filter-out $@,$(MAKECMDGOALS))
