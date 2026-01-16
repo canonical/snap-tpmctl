@@ -25,12 +25,6 @@ func newCreateKeyCmd() *cli.Command {
 		},
 		Action: func(ctx context.Context, cmd *cli.Command) error {
 			c := snapd.NewClient()
-			defer c.Close()
-
-			// Load auth before validation
-			if err := c.LoadAuthFromHome(); err != nil {
-				return fmt.Errorf("failed to load auth: %w", err)
-			}
 
 			// Validate the recovery key name
 			if err := tpm.ValidateRecoveryKeyNameUnique(ctx, c, recoveryKeyName); err != nil {

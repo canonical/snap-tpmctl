@@ -29,12 +29,6 @@ func newListAllCmd() *cli.Command {
 		},
 		Action: func(ctx context.Context, cmd *cli.Command) error {
 			c := snapd.NewClient()
-			defer c.Close()
-
-			// Load auth before validation
-			if err := c.LoadAuthFromHome(); err != nil {
-				return fmt.Errorf("failed to load auth: %w", err)
-			}
 
 			result, err := c.EnumerateKeySlots(ctx)
 			if err != nil {
@@ -57,12 +51,6 @@ func newListPassphraseCmd() *cli.Command {
 		Suggest: true,
 		Action: func(ctx context.Context, cmd *cli.Command) error {
 			c := snapd.NewClient()
-			defer c.Close()
-
-			// Load auth before validation
-			if err := c.LoadAuthFromHome(); err != nil {
-				return fmt.Errorf("failed to load auth: %w", err)
-			}
 
 			result, err := c.EnumerateKeySlots(ctx)
 			if err != nil {
@@ -85,12 +73,6 @@ func newListRecoveryKeyCmd() *cli.Command {
 		Suggest: true,
 		Action: func(ctx context.Context, cmd *cli.Command) error {
 			c := snapd.NewClient()
-			defer c.Close()
-
-			// Load auth before validation
-			if err := c.LoadAuthFromHome(); err != nil {
-				return fmt.Errorf("failed to load auth: %w", err)
-			}
 
 			result, err := c.EnumerateKeySlots(ctx)
 			if err != nil {
@@ -113,12 +95,6 @@ func newListPinCmd() *cli.Command {
 		Suggest: true,
 		Action: func(ctx context.Context, cmd *cli.Command) error {
 			c := snapd.NewClient()
-			defer c.Close()
-
-			// Load auth before validation
-			if err := c.LoadAuthFromHome(); err != nil {
-				return fmt.Errorf("failed to load auth: %w", err)
-			}
 
 			result, err := c.EnumerateKeySlots(ctx)
 			if err != nil {

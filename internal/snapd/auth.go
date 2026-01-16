@@ -24,7 +24,7 @@ func (c *Client) ReplacePassphrase(ctx context.Context, oldPassphrase string, ne
 		KeySlots:      keySlots,
 	}
 
-	resp, err := c.doAsyncRequest(ctx, http.MethodPost, "/v2/system-volumes", nil, body)
+	resp, err := c.doAsyncRequest(ctx, http.MethodPost, "/v2/system-volumes", nil, nil, body)
 	if err != nil {
 		return nil, err
 	}
@@ -39,7 +39,7 @@ func (c *Client) CheckPassphrase(ctx context.Context, passphrase string) (*Respo
 		Passphrase: passphrase,
 	}
 
-	resp, err := c.doRequest(ctx, http.MethodPost, "/v2/system-volumes", nil, body)
+	resp, err := c.doSyncRequest(ctx, http.MethodPost, "/v2/system-volumes", nil, nil, body)
 	if err != nil {
 		return nil, err
 	}
@@ -63,7 +63,7 @@ func (c *Client) CheckPIN(ctx context.Context, pin string) (*Response, error) {
 		Pin:    pin,
 	}
 
-	resp, err := c.doRequest(ctx, http.MethodPost, "/v2/system-volumes", nil, body)
+	resp, err := c.doSyncRequest(ctx, http.MethodPost, "/v2/system-volumes", nil, nil, body)
 	if err != nil {
 		return nil, err
 	}
@@ -81,7 +81,7 @@ func (c *Client) ReplacePIN(ctx context.Context, oldPin string, newPin string, k
 		KeySlots: keySlots,
 	}
 
-	resp, err := c.doAsyncRequest(ctx, http.MethodPost, "/v2/system-volumes", nil, body)
+	resp, err := c.doAsyncRequest(ctx, http.MethodPost, "/v2/system-volumes", nil, nil, body)
 	if err != nil {
 		return nil, err
 	}
@@ -129,8 +129,7 @@ func (c *Client) ReplacePlatformKey(ctx context.Context, authMode AuthMode, pin,
 		Passphrase: passphrase,
 	}
 
-	resp, err := c.doAsyncRequest(ctx, http.MethodPost,
-		"/v2/system-volumes", nil, body)
+	resp, err := c.doAsyncRequest(ctx, http.MethodPost, "/v2/system-volumes", nil, nil, body)
 	if err != nil {
 		return nil, err
 	}

@@ -44,7 +44,7 @@ type SystemVolumesResult struct {
 
 // EnumerateKeySlots gets information about system volumes.
 func (c *Client) EnumerateKeySlots(ctx context.Context) (*SystemVolumesResult, error) {
-	resp, err := c.doRequest(ctx, http.MethodGet, "/v2/system-volumes", nil, nil)
+	resp, err := c.doSyncRequest(ctx, http.MethodGet, "/v2/system-volumes", nil, nil, nil)
 	if err != nil {
 		return nil, err
 	}

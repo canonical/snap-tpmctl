@@ -191,7 +191,7 @@ func (m MockSnapdClient) CheckRecoveryKey(ctx context.Context, recoveryKey strin
 		}
 	}
 
-	return &snapd.Response{Status: "OK", StatusCode: 200}, nil
+	return &snapd.Response{StatusCode: 200}, nil
 }
 
 // Close closes the mock client connection.
@@ -235,10 +235,10 @@ func (m MockSnapdClient) CheckPassphrase(ctx context.Context, passphrase string)
 	}
 
 	if m.config.PassphraseNotOK {
-		return &snapd.Response{Status: "Bad Request", StatusCode: 400}, nil
+		return &snapd.Response{StatusCode: 400}, nil
 	}
 
-	return &snapd.Response{Status: "OK", StatusCode: 200}, nil
+	return &snapd.Response{StatusCode: 200}, nil
 }
 
 // CheckPIN simulates checking if a PIN is valid.
@@ -270,10 +270,10 @@ func (m MockSnapdClient) CheckPIN(ctx context.Context, pin string) (*snapd.Respo
 	}
 
 	if m.config.PINNotOK {
-		return &snapd.Response{Status: "Bad Request", StatusCode: 400}, nil
+		return &snapd.Response{StatusCode: 400}, nil
 	}
 
-	return &snapd.Response{Status: "OK", StatusCode: 200}, nil
+	return &snapd.Response{StatusCode: 200}, nil
 }
 
 // ReplacePassphrase simulates replacing a passphrase.

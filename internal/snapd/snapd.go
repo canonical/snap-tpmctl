@@ -2,6 +2,7 @@
 package snapd
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -9,6 +10,7 @@ import (
 	"io"
 	"net/url"
 	"time"
+	_ "unsafe" // Required for go:linkname directives
 
 	snapdClient "github.com/snapcore/snapd/client"
 )
@@ -19,28 +21,17 @@ const (
 )
 
 // Response is the base response structure from snapd.
-// TODO: make this struct private, but export for test mocks
+// TODO: make this struct private, but export for test mocks.
 type Response struct {
-	Type       string          `json:"type"`
-	StatusCode int             `json:"status-code"`
-	Status     string          `json:"status"`
-	Result     json.RawMessage `json:"result,omitempty"`
-	Change     string          `json:"change,omitempty"`
-}
-
-// Result is the result structure returned from snapd in a response.
-type Result struct {
-	Kind    string          `json:"kind"`
-	Message string          `json:"message"`
-	Value   json.RawMessage `json:"value,omitempty"`
+	ErrorMessage string
+	Result       json.RawMessage
+	StatusCode   int
 }
 
 // IsOK checks if a commonly know snapd accepted status was returned.
 func (r *Response) IsOK() bool {
-	return r.Status == "Accepted" || r.Status == "OK" || r.StatusCode == 200 || r.StatusCode == 202
+	return r.StatusCode == 200 || r.StatusCode == 202
 }
-
-// TODO: better fields parsing with status-code and type
 
 // AsyncResponse represents the status of a change.
 type AsyncResponse struct {
@@ -50,8 +41,6 @@ type AsyncResponse struct {
 	Status  string `json:"status"`
 	Ready   bool   `json:"ready"`
 	Err     string `json:"err,omitempty"`
-	// Tasks   json.RawMessage `json:"tasks,omitempty"`
-
 }
 
 // IsOK checks if the asynchronous operation completed successfully.
@@ -61,11 +50,9 @@ func (r *AsyncResponse) IsOK() bool {
 
 // Error represents an error from snapd.
 type Error struct {
-	Message    string
-	Kind       string
-	StatusCode int
-	Status     string
-	Value      json.RawMessage
+	Message string
+	Kind    string
+	Value   json.RawMessage
 }
 
 func (e *Error) Error() string {
@@ -73,37 +60,6 @@ func (e *Error) Error() string {
 		return fmt.Sprintf("snapd error: %s (%s)", e.Message, e.Kind)
 	}
 	return fmt.Sprintf("snapd error: %s", e.Message)
-}
-
-// NewResponseBody parses a JSON response body from snapd and returns a Response.
-// If the response type is "error", it extracts error details from the Result field and returns an Error.
-func (c *Client) NewResponseBody(body []byte) (*Response, error) {
-	var snapdResp Response
-	if err := json.Unmarshal(body, &snapdResp); err != nil {
-		return nil, err
-	}
-
-	if snapdResp.Type == "error" {
-		var errResp struct {
-			Message string          `json:"message"`
-			Kind    string          `json:"kind,omitempty"`
-			Value   json.RawMessage `json:"value,omitempty"`
-		}
-
-		if err := json.Unmarshal(snapdResp.Result, &errResp); err != nil {
-			return nil, err
-		}
-
-		return nil, &Error{
-			Message:    errResp.Message,
-			Kind:       errResp.Kind,
-			StatusCode: snapdResp.StatusCode,
-			Status:     snapdResp.Status,
-			Value:      errResp.Value,
-		}
-	}
-
-	return &snapdResp, nil
 }
 
 // Client is a snapd client.
@@ -117,54 +73,76 @@ type ClientOption func(*Client)
 // NewClient creates a new snapd client.
 func NewClient(opts ...ClientOption) *Client {
 	return &Client{
-		snapd: snapdClient.New(nil),
+		snapd: snapdClient.New(&snapdClient.Config{
+			Interactive: true,
+			Socket:      defaultSocketPath,
+			UserAgent:   defaultUserAgent,
+		}),
 	}
 }
 
-func (c *Client) doSyncRequest(ctx context.Context, method, path string, query url.Values, headers map[string]string, body io.Reader) (*Response, error) {
-	var resp response
-	_, err := doSync(c.snapd, method, path, query, headers, body, &resp)
-	var snapdErr snapdClient.Error
+// newRequestBody marshals the given body into JSON format and returns it as an io.Reader.
+func (c *Client) newRequestBody(body any) (io.Reader, error) {
+	var reqBody io.Reader
+	if body != nil {
+		data, err := json.Marshal(body)
+		if err != nil {
+			return nil, err
+		}
+
+		reqBody = bytes.NewReader(data)
+	}
+	return reqBody, nil
+}
+
+// setGenericHeaders sets the common HTTP headers for snapd API requests.
+func (c *Client) setGenericHeaders(headers map[string]string) map[string]string {
+	if headers == nil {
+		headers = map[string]string{}
+	}
+
+	headers["Content-Type"] = "application/json"
+
+	return headers
+}
+
+//nolint:unparam // path parameter kept for future extensibility
+func (c *Client) doSyncRequest(_ context.Context, method, path string, query url.Values, headers map[string]string, body any) (*Response, error) {
+	b, err := c.newRequestBody(body)
+	if err != nil {
+		return nil, err
+	}
+
+	headers = c.setGenericHeaders(headers)
+
+	var result json.RawMessage
+	_, err = doSync(c.snapd, method, path, query, headers, b, &result)
+	var snapdErr *snapdClient.Error
 	if errors.As(err, &snapdErr) {
-		return nil, fmt.Errorf("%w %d", snapdErr, snapdErr.StatusCode)
+		// TODO: properly address this error
+		return &Response{StatusCode: snapdErr.StatusCode, ErrorMessage: snapdErr.Message}, nil
 	}
 	if err != nil {
 		return nil, err
 	}
 
-	bodyBytes, err := io.ReadAll(body)
-	if err != nil {
-		return nil, err
-	}
-
-	r, err := c.NewResponseBody(bodyBytes)
-	if err != nil {
-		return nil, err
-	}
-
-	return r, err
+	return &Response{Result: result, StatusCode: 200}, nil
 }
 
-func (c *Client) doAsyncRequest(ctx context.Context, method, path string, query url.Values, headers map[string]string, body io.Reader) (*AsyncResponse, error) {
-	var resp response
-	_, err := do(c.snapd, method, path, query, headers, body, &resp, nil)
+func (c *Client) doAsyncRequest(ctx context.Context, method, path string, query url.Values, headers map[string]string, body any) (*AsyncResponse, error) {
+	b, err := c.newRequestBody(body)
 	if err != nil {
 		return nil, err
 	}
 
-	if resp.Type != "async" {
-		return nil, fmt.Errorf("expected async response for %q on %q, got %q", method, path, resp.Type)
-	}
-	if resp.Change == "" {
-		return nil, fmt.Errorf("async response without change reference")
+	headers = c.setGenericHeaders(headers)
+
+	changeID, err := doAsync(c.snapd, method, path, query, headers, b)
+	if err != nil {
+		return nil, err
 	}
 
-	// changeId, err := doAsync(c.snapd, method, path, query, headers, body)
-	// if err != nil {
-	// 	return nil, err
-	// }
-
-	// TODO: find a way to do it without polling (?)
+	// TODO: use notices api
 	ticker := time.NewTicker(50 * time.Millisecond)
 	defer ticker.Stop()
 
@@ -173,49 +151,27 @@ func (c *Client) doAsyncRequest(ctx context.Context, method, path string, query 
 		case <-ctx.Done():
 			return nil, ctx.Err()
 		case <-ticker.C:
-
-			change, err := c.snapd.Change(resp.Change)
-
+			change, err := c.snapd.Change(changeID)
 			if err != nil {
 				return nil, err
 			}
 
 			if change.Ready {
-				return &AsyncResponse{}, nil
+				return &AsyncResponse{
+					ID:      change.ID,
+					Kind:    change.Kind,
+					Summary: change.Summary,
+					Status:  change.Status,
+					Ready:   change.Ready,
+					Err:     change.Err,
+				}, nil
 			}
 		}
 	}
 }
 
-// go:linkname doSync github.com/snapcore/snap/client.(*Client).doSync
+//go:linkname doSync github.com/snapcore/snapd/client.(*Client).doSync
 func doSync(c *snapdClient.Client, method, path string, query url.Values, headers map[string]string, body io.Reader, v any) (*snapdClient.ResultInfo, error)
 
-// // go:linkname doAsync github.com/snapcore/snap/client.(*Client).doAsync
-// func doAsync(c *snapdClient.Client, method, path string, query url.Values, headers map[string]string, body io.Reader) (changeID string, err error)
-
-// go:linkname do github.com/snapcore/snap/client.(*Client).do
-func do(c *snapdClient.Client, method, path string, query url.Values, headers map[string]string, body io.Reader, v any, opts *doOptions) (statusCode int, err error)
-
-type doOptions struct {
-	// Timeout is the overall request timeout
-	Timeout time.Duration
-	// Retry interval.
-	// Note for a request with a Timeout but without a retry, Retry should just
-	// be set to something larger than the Timeout.
-	Retry time.Duration
-}
-
-// A response produced by the REST API will usually fit in this
-// (exceptions are the icons/ endpoints obvs)
-type response struct {
-	Result json.RawMessage `json:"result"`
-	Type   string          `json:"type"`
-	Change string          `json:"change"`
-
-	WarningCount     int       `json:"warning-count"`
-	WarningTimestamp time.Time `json:"warning-timestamp"`
-
-	snapdClient.ResultInfo
-
-	Maintenance *snapdClient.Error `json:"maintenance"`
-}
+//go:linkname doAsync github.com/snapcore/snapd/client.(*Client).doAsync
+func doAsync(c *snapdClient.Client, method, path string, query url.Values, headers map[string]string, body io.Reader) (changeID string, err error)
