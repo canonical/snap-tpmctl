@@ -113,14 +113,15 @@ func (c *Client) doSyncRequest(_ context.Context, method, path string, query url
 		return nil, err
 	}
 
-	headers = c.setGenericHeaders(headers)
-
 	var result json.RawMessage
-	_, err = doSync(c.snapd, method, path, query, headers, b, &result)
+	_, err = doSync(c.snapd, method, path, query, c.setGenericHeaders(headers), b, &result)
 	var snapdErr *snapdClient.Error
 	if errors.As(err, &snapdErr) {
-		// TODO: properly address this error
-		return &Response{StatusCode: snapdErr.StatusCode, ErrorMessage: snapdErr.Message}, nil
+		return nil, &Error{
+			Kind:    string(snapdErr.Kind),
+			Message: snapdErr.Message,
+			Value:   json.RawMessage(snapdErr.Error()),
+		}
 	}
 	if err != nil {
 		return nil, err
@@ -135,9 +136,15 @@ func (c *Client) doAsyncRequest(ctx context.Context, method, path string, query 
 		return nil, err
 	}
 
-	headers = c.setGenericHeaders(headers)
-
-	changeID, err := doAsync(c.snapd, method, path, query, headers, b)
+	changeID, err := doAsync(c.snapd, method, path, query, c.setGenericHeaders(headers), b)
+	var snapdErr *snapdClient.Error
+	if errors.As(err, &snapdErr) {
+		return nil, &Error{
+			Kind:    string(snapdErr.Kind),
+			Message: snapdErr.Message,
+			Value:   json.RawMessage(snapdErr.Error()),
+		}
+	}
 	if err != nil {
 		return nil, err
 	}

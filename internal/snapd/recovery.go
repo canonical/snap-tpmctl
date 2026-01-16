@@ -4,7 +4,9 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"net/http"
+	"strings"
 )
 
 // KeySlot describes a recovery keyslot target.
@@ -91,17 +93,21 @@ func (c *Client) ReplaceRecoveryKey(ctx context.Context, keyID string, keySlots 
 }
 
 // CheckRecoveryKey check a recovery key to the specified keyslots.
-func (c *Client) CheckRecoveryKey(ctx context.Context, recoveryKey string, containerRoles []string) (*Response, error) {
+func (c *Client) CheckRecoveryKey(ctx context.Context, recoveryKey string, containerRoles []string) (bool, error) {
 	body := RecoveryKeyRequest{
 		Action:         "check-recovery-key",
 		RecoveryKey:    recoveryKey,
 		ContainerRoles: containerRoles,
 	}
 
-	resp, err := c.doSyncRequest(ctx, http.MethodPost, "/v2/system-volumes", nil, nil, body)
+	_, err := c.doSyncRequest(ctx, http.MethodPost, "/v2/system-volumes", nil, nil, body)
+	var e *Error
+	if errors.As(err, &e) && strings.Contains(e.Kind, "invalid-recovery-key") {
+		return false, nil
+	}
 	if err != nil {
-		return nil, err
+		return false, err
 	}
 
-	return resp, nil
+	return true, nil
 }

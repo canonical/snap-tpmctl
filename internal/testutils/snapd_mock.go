@@ -179,19 +179,19 @@ func (m MockSnapdClient) ReplaceRecoveryKey(ctx context.Context, keyID string, s
 }
 
 // CheckRecoveryKey simulates checking if a recovery key is valid.
-func (m MockSnapdClient) CheckRecoveryKey(ctx context.Context, recoveryKey string, containerRoles []string) (*snapd.Response, error) {
+func (m MockSnapdClient) CheckRecoveryKey(ctx context.Context, recoveryKey string, containerRoles []string) (bool, error) {
 	if m.config.CheckRecoveryKeyError {
-		return nil, errors.New("mocked error for CheckRecoveryKey: cannot check recovery key: snapd error")
+		return false, errors.New("mocked error for CheckRecoveryKey: cannot check recovery key: snapd error")
 	}
 
 	if !m.config.RecoveryKeyValid {
-		return nil, &snapd.Error{
+		return false, &snapd.Error{
 			Kind:    "invalid-recovery-key",
 			Message: "Mocked error for CheckRecoveryKey: recovery key is invalid",
 		}
 	}
 
-	return &snapd.Response{StatusCode: 200}, nil
+	return true, nil
 }
 
 // Close closes the mock client connection.
