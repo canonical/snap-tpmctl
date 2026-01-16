@@ -6,7 +6,8 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
-	"strings"
+
+	"github.com/snapcore/snapd/client"
 )
 
 // KeySlot describes a recovery keyslot target.
@@ -102,7 +103,7 @@ func (c *Client) CheckRecoveryKey(ctx context.Context, recoveryKey string, conta
 
 	_, err := c.doSyncRequest(ctx, http.MethodPost, "/v2/system-volumes", nil, nil, body)
 	var e *Error
-	if errors.As(err, &e) && strings.Contains(e.Kind, "invalid-recovery-key") {
+	if errors.As(err, &e) && e.Kind == client.ErrorKindInvalidRecoveryKey {
 		return false, nil
 	}
 	if err != nil {

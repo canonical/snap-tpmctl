@@ -33,18 +33,17 @@ func (c *Client) ReplacePassphrase(ctx context.Context, oldPassphrase string, ne
 }
 
 // CheckPassphrase checks if the provided passphrase is valid.
-func (c *Client) CheckPassphrase(ctx context.Context, passphrase string) (*Response, error) {
+func (c *Client) CheckPassphrase(ctx context.Context, passphrase string) error {
 	body := PassphraseRequest{
 		Action:     "check-passphrase",
 		Passphrase: passphrase,
 	}
 
-	resp, err := c.doSyncRequest(ctx, http.MethodPost, "/v2/system-volumes", nil, nil, body)
-	if err != nil {
-		return nil, err
+	if _, err := c.doSyncRequest(ctx, http.MethodPost, "/v2/system-volumes", nil, nil, body); err != nil {
+		return err
 	}
 
-	return resp, nil
+	return nil
 }
 
 // PINRequest represents a request to manage PINs in snapd.
@@ -57,18 +56,17 @@ type PINRequest struct {
 }
 
 // CheckPIN checks if the provided PIN is valid.
-func (c *Client) CheckPIN(ctx context.Context, pin string) (*Response, error) {
+func (c *Client) CheckPIN(ctx context.Context, pin string) error {
 	body := PINRequest{
 		Action: "check-pin",
 		Pin:    pin,
 	}
 
-	resp, err := c.doSyncRequest(ctx, http.MethodPost, "/v2/system-volumes", nil, nil, body)
-	if err != nil {
-		return nil, err
+	if _, err := c.doSyncRequest(ctx, http.MethodPost, "/v2/system-volumes", nil, nil, body); err != nil {
+		return err
 	}
 
-	return resp, nil
+	return nil
 }
 
 // ReplacePIN replaces a PIN to the specified keyslots.

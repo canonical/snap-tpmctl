@@ -49,7 +49,6 @@ func TestIsValidPassphrase(t *testing.T) {
 				PassphraseInvalid:      tc.passphraseInvalid,
 				PassphraseUnsupported:  tc.passphraseUnsupported,
 				PassphraseUnknownError: tc.passphraseUnknownError,
-				PassphraseNotOK:        tc.passphraseNotOK,
 			})
 
 			// Default passphrase if empty
@@ -112,7 +111,6 @@ func TestIsValidPIN(t *testing.T) {
 				PINLowEntropy:  tc.pinLowEntropy,
 				PINInvalid:     tc.pinInvalid,
 				PINUnsupported: tc.pinUnsupported,
-				PINNotOK:       tc.pinNotOK,
 			})
 
 			// Default PIN to 123456 if empty

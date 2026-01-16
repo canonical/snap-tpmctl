@@ -23,14 +23,7 @@ const (
 // Response is the base response structure from snapd.
 // TODO: make this struct private, but export for test mocks.
 type Response struct {
-	ErrorMessage string
-	Result       json.RawMessage
-	StatusCode   int
-}
-
-// IsOK checks if a commonly know snapd accepted status was returned.
-func (r *Response) IsOK() bool {
-	return r.StatusCode == 200 || r.StatusCode == 202
+	Result json.RawMessage
 }
 
 // AsyncResponse represents the status of a change.
@@ -51,7 +44,7 @@ func (r *AsyncResponse) IsOK() bool {
 // Error represents an error from snapd.
 type Error struct {
 	Message string
-	Kind    string
+	Kind    snapdClient.ErrorKind
 	Value   json.RawMessage
 }
 
@@ -117,17 +110,22 @@ func (c *Client) doSyncRequest(_ context.Context, method, path string, query url
 	_, err = doSync(c.snapd, method, path, query, c.setGenericHeaders(headers), b, &result)
 	var snapdErr *snapdClient.Error
 	if errors.As(err, &snapdErr) {
+		value, err := json.Marshal(snapdErr.Value)
+		if err != nil {
+			return nil, err
+		}
+
 		return nil, &Error{
-			Kind:    string(snapdErr.Kind),
+			Kind:    snapdErr.Kind,
 			Message: snapdErr.Message,
-			Value:   json.RawMessage(snapdErr.Error()),
+			Value:   value,
 		}
 	}
 	if err != nil {
 		return nil, err
 	}
 
-	return &Response{Result: result, StatusCode: 200}, nil
+	return &Response{Result: result}, nil
 }
 
 func (c *Client) doAsyncRequest(ctx context.Context, method, path string, query url.Values, headers map[string]string, body any) (*AsyncResponse, error) {
@@ -139,10 +137,15 @@ func (c *Client) doAsyncRequest(ctx context.Context, method, path string, query 
 	changeID, err := doAsync(c.snapd, method, path, query, c.setGenericHeaders(headers), b)
 	var snapdErr *snapdClient.Error
 	if errors.As(err, &snapdErr) {
+		value, err := json.Marshal(snapdErr.Value)
+		if err != nil {
+			return nil, err
+		}
+
 		return nil, &Error{
-			Kind:    string(snapdErr.Kind),
+			Kind:    snapdErr.Kind,
 			Message: snapdErr.Message,
-			Value:   json.RawMessage(snapdErr.Error()),
+			Value:   value,
 		}
 	}
 	if err != nil {

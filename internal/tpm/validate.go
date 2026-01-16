@@ -10,13 +10,14 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/snapcore/snapd/client"
 	"snap-tpmctl/internal/snapd"
 )
 
 // authValidator defines the interface for snapd operations needed for validation.
 type authValidator interface {
-	CheckPassphrase(ctx context.Context, passphrase string) (*snapd.Response, error)
-	CheckPIN(ctx context.Context, pin string) (*snapd.Response, error)
+	CheckPassphrase(ctx context.Context, passphrase string) error
+	CheckPIN(ctx context.Context, pin string) error
 	EnumerateKeySlots(ctx context.Context) (*snapd.SystemVolumesResult, error)
 }
 
@@ -36,7 +37,7 @@ func handleValidationError(err error, authMode string) error {
 	}
 
 	switch snapdErr.Kind {
-	case "invalid-passphrase", "invalid-pin":
+	case client.ErrorKindInvalidPassphrase, client.ErrorKindInvalidPIN:
 		// Try to unmarshal the value to check for specific reasons
 		var resValue resultValue
 		if err := json.Unmarshal(snapdErr.Value, &resValue); err != nil {
@@ -55,7 +56,7 @@ func handleValidationError(err error, authMode string) error {
 			return fmt.Errorf("%s is invalid: %s", authMode, snapdErr.Message)
 		}
 		return fmt.Errorf("%s is invalid", authMode)
-	case "unsupported":
+	case client.ErrorKindUnsupportedByTargetSystem:
 		if snapdErr.Message != "" {
 			return fmt.Errorf("%s validation not supported: %s", authMode, snapdErr.Message)
 		}
@@ -78,13 +79,8 @@ func IsValidPassphrase(ctx context.Context, client authValidator, passphrase, co
 		return fmt.Errorf("passphrases do not match, try again")
 	}
 
-	res, err := client.CheckPassphrase(ctx, passphrase)
-	if err != nil {
+	if err := client.CheckPassphrase(ctx, passphrase); err != nil {
 		return handleValidationError(err, "passphrase")
-	}
-
-	if !res.IsOK() {
-		return fmt.Errorf("weak passphrase, make it longer or more complex")
 	}
 
 	return nil
@@ -107,13 +103,8 @@ func IsValidPIN(ctx context.Context, client authValidator, pin, confirm string) 
 		return fmt.Errorf("PINs do not match, try again")
 	}
 
-	res, err := client.CheckPIN(ctx, pin)
-	if err != nil {
+	if err := client.CheckPIN(ctx, pin); err != nil {
 		return handleValidationError(err, "PIN")
-	}
-
-	if !res.IsOK() {
-		return fmt.Errorf("weak PIN, make it longer or more complex")
 	}
 
 	return nil

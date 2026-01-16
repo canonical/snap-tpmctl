@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 
+	"github.com/snapcore/snapd/client"
 	"snap-tpmctl/internal/snapd"
 )
 
@@ -29,13 +30,11 @@ type MockConfig struct {
 	PassphraseInvalid      bool
 	PassphraseUnsupported  bool
 	PassphraseUnknownError bool
-	PassphraseNotOK        bool
 
 	// Validation error flags for CheckPIN
 	PINLowEntropy  bool
 	PINInvalid     bool
 	PINUnsupported bool
-	PINNotOK       bool
 
 	// Validation error flags for CheckRecoveryKey
 	RecoveryKeyValid bool
@@ -200,55 +199,51 @@ func (m MockSnapdClient) Close() error {
 }
 
 // CheckPassphrase simulates checking if a passphrase is valid.
-func (m MockSnapdClient) CheckPassphrase(ctx context.Context, passphrase string) (*snapd.Response, error) {
+func (m MockSnapdClient) CheckPassphrase(ctx context.Context, passphrase string) error {
 	if m.config.CheckPassphraseError {
-		return nil, errors.New("mocked error for CheckPassphrase: cannot check passphrase: snapd error")
+		return errors.New("mocked error for CheckPassphrase: cannot check passphrase: snapd error")
 	}
 
 	if m.config.PassphraseLowEntropy {
-		return nil, &snapd.Error{
-			Kind:    "invalid-passphrase",
+		return &snapd.Error{
+			Kind:    client.ErrorKindInvalidPassphrase,
 			Message: "Mocked error for CheckPassphrase: passphrase is invalid",
 			Value:   mustMarshalJSONForMock(map[string]any{"reasons": []string{"low-entropy"}, "entropy-bits": 24, "min-entropy-bits": 60, "optimal-entropy-bits": 80}),
 		}
 	}
 
 	if m.config.PassphraseInvalid {
-		return nil, &snapd.Error{
-			Kind:    "invalid-passphrase",
+		return &snapd.Error{
+			Kind:    client.ErrorKindInvalidPassphrase,
 			Message: "Mocked error for CheckPassphrase: passphrase contains invalid characters",
 		}
 	}
 
 	if m.config.PassphraseUnsupported {
-		return nil, &snapd.Error{
-			Kind:    "unsupported",
+		return &snapd.Error{
+			Kind:    client.ErrorKindUnsupportedByTargetSystem,
 			Message: "Mocked error for CheckPassphrase: passphrase validation is not available",
 		}
 	}
 
 	if m.config.PassphraseUnknownError {
-		return nil, &snapd.Error{
+		return &snapd.Error{
 			Kind:    "unknown-error",
 			Message: "Mocked error for CheckPassphrase: something went wrong",
 		}
 	}
 
-	if m.config.PassphraseNotOK {
-		return &snapd.Response{StatusCode: 400}, nil
-	}
-
-	return &snapd.Response{StatusCode: 200}, nil
+	return nil
 }
 
 // CheckPIN simulates checking if a PIN is valid.
-func (m MockSnapdClient) CheckPIN(ctx context.Context, pin string) (*snapd.Response, error) {
+func (m MockSnapdClient) CheckPIN(ctx context.Context, pin string) error {
 	if m.config.CheckPINError {
-		return nil, errors.New("mocked error for CheckPIN: cannot check PIN: snapd error")
+		return errors.New("mocked error for CheckPIN: cannot check PIN: snapd error")
 	}
 
 	if m.config.PINLowEntropy {
-		return nil, &snapd.Error{
+		return &snapd.Error{
 			Kind:    "invalid-pin",
 			Message: "Mocked error for CheckPIN: PIN is invalid",
 			Value:   mustMarshalJSONForMock(map[string]any{"reasons": []string{"low-entropy"}, "entropy-bits": 13, "min-entropy-bits": 20, "optimal-entropy-bits": 30}),
@@ -256,24 +251,20 @@ func (m MockSnapdClient) CheckPIN(ctx context.Context, pin string) (*snapd.Respo
 	}
 
 	if m.config.PINInvalid {
-		return nil, &snapd.Error{
+		return &snapd.Error{
 			Kind:    "invalid-pin",
 			Message: "Mocked error for CheckPIN: PIN format is invalid",
 		}
 	}
 
 	if m.config.PINUnsupported {
-		return nil, &snapd.Error{
+		return &snapd.Error{
 			Kind:    "unsupported",
 			Message: "Mocked error for CheckPIN: PIN validation is not available",
 		}
 	}
 
-	if m.config.PINNotOK {
-		return &snapd.Response{StatusCode: 400}, nil
-	}
-
-	return &snapd.Response{StatusCode: 200}, nil
+	return nil
 }
 
 // ReplacePassphrase simulates replacing a passphrase.
