@@ -20,27 +20,6 @@ const (
 	defaultUserAgent  = "snapd.go"
 )
 
-// Response is the base response structure from snapd.
-// TODO: make this struct private, but export for test mocks.
-type Response struct {
-	Result json.RawMessage
-}
-
-// AsyncResponse represents the status of a change.
-type AsyncResponse struct {
-	ID      string `json:"id"`
-	Kind    string `json:"kind"`
-	Summary string `json:"summary"`
-	Status  string `json:"status"`
-	Ready   bool   `json:"ready"`
-	Err     string `json:"err,omitempty"`
-}
-
-// IsOK checks if the asynchronous operation completed successfully.
-func (r *AsyncResponse) IsOK() bool {
-	return r.Ready && r.Status == "Done"
-}
-
 // Error represents an error from snapd.
 type Error struct {
 	Message string
@@ -99,8 +78,13 @@ func (c *Client) setGenericHeaders(headers map[string]string) map[string]string 
 	return headers
 }
 
+// response is the base response structure from snapd.
+type response struct {
+	Result json.RawMessage
+}
+
 //nolint:unparam // path parameter kept for future extensibility
-func (c *Client) doSyncRequest(_ context.Context, method, path string, query url.Values, headers map[string]string, body any) (*Response, error) {
+func (c *Client) doSyncRequest(_ context.Context, method, path string, query url.Values, headers map[string]string, body any) (*response, error) {
 	b, err := c.newRequestBody(body)
 	if err != nil {
 		return nil, err
@@ -125,10 +109,16 @@ func (c *Client) doSyncRequest(_ context.Context, method, path string, query url
 		return nil, err
 	}
 
-	return &Response{Result: result}, nil
+	return &response{Result: result}, nil
 }
 
-func (c *Client) doAsyncRequest(ctx context.Context, method, path string, query url.Values, headers map[string]string, body any) (*AsyncResponse, error) {
+// AsyncResponse represents the status of a change.
+type asyncResponse struct {
+	ID string
+}
+
+//nolint:unparam // asyncResponse parameter kept for future extensibility
+func (c *Client) doAsyncRequest(ctx context.Context, method, path string, query url.Values, headers map[string]string, body any) (*asyncResponse, error) {
 	b, err := c.newRequestBody(body)
 	if err != nil {
 		return nil, err
@@ -167,13 +157,8 @@ func (c *Client) doAsyncRequest(ctx context.Context, method, path string, query 
 			}
 
 			if change.Ready {
-				return &AsyncResponse{
-					ID:      change.ID,
-					Kind:    change.Kind,
-					Summary: change.Summary,
-					Status:  change.Status,
-					Ready:   change.Ready,
-					Err:     change.Err,
+				return &asyncResponse{
+					ID: change.ID,
 				}, nil
 			}
 		}

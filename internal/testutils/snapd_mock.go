@@ -39,12 +39,6 @@ type MockConfig struct {
 	// Validation error flags for CheckRecoveryKey
 	RecoveryKeyValid bool
 
-	// Replace operation flags
-	ReplacePassphraseNotOK  bool
-	ReplacePINNotOK         bool
-	ReplaceRecoveryKeyNotOK bool
-	ReplacePlatformKeyNotOK bool
-
 	// AuthMode configuration for EnumerateKeySlots
 	// If not set, defaults to "passphrase"
 	AuthMode string
@@ -57,7 +51,6 @@ type MockSnapdClient struct {
 	// Return values
 	generatedKey  *snapd.GenerateRecoveryKeyResult
 	systemVolumes *snapd.SystemVolumesResult
-	asyncResp     *snapd.AsyncResponse
 }
 
 // NewMockSnapdClient creates a new mock snapd client with the given configuration.
@@ -127,12 +120,6 @@ func NewMockSnapdClient(cfg MockConfig) *MockSnapdClient {
 				},
 			},
 		},
-		asyncResp: &snapd.AsyncResponse{
-			ID:      "change-123",
-			Status:  "Done",
-			Ready:   true,
-			Summary: "Add recovery key",
-		},
 	}
 }
 
@@ -161,20 +148,20 @@ func (m MockSnapdClient) EnumerateKeySlots(ctx context.Context) (*snapd.SystemVo
 }
 
 // AddRecoveryKey simulates adding a recovery key to specified slots.
-func (m MockSnapdClient) AddRecoveryKey(ctx context.Context, keyID string, slots []snapd.KeySlot) (*snapd.AsyncResponse, error) {
+func (m MockSnapdClient) AddRecoveryKey(ctx context.Context, keyID string, slots []snapd.KeySlot) error {
 	if m.config.AddRecoveryKeyError {
-		return nil, errors.New("mocked error for AddRecoveryKey: cannot add recovery key: permission denied")
+		return errors.New("mocked error for AddRecoveryKey: cannot add recovery key: permission denied")
 	}
-	return m.asyncResp, nil
+	return nil
 }
 
 // ReplaceRecoveryKey simulates replacing a recovery key to specified slots.
-func (m MockSnapdClient) ReplaceRecoveryKey(ctx context.Context, keyID string, slots []snapd.KeySlot) (*snapd.AsyncResponse, error) {
+func (m MockSnapdClient) ReplaceRecoveryKey(ctx context.Context, keyID string, slots []snapd.KeySlot) error {
 	if m.config.ReplaceRecoveryKeyError {
-		return nil, errors.New("mocked error for ReaplaceRecoveryKey: cannot replace recovery key: permission denied")
+		return errors.New("mocked error for ReaplaceRecoveryKey: cannot replace recovery key: permission denied")
 	}
 
-	return m.asyncResp, nil
+	return nil
 }
 
 // CheckRecoveryKey simulates checking if a recovery key is valid.
@@ -268,48 +255,27 @@ func (m MockSnapdClient) CheckPIN(ctx context.Context, pin string) error {
 }
 
 // ReplacePassphrase simulates replacing a passphrase.
-func (m MockSnapdClient) ReplacePassphrase(ctx context.Context, oldPassphrase string, newPassphrase string, keySlots []snapd.KeySlot) (*snapd.AsyncResponse, error) {
+func (m MockSnapdClient) ReplacePassphrase(ctx context.Context, oldPassphrase string, newPassphrase string, keySlots []snapd.KeySlot) error {
 	if m.config.ReplacePassphraseError {
-		return nil, errors.New("mocked error for ReplacePassphrase: cannot replace passphrase: permission denied")
+		return errors.New("mocked error for ReplacePassphrase: cannot replace passphrase: permission denied")
 	}
-	if m.config.ReplacePassphraseNotOK {
-		return &snapd.AsyncResponse{
-			ID:     "change-123",
-			Status: "Error",
-			Ready:  false,
-		}, nil
-	}
-	return m.asyncResp, nil
+	return nil
 }
 
 // ReplacePIN simulates replacing a PIN.
-func (m MockSnapdClient) ReplacePIN(ctx context.Context, oldPin string, newPin string, keySlots []snapd.KeySlot) (*snapd.AsyncResponse, error) {
+func (m MockSnapdClient) ReplacePIN(ctx context.Context, oldPin string, newPin string, keySlots []snapd.KeySlot) error {
 	if m.config.ReplacePINError {
-		return nil, errors.New("mocked error for ReplacePIN: cannot replace PIN: permission denied")
+		return errors.New("mocked error for ReplacePIN: cannot replace PIN: permission denied")
 	}
-	if m.config.ReplacePINNotOK {
-		return &snapd.AsyncResponse{
-			ID:     "change-123",
-			Status: "Error",
-			Ready:  false,
-		}, nil
-	}
-	return m.asyncResp, nil
+	return nil
 }
 
 // ReplacePlatformKey simulates replacing a platform key.
-func (m MockSnapdClient) ReplacePlatformKey(ctx context.Context, authMode snapd.AuthMode, pin, passphrase string) (*snapd.AsyncResponse, error) {
+func (m MockSnapdClient) ReplacePlatformKey(ctx context.Context, authMode snapd.AuthMode, pin, passphrase string) error {
 	if m.config.ReplacePlatformKeyError {
-		return nil, errors.New("mocked error for ReplacePlatformKey: cannot replace platform key: permission denied")
+		return errors.New("mocked error for ReplacePlatformKey: cannot replace platform key: permission denied")
 	}
-	if m.config.ReplacePlatformKeyNotOK {
-		return &snapd.AsyncResponse{
-			ID:     "change-123",
-			Status: "Error",
-			Ready:  false,
-		}, nil
-	}
-	return m.asyncResp, nil
+	return nil
 }
 
 // mustMarshalJSONForMock marshals a value to JSON for use in mock responses.

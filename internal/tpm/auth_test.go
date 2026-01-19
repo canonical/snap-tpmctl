@@ -9,7 +9,6 @@ import (
 	"snap-tpmctl/internal/tpm"
 )
 
-//nolint:dupl // Similar test pattern for different function (ReplacePassphrase vs ReplacePIN)
 func TestReplacePassphrase(t *testing.T) {
 	t.Parallel()
 
@@ -18,14 +17,12 @@ func TestReplacePassphrase(t *testing.T) {
 		newPassphrase string
 
 		replacePassphraseError bool
-		replacePassphraseNotOK bool
 
 		wantErr bool
 	}{
 		"Success": {oldPassphrase: "old-passphrase", newPassphrase: "new-passphrase"},
 
-		"Error when snapd down":      {oldPassphrase: "old-passphrase", newPassphrase: "new-passphrase", replacePassphraseError: true, wantErr: true},
-		"Error when response not ok": {oldPassphrase: "old-passphrase", newPassphrase: "new-passphrase", replacePassphraseNotOK: true, wantErr: true},
+		"Error when snapd down": {oldPassphrase: "old-passphrase", newPassphrase: "new-passphrase", replacePassphraseError: true, wantErr: true},
 	}
 
 	for name, tc := range tests {
@@ -35,7 +32,6 @@ func TestReplacePassphrase(t *testing.T) {
 			ctx := context.Background()
 			mockClient := testutils.NewMockSnapdClient(testutils.MockConfig{
 				ReplacePassphraseError: tc.replacePassphraseError,
-				ReplacePassphraseNotOK: tc.replacePassphraseNotOK,
 			})
 
 			err := tpm.ReplacePassphrase(ctx, mockClient, tc.oldPassphrase, tc.newPassphrase)
@@ -49,7 +45,6 @@ func TestReplacePassphrase(t *testing.T) {
 	}
 }
 
-//nolint:dupl // Similar test pattern for different function (ReplacePassphrase vs ReplacePIN)
 func TestReplacePIN(t *testing.T) {
 	t.Parallel()
 
@@ -58,14 +53,12 @@ func TestReplacePIN(t *testing.T) {
 		newPin string
 
 		replacePINError bool
-		replacePINNotOK bool
 
 		wantErr bool
 	}{
 		"Success": {oldPin: "123456", newPin: "654321"},
 
-		"Error when snapd down":      {oldPin: "123456", newPin: "654321", replacePINError: true, wantErr: true},
-		"Error when response not ok": {oldPin: "123456", newPin: "654321", replacePINNotOK: true, wantErr: true},
+		"Error when snapd down": {oldPin: "123456", newPin: "654321", replacePINError: true, wantErr: true},
 	}
 
 	for name, tc := range tests {
@@ -75,7 +68,6 @@ func TestReplacePIN(t *testing.T) {
 			ctx := context.Background()
 			mockClient := testutils.NewMockSnapdClient(testutils.MockConfig{
 				ReplacePINError: tc.replacePINError,
-				ReplacePINNotOK: tc.replacePINNotOK,
 			})
 
 			err := tpm.ReplacePIN(ctx, mockClient, tc.oldPin, tc.newPin)
@@ -94,14 +86,12 @@ func TestAddPIN(t *testing.T) {
 
 	tests := map[string]struct {
 		replacePlatformKeyError bool
-		replacePlatformKeyNotOK bool
 
 		wantErr bool
 	}{
 		"Adds PIN authentication": {},
 
-		"Error when snapd down":      {replacePlatformKeyError: true, wantErr: true},
-		"Error when response not ok": {replacePlatformKeyNotOK: true, wantErr: true},
+		"Error when snapd down": {replacePlatformKeyError: true, wantErr: true},
 	}
 
 	for name, tc := range tests {
@@ -111,7 +101,6 @@ func TestAddPIN(t *testing.T) {
 			ctx := context.Background()
 			mockClient := testutils.NewMockSnapdClient(testutils.MockConfig{
 				ReplacePlatformKeyError: tc.replacePlatformKeyError,
-				ReplacePlatformKeyNotOK: tc.replacePlatformKeyNotOK,
 			})
 
 			err := tpm.AddPIN(ctx, mockClient, "123456")
@@ -136,8 +125,7 @@ func TestRemovePIN(t *testing.T) {
 	}{
 		"Removes PIN authentication": {},
 
-		"Error when snapd down":      {replacePlatformKeyError: true, wantErr: true},
-		"Error when response not ok": {replacePlatformKeyNotOK: true, wantErr: true},
+		"Error when snapd down": {replacePlatformKeyError: true, wantErr: true},
 	}
 
 	for name, tc := range tests {
@@ -147,7 +135,6 @@ func TestRemovePIN(t *testing.T) {
 			ctx := context.Background()
 			mockClient := testutils.NewMockSnapdClient(testutils.MockConfig{
 				ReplacePlatformKeyError: tc.replacePlatformKeyError,
-				ReplacePlatformKeyNotOK: tc.replacePlatformKeyNotOK,
 			})
 
 			err := tpm.RemovePIN(ctx, mockClient)
@@ -172,8 +159,7 @@ func TestAddPassphrase(t *testing.T) {
 	}{
 		"Adds passphrase authentication": {},
 
-		"Error when snapd down":      {replacePlatformKeyError: true, wantErr: true},
-		"Error when response not ok": {replacePlatformKeyNotOK: true, wantErr: true},
+		"Error when snapd down": {replacePlatformKeyError: true, wantErr: true},
 	}
 
 	for name, tc := range tests {
@@ -183,7 +169,6 @@ func TestAddPassphrase(t *testing.T) {
 			ctx := context.Background()
 			mockClient := testutils.NewMockSnapdClient(testutils.MockConfig{
 				ReplacePlatformKeyError: tc.replacePlatformKeyError,
-				ReplacePlatformKeyNotOK: tc.replacePlatformKeyNotOK,
 			})
 
 			err := tpm.AddPassphrase(ctx, mockClient, "my-secure-passphrase")
@@ -208,8 +193,7 @@ func TestRemovePassphrase(t *testing.T) {
 	}{
 		"Removes passphrase authentication": {},
 
-		"Error when snapd down":      {replacePlatformKeyError: true, wantErr: true},
-		"Error when response not ok": {replacePlatformKeyNotOK: true, wantErr: true},
+		"Error when snapd down": {replacePlatformKeyError: true, wantErr: true},
 	}
 
 	for name, tc := range tests {
@@ -219,7 +203,6 @@ func TestRemovePassphrase(t *testing.T) {
 			ctx := context.Background()
 			mockClient := testutils.NewMockSnapdClient(testutils.MockConfig{
 				ReplacePlatformKeyError: tc.replacePlatformKeyError,
-				ReplacePlatformKeyNotOK: tc.replacePlatformKeyNotOK,
 			})
 
 			err := tpm.RemovePassphrase(ctx, mockClient)

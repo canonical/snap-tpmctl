@@ -55,7 +55,6 @@ func TestCreateKey(t *testing.T) {
 			be.Err(t, err, nil)
 			be.Equal(t, "test-key-id-12345", res.KeyID)
 			be.Equal(t, "12345-67890-12345-67890-12345-67890-12345-67890", res.RecoveryKey)
-			be.Equal(t, "Done", res.Status)
 		})
 	}
 }
@@ -106,7 +105,6 @@ func TestRegenerateKey(t *testing.T) {
 			be.Err(t, err, nil)
 			be.Equal(t, "test-key-id-12345", res.KeyID)
 			be.Equal(t, "12345-67890-12345-67890-12345-67890-12345-67890", res.RecoveryKey)
-			be.Equal(t, "Done", res.Status)
 		})
 	}
 }

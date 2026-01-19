@@ -16,7 +16,7 @@ type PassphraseRequest struct {
 
 // ReplacePassphrase replaces a passphrase to the specified keyslots.
 // This is an async operation that waits for completion.
-func (c *Client) ReplacePassphrase(ctx context.Context, oldPassphrase string, newPassphrase string, keySlots []KeySlot) (*AsyncResponse, error) {
+func (c *Client) ReplacePassphrase(ctx context.Context, oldPassphrase string, newPassphrase string, keySlots []KeySlot) error {
 	body := PassphraseRequest{
 		Action:        "change-passphrase",
 		NewPassphrase: newPassphrase,
@@ -24,12 +24,12 @@ func (c *Client) ReplacePassphrase(ctx context.Context, oldPassphrase string, ne
 		KeySlots:      keySlots,
 	}
 
-	resp, err := c.doAsyncRequest(ctx, http.MethodPost, "/v2/system-volumes", nil, nil, body)
+	_, err := c.doAsyncRequest(ctx, http.MethodPost, "/v2/system-volumes", nil, nil, body)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return resp, nil
+	return nil
 }
 
 // CheckPassphrase checks if the provided passphrase is valid.
@@ -71,7 +71,7 @@ func (c *Client) CheckPIN(ctx context.Context, pin string) error {
 
 // ReplacePIN replaces a PIN to the specified keyslots.
 // This is an async operation that waits for completion.
-func (c *Client) ReplacePIN(ctx context.Context, oldPin string, newPin string, keySlots []KeySlot) (*AsyncResponse, error) {
+func (c *Client) ReplacePIN(ctx context.Context, oldPin string, newPin string, keySlots []KeySlot) error {
 	body := PINRequest{
 		Action:   "change-pin",
 		NewPin:   newPin,
@@ -79,12 +79,12 @@ func (c *Client) ReplacePIN(ctx context.Context, oldPin string, newPin string, k
 		KeySlots: keySlots,
 	}
 
-	resp, err := c.doAsyncRequest(ctx, http.MethodPost, "/v2/system-volumes", nil, nil, body)
+	_, err := c.doAsyncRequest(ctx, http.MethodPost, "/v2/system-volumes", nil, nil, body)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return resp, nil
+	return nil
 }
 
 // AuthMode represents the authentication mode for platform keys.
@@ -119,7 +119,7 @@ type PlatformKeyRequest struct {
 }
 
 // ReplacePlatformKey replaces the platform key with the specified authentication.
-func (c *Client) ReplacePlatformKey(ctx context.Context, authMode AuthMode, pin, passphrase string) (*AsyncResponse, error) {
+func (c *Client) ReplacePlatformKey(ctx context.Context, authMode AuthMode, pin, passphrase string) error {
 	body := PlatformKeyRequest{
 		Action:     "replace-platform-key",
 		AuthMode:   authMode,
@@ -127,10 +127,10 @@ func (c *Client) ReplacePlatformKey(ctx context.Context, authMode AuthMode, pin,
 		Passphrase: passphrase,
 	}
 
-	resp, err := c.doAsyncRequest(ctx, http.MethodPost, "/v2/system-volumes", nil, nil, body)
+	_, err := c.doAsyncRequest(ctx, http.MethodPost, "/v2/system-volumes", nil, nil, body)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return resp, nil
+	return nil
 }

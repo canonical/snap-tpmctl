@@ -40,7 +40,6 @@ func newCreateKeyCmd() *cli.Command {
 
 			fmt.Printf("Recovery Key: %s\n", result.RecoveryKey)
 			fmt.Printf("Key ID: %s\n", result.KeyID)
-			fmt.Println(result.Status)
 
 			return nil
 		},
