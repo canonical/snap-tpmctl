@@ -53,20 +53,6 @@ func NewClient(opts ...ClientOption) *Client {
 	}
 }
 
-// newRequestBody marshals the given body into JSON format and returns it as an io.Reader.
-func (c *Client) newRequestBody(body any) (io.Reader, error) {
-	var reqBody io.Reader
-	if body != nil {
-		data, err := json.Marshal(body)
-		if err != nil {
-			return nil, err
-		}
-
-		reqBody = bytes.NewReader(data)
-	}
-	return reqBody, nil
-}
-
 // setGenericHeaders sets the common HTTP headers for snapd API requests.
 func (c *Client) setGenericHeaders(headers map[string]string) map[string]string {
 	if headers == nil {
@@ -85,13 +71,13 @@ type response struct {
 
 //nolint:unparam // path parameter kept for future extensibility
 func (c *Client) doSyncRequest(_ context.Context, method, path string, query url.Values, headers map[string]string, body any) (*response, error) {
-	b, err := c.newRequestBody(body)
-	if err != nil {
+	var b bytes.Buffer
+	if err := json.NewEncoder(&b).Encode(&body); err != nil {
 		return nil, err
 	}
 
 	var result json.RawMessage
-	_, err = doSync(c.snapd, method, path, query, c.setGenericHeaders(headers), b, &result)
+	_, err := doSync(c.snapd, method, path, query, c.setGenericHeaders(headers), &b, &result)
 	var snapdErr *snapdClient.Error
 	if errors.As(err, &snapdErr) {
 		value, err := json.Marshal(snapdErr.Value)
@@ -119,12 +105,12 @@ type asyncResponse struct {
 
 //nolint:unparam // asyncResponse parameter kept for future extensibility
 func (c *Client) doAsyncRequest(ctx context.Context, method, path string, query url.Values, headers map[string]string, body any) (*asyncResponse, error) {
-	b, err := c.newRequestBody(body)
-	if err != nil {
+	var b bytes.Buffer
+	if err := json.NewEncoder(&b).Encode(&body); err != nil {
 		return nil, err
 	}
 
-	changeID, err := doAsync(c.snapd, method, path, query, c.setGenericHeaders(headers), b)
+	changeID, err := doAsync(c.snapd, method, path, query, c.setGenericHeaders(headers), &b)
 	var snapdErr *snapdClient.Error
 	if errors.As(err, &snapdErr) {
 		value, err := json.Marshal(snapdErr.Value)
