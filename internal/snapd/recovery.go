@@ -1,7 +1,6 @@
 package snapd
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -24,26 +23,12 @@ type GenerateRecoveryKeyResult struct {
 	KeyID       string `json:"key-id"`
 }
 
-// RecoveryKeyRequest represents a request to manage recovery keys in snapd.
-type RecoveryKeyRequest struct {
-	Action         string    `json:"action"`
-	KeyID          string    `json:"key-id,omitempty"`
-	KeySlots       []KeySlot `json:"keyslots,omitempty"`
-	RecoveryKey    string    `json:"recovery-key,omitempty"`
-	ContainerRoles []string  `json:"container-role,omitempty"`
-}
-
 // GenerateRecoveryKey creates a new recovery key and returns the key and its ID.
 func (c *Client) GenerateRecoveryKey(ctx context.Context) (*GenerateRecoveryKeyResult, error) {
-	var body bytes.Buffer
-	req := struct {
+	body := struct {
 		Action string `json:"action"`
 	}{
 		Action: "generate-recovery-key",
-	}
-
-	if err := json.NewEncoder(&body).Encode(&req); err != nil {
-		return nil, err
 	}
 
 	resp, err := c.doSyncRequest(ctx, http.MethodPost, "/v2/system-volumes", nil, nil, &body)
@@ -62,7 +47,11 @@ func (c *Client) GenerateRecoveryKey(ctx context.Context) (*GenerateRecoveryKeyR
 // AddRecoveryKey adds a recovery key to the specified keyslots.
 // This is an async operation that waits for completion.
 func (c *Client) AddRecoveryKey(ctx context.Context, keyID string, keySlots []KeySlot) error {
-	body := RecoveryKeyRequest{
+	body := struct {
+		Action   string    `json:"action"`
+		KeyID    string    `json:"key-id"`
+		KeySlots []KeySlot `json:"keyslots"`
+	}{
 		Action:   "add-recovery-key",
 		KeyID:    keyID,
 		KeySlots: keySlots,
@@ -79,7 +68,11 @@ func (c *Client) AddRecoveryKey(ctx context.Context, keyID string, keySlots []Ke
 // ReplaceRecoveryKey replaces a recovery key to the specified keyslots.
 // This is an async operation that waits for completion.
 func (c *Client) ReplaceRecoveryKey(ctx context.Context, keyID string, keySlots []KeySlot) error {
-	body := RecoveryKeyRequest{
+	body := struct {
+		Action   string    `json:"action"`
+		KeyID    string    `json:"key-id"`
+		KeySlots []KeySlot `json:"keyslots"`
+	}{
 		Action:   "replace-recovery-key",
 		KeyID:    keyID,
 		KeySlots: keySlots,
@@ -95,7 +88,11 @@ func (c *Client) ReplaceRecoveryKey(ctx context.Context, keyID string, keySlots 
 
 // CheckRecoveryKey check a recovery key to the specified keyslots.
 func (c *Client) CheckRecoveryKey(ctx context.Context, recoveryKey string, containerRoles []string) (bool, error) {
-	body := RecoveryKeyRequest{
+	body := struct {
+		Action         string   `json:"action"`
+		RecoveryKey    string   `json:"recovery-key"`
+		ContainerRoles []string `json:"container-role"`
+	}{
 		Action:         "check-recovery-key",
 		RecoveryKey:    recoveryKey,
 		ContainerRoles: containerRoles,
