@@ -98,7 +98,7 @@ func (c *Client) doSyncRequest(_ context.Context, method, path string, query url
 	return &response{Result: result}, nil
 }
 
-// AsyncResponse represents the status of a change.
+// asyncResponse represents the status of a change.
 type asyncResponse struct {
 	ID string
 }
