@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"strings"
 
 	"github.com/urfave/cli/v3"
 	"snap-tpmctl/internal/tpm"
@@ -39,24 +38,9 @@ func newMountVolumeCmd() *cli.Command {
 				return err
 			}
 
-			// TODO: enable this when snap can mount luks_crypt volumes
-			// if err := tpm.MountVolume(volumeName, devicePath); err != nil {
-			// 	return err
-			// }
-
-			recoveryKey, err := tui.ReadUserSecret("Enter recovery key: ")
-			if err != nil {
+			if err := tpm.MountVolume(volumeName, devicePath); err != nil {
 				return err
 			}
-
-			key, err := tpm.GetLuksKey(recoveryKey)
-			if err != nil {
-				return err
-			}
-
-			keyString := strings.ReplaceAll(fmt.Sprintf("%q", key), "\"", "'")
-
-			fmt.Printf("To mount %[1]s as %[2]s, use this command:\n\nprintf %[3]s | systemd-cryptsetup attach %[2]s %[1]s /dev/stdin luks,keyslot=-1,tries=1\n", devicePath, volumeName, keyString)
 
 			return nil
 		},
