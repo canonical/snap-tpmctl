@@ -23,6 +23,7 @@ apps:
       - mountctl
       - mount-observe
       - block-devices
+      - dm-crypt
       - home
       - network
 
