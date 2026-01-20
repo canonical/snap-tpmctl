@@ -43,13 +43,14 @@ remote-snap: sync
 	@echo 'Building snap on remote VM...'
 	@ssh $(SSH_OPTS) $(VM) 'cd $(REMOTE_DIR) && snapcraft pack $(SNAPCRAFT_BACKEND)'
 	@echo 'Installing snap on remote VM...'
-	@ssh $(SSH_OPTS) $(VM) 'cd $(REMOTE_DIR) && snap install *.snap --dangerous --devmode'
+	@ssh $(SSH_OPTS) $(VM) 'cd $(REMOTE_DIR) && snap install *.snap --dangerous'
 	@echo 'Connecting snap interfaces...'
 	@ssh $(SSH_OPTS) $(VM) 'snap connect tpmctl:snapd-control'
 	@ssh $(SSH_OPTS) $(VM) 'snap connect tpmctl:hardware-observe'
 	@ssh $(SSH_OPTS) $(VM) 'snap connect tpmctl:mountctl'
 	@ssh $(SSH_OPTS) $(VM) 'snap connect tpmctl:mount-observe'
 	@ssh $(SSH_OPTS) $(VM) 'snap connect tpmctl:block-devices'
+	@ssh $(SSH_OPTS) $(VM) 'snap connect tpmctl:dm-crypt'
 	@echo 'Snap installed and configured on remote VM.'
 
 run:

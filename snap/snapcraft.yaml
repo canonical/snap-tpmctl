@@ -18,16 +18,18 @@ apps:
   tpmctl:
     command: bin/tpmctl
     plugs:
-      - snapd-control
-      - hardware-observe
-      - mountctl
-      - mount-observe
       - block-devices
       - dm-crypt
+      - hardware-observe
       - home
+      - mountctl
+      - mount-observe
       - network
+      - snapd-control
 
 plugs:
+  block-devices:
+    allow-partitions: true
   mountctl:
     interface: mount-control
     namespace: host
@@ -49,3 +51,13 @@ parts:
       - pkg-config
     override-build: |
       go build -o $SNAPCRAFT_PART_INSTALL/bin/tpmctl ./cmd/tpmctl
+
+  systemd-cryptsetup:
+    plugin: nil
+    stage-packages:
+      # include systemd-cryptsetup binary package and all its dependencies
+      - systemd
+    # prime only /usr/bin/systemd-cryptsetup
+    override-prime: |
+      mkdir -p ${CRAFT_PRIME}/usr/bin
+      cp -a ${CRAFT_STAGE}/usr/bin/systemd-cryptsetup ${CRAFT_PRIME}/usr/bin/
