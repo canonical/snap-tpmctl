@@ -1,10 +1,7 @@
 package tpm_test
 
 import (
-	"bytes"
 	"context"
-	"io"
-	"log/slog"
 	"testing"
 
 	"github.com/nalgeon/be"
@@ -205,11 +202,7 @@ func TestIsValidRecoveryKey(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			var logs bytes.Buffer
-
-			out := io.MultiWriter(&logs, t.Output())
-			h := slog.NewTextHandler(out, nil)
-			_ = slog.New(h)
+			testutils.TestLogger(t.Output())
 
 			err := tpm.ValidateRecoveryKey(tc.key)
 
@@ -328,6 +321,99 @@ func TestValidateAuthMode(t *testing.T) {
 
 			if tc.wantErr {
 				be.Err(t, err)
+				return
+			}
+			be.Err(t, err, nil)
+		})
+	}
+}
+
+func TestValidateDevicePath(t *testing.T) {
+	t.Parallel()
+
+	tests := map[string]struct {
+		path string
+
+		wantErr   bool
+		wantInErr string
+	}{
+		"valid device path": {
+			path:    "/dev/null",
+			wantErr: false,
+		},
+		"empty path": {
+			path:      "",
+			wantErr:   true,
+			wantInErr: "device path cannot be empty",
+		},
+		"non-existent device": {
+			path:      "/dev/nonexistent-device-12345",
+			wantErr:   true,
+			wantInErr: "does not exist",
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			testutils.TestLogger(t.Output())
+
+			err := tpm.ValidateDevicePath(tc.path)
+
+			if tc.wantErr {
+				be.Err(t, err, tc.wantInErr)
+				return
+			}
+			be.Err(t, err, nil)
+		})
+	}
+}
+
+func TestValidateVolumeName(t *testing.T) {
+	t.Parallel()
+
+	tests := map[string]struct {
+		volumeName string
+
+		wantErr   bool
+		wantInErr string
+	}{
+		"valid volume name": {
+			volumeName: "my-volume",
+			wantErr:    false,
+		},
+		"valid volume name with numbers": {
+			volumeName: "volume-123",
+			wantErr:    false,
+		},
+		"empty volume name": {
+			volumeName: "",
+			wantErr:    true,
+			wantInErr:  "volume name cannot be empty",
+		},
+		"volume name with slash": {
+			volumeName: "my/volume",
+			wantErr:    true,
+			wantInErr:  "volume name cannot contain slashes",
+		},
+		"volume name with multiple slashes": {
+			volumeName: "my/vol/ume",
+			wantErr:    true,
+			wantInErr:  "volume name cannot contain slashes",
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			testutils.TestLogger(t.Output())
+
+			err := tpm.ValidateVolumeName(tc.volumeName)
+
+			if tc.wantErr {
+				be.Err(t, err, tc.wantInErr)
 				return
 			}
 			be.Err(t, err, nil)

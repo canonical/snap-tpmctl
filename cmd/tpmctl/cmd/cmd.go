@@ -54,7 +54,7 @@ func newRootCmd() cli.Command {
 			newAddPassphraseCmd(),
 			newCreateKeyCmd(),
 			newCheckCmd(),
-			newGetLuksPassphraseCmd(),
+			newGetLuksKeyFromRecoveryKeyCmd(),
 			newListAllCmd(),
 			newListPassphraseCmd(),
 			newListPinCmd(),
@@ -66,6 +66,7 @@ func newRootCmd() cli.Command {
 			newRemovePINCmd(),
 			newRemovePassphraseCmd(),
 			newStatusCmd(),
+			newUnmountVolumeCmd(),
 		},
 		Flags: []cli.Flag{
 			&cli.BoolFlag{
