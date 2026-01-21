@@ -6,8 +6,9 @@ import (
 	"encoding/json"
 	"errors"
 
-	"github.com/snapcore/snapd/client"
 	"snap-tpmctl/internal/snapd"
+
+	"github.com/snapcore/snapd/client"
 )
 
 // MockConfig holds configuration for MockSnapdClient behavior.
@@ -24,6 +25,7 @@ type MockConfig struct {
 	ReplacePINError         bool
 	ReplaceRecoveryKeyError bool
 	ReplacePlatformKeyError bool
+	FdeStatusError          bool
 
 	// Validation error flags for CheckPassphrase
 	PassphraseLowEntropy   bool
@@ -42,6 +44,9 @@ type MockConfig struct {
 	// AuthMode configuration for EnumerateKeySlots
 	// If not set, defaults to "passphrase"
 	AuthMode string
+
+	// Custom FDE status value (defaults to "enabled")
+	FdeStatusValue string
 }
 
 // MockSnapdClient is a mock implementation of the snapdClienter interface for testing.
@@ -51,6 +56,7 @@ type MockSnapdClient struct {
 	// Return values
 	generatedKey  *snapd.GenerateRecoveryKeyResult
 	systemVolumes *snapd.SystemVolumesResult
+	fdeStatus     *snapd.FdeStatusResult
 }
 
 // NewMockSnapdClient creates a new mock snapd client with the given configuration.
@@ -61,8 +67,14 @@ func NewMockSnapdClient(cfg MockConfig) *MockSnapdClient {
 		authMode = "passphrase"
 	}
 
+	fdeStatusValue := cfg.FdeStatusValue
+	if fdeStatusValue == "" {
+		fdeStatusValue = "active"
+	}
+
 	return &MockSnapdClient{
-		config: cfg,
+		config:    cfg,
+		fdeStatus: &snapd.FdeStatusResult{Status: fdeStatusValue},
 		generatedKey: &snapd.GenerateRecoveryKeyResult{
 			KeyID:       "test-key-id-12345",
 			RecoveryKey: "12345-67890-12345-67890-12345-67890-12345-67890",
@@ -276,6 +288,15 @@ func (m MockSnapdClient) ReplacePlatformKey(ctx context.Context, authMode snapd.
 		return errors.New("mocked error for ReplacePlatformKey: cannot replace platform key: permission denied")
 	}
 	return nil
+}
+
+// FdeStatus simulates retrieving the current FDE status.
+func (m MockSnapdClient) FdeStatus(ctx context.Context) (*snapd.FdeStatusResult, error) {
+	if m.config.FdeStatusError {
+		return nil, errors.New("mocked error for FdeStatus: cannot retrieve FDE status: snapd error")
+	}
+
+	return m.fdeStatus, nil
 }
 
 // mustMarshalJSONForMock marshals a value to JSON for use in mock responses.
