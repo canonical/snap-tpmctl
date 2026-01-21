@@ -13,7 +13,7 @@ type FdeStatusResult struct {
 
 // FdeStatus retrieves the current FDE status of the system.
 func (c *Client) FdeStatus(ctx context.Context) (*FdeStatusResult, error) {
-	resp, err := c.doRequest(ctx, http.MethodGet, "/v2/system-info/storage-encrypted", nil, nil)
+	resp, err := c.doSyncRequest(ctx, http.MethodGet, "/v2/system-info/storage-encrypted", nil, nil, nil)
 	if err != nil {
 		return nil, err
 	}
