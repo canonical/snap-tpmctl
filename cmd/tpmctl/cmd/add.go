@@ -23,12 +23,6 @@ func newAddPassphraseCmd() *cli.Command {
 			}
 
 			c := snapd.NewClient()
-			defer c.Close()
-
-			// Load auth before validation
-			if err := c.LoadAuthFromHome(); err != nil {
-				return fmt.Errorf("failed to load auth: %w", err)
-			}
 
 			// Validate auth mode is currently none
 			if err := tpm.ValidateAuthMode(ctx, c, snapd.AuthModeNone); err != nil {
@@ -72,12 +66,6 @@ func newAddPINCmd() *cli.Command {
 			}
 
 			c := snapd.NewClient()
-			defer c.Close()
-
-			// Load auth before validation
-			if err := c.LoadAuthFromHome(); err != nil {
-				return fmt.Errorf("failed to load auth: %w", err)
-			}
 
 			// Validate auth mode is currently none
 			if err := tpm.ValidateAuthMode(ctx, c, snapd.AuthModeNone); err != nil {

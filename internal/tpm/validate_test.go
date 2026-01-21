@@ -22,7 +22,6 @@ func TestIsValidPassphrase(t *testing.T) {
 		passphraseInvalid      bool
 		passphraseUnsupported  bool
 		passphraseUnknownError bool
-		passphraseNotOK        bool
 
 		wantErr bool
 	}{
@@ -31,7 +30,6 @@ func TestIsValidPassphrase(t *testing.T) {
 		"Error when passphrase empty":           {wantErr: true},
 		"Error when passphrases do not match":   {confirm: "some-other-passphrase", wantErr: true},
 		"Error when check calls to snapd fails": {checkPassphraseError: true, wantErr: true},
-		"Error when response not ok":            {passphraseNotOK: true, wantErr: true},
 		"Error when low entropy":                {passphraseLowEntropy: true, wantErr: true},
 		"Error when invalid passphrase":         {passphraseInvalid: true, wantErr: true},
 		"Error when unsupported":                {passphraseUnsupported: true, wantErr: true},
@@ -49,7 +47,6 @@ func TestIsValidPassphrase(t *testing.T) {
 				PassphraseInvalid:      tc.passphraseInvalid,
 				PassphraseUnsupported:  tc.passphraseUnsupported,
 				PassphraseUnknownError: tc.passphraseUnknownError,
-				PassphraseNotOK:        tc.passphraseNotOK,
 			})
 
 			// Default passphrase if empty
@@ -86,7 +83,6 @@ func TestIsValidPIN(t *testing.T) {
 		pinLowEntropy  bool
 		pinInvalid     bool
 		pinUnsupported bool
-		pinNotOK       bool
 
 		wantErr bool
 	}{
@@ -96,7 +92,6 @@ func TestIsValidPIN(t *testing.T) {
 		"Error when PIN contains non digits": {pin: "12a bc6", wantErr: true},
 		"Error when PINs do not match":       {confirm: "654321", wantErr: true},
 		"Error when snapd down":              {checkPINError: true, wantErr: true},
-		"Error when response not ok":         {pinNotOK: true, wantErr: true},
 		"Error when low entropy":             {pinLowEntropy: true, wantErr: true},
 		"Error when invalid PIN":             {pinInvalid: true, wantErr: true},
 		"Error when unsupported":             {pinUnsupported: true, wantErr: true},
@@ -112,7 +107,6 @@ func TestIsValidPIN(t *testing.T) {
 				PINLowEntropy:  tc.pinLowEntropy,
 				PINInvalid:     tc.pinInvalid,
 				PINUnsupported: tc.pinUnsupported,
-				PINNotOK:       tc.pinNotOK,
 			})
 
 			// Default PIN to 123456 if empty

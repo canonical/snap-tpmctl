@@ -30,12 +30,6 @@ func newRegenerateKeyCmd() *cli.Command {
 			// replace the key and removing it from the screen
 
 			c := snapd.NewClient()
-			defer c.Close()
-
-			// Load auth before validation
-			if err := c.LoadAuthFromHome(); err != nil {
-				return fmt.Errorf("failed to load auth: %w", err)
-			}
 
 			// Validate the recovery key name
 			if err := tpm.ValidateRecoveryKeyName(ctx, c, recoveryKeyName); err != nil {
@@ -51,7 +45,6 @@ func newRegenerateKeyCmd() *cli.Command {
 
 			fmt.Printf("Recovery Key: %s\n", result.RecoveryKey)
 			fmt.Printf("Key ID: %s\n", result.KeyID)
-			fmt.Println(result.Status)
 
 			return nil
 		},

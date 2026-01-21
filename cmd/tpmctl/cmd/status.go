@@ -16,7 +16,6 @@ func newStatusCmd() *cli.Command {
 		Suggest: true,
 		Action: func(ctx context.Context, cmd *cli.Command) error {
 			c := snapd.NewClient()
-			defer c.Close()
 
 			result, err := c.FdeStatus(ctx)
 			if err != nil {

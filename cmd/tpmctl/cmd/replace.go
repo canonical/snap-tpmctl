@@ -10,19 +10,12 @@ import (
 	"snap-tpmctl/internal/tui"
 )
 
-//nolint:dupl // PIN and passphrase commands have intentionally similar structure
 func newReplacePassphraseCmd() *cli.Command {
 	return &cli.Command{
 		Name:  "replace-passphrase",
 		Usage: "Replace encryption passphrase",
 		Action: func(ctx context.Context, cmd *cli.Command) error {
 			c := snapd.NewClient()
-			defer c.Close()
-
-			// Load auth before validation
-			if err := c.LoadAuthFromHome(); err != nil {
-				return fmt.Errorf("failed to load auth: %w", err)
-			}
 
 			oldPassphrase, err := tui.ReadUserSecret("Enter current passphrase: ")
 			if err != nil {
@@ -54,19 +47,12 @@ func newReplacePassphraseCmd() *cli.Command {
 	}
 }
 
-//nolint:dupl // PIN and passphrase commands have intentionally similar structure
 func newReplacePinCmd() *cli.Command {
 	return &cli.Command{
 		Name:  "replace-pin",
 		Usage: "Replace encryption PIN",
 		Action: func(ctx context.Context, cmd *cli.Command) error {
 			c := snapd.NewClient()
-			defer c.Close()
-
-			// Load auth before validation
-			if err := c.LoadAuthFromHome(); err != nil {
-				return fmt.Errorf("failed to load auth: %w", err)
-			}
 
 			oldPin, err := tui.ReadUserSecret("Enter current PIN: ")
 			if err != nil {
