@@ -143,6 +143,12 @@ func (c *Client) doAsyncRequest(ctx context.Context, method, path string, query 
 			}
 
 			if change.Ready {
+				if change.Err != "" {
+					return nil, &Error{
+						Message: change.Err,
+					}
+				}
+
 				return &asyncResponse{
 					ID: change.ID,
 				}, nil
