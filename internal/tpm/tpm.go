@@ -35,6 +35,9 @@ func MountVolume(volumeName string, devicePath string) error {
 
 // UnmountVolume deactivates the specified volume.
 func UnmountVolume(volumeName string) error {
+	if snapPath := os.Getenv("SNAP"); snapPath != "" {
+		systemdCryptsetupPath = filepath.Join(snapPath, "usr/bin/systemd-cryptsetup")
+	}
 	return secboot.DeactivateVolume(volumeName)
 }
 
