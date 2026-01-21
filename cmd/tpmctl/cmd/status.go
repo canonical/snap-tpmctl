@@ -3,6 +3,7 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/urfave/cli/v3"
 	"snap-tpmctl/internal/snapd"
@@ -17,17 +18,12 @@ func newStatusCmd() *cli.Command {
 			c := snapd.NewClient()
 			defer c.Close()
 
-			// Load auth before validation
-			if err := c.LoadAuthFromHome(); err != nil {
-				return fmt.Errorf("failed to load auth: %w", err)
-			}
-
 			result, err := c.FdeStatus(ctx)
 			if err != nil {
 				return err
 			}
 
-			fmt.Printf("FDE status: %s\n", result.Status)
+			fmt.Printf("The FDE system is %s\n", strings.ToUpper(result.Status))
 
 			return nil
 		},
