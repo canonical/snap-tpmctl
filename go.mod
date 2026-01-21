@@ -6,7 +6,7 @@ require (
 	github.com/nalgeon/be v0.3.0
 	github.com/snapcore/secboot v0.0.0-20260116095945-507475da2340
 	github.com/snapcore/snapd v0.0.0-20260121122130-7b51e42969a0
-	github.com/urfave/cli/v3 v3.6.1
+	github.com/urfave/cli/v3 v3.6.2
 )
 
 require golang.org/x/sys v0.40.0 // indirect
