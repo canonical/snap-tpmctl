@@ -2,25 +2,30 @@ package cmd
 
 import (
 	"context"
-	"errors"
+	"fmt"
+	"strings"
 
 	"github.com/urfave/cli/v3"
-	"snap-tpmctl/internal/log"
+	"snap-tpmctl/internal/snapd"
 )
 
 func newStatusCmd() *cli.Command {
 	return &cli.Command{
 		Name:    "status",
-		Usage:   "Show TPM status",
+		Usage:   "Show current TPM/FDE status",
 		Suggest: true,
 		Action: func(ctx context.Context, cmd *cli.Command) error {
-			return status(ctx)
+			c := snapd.NewClient()
+			defer c.Close()
+
+			result, err := c.FdeStatus(ctx)
+			if err != nil {
+				return err
+			}
+
+			fmt.Printf("The FDE system is %s\n", strings.ToUpper(result.Status))
+
+			return nil
 		},
 	}
-}
-
-func status(ctx context.Context) error {
-	log.Debug(ctx, "Retrieve status")
-
-	return errors.New("TODO: implement the status API when lands on snapd")
 }
