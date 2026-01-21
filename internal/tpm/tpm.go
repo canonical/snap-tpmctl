@@ -4,13 +4,25 @@ package tpm
 import (
 	"context"
 	"fmt"
+	"os"
+	"path/filepath"
+	// Needed for go:linkname.
+	_ "unsafe"
 
 	"github.com/snapcore/secboot"
 	"snap-tpmctl/internal/tui"
 )
 
+// We are executing through a snap, thus we need to link to the actual package location.
+//
+//go:linkname systemdCryptsetupPath github.com/snapcore/secboot/internal/luks2.systemdCryptsetupPath
+var systemdCryptsetupPath string
+
 // MountVolume activates the specified encrypted volume using the provided device path.
 func MountVolume(volumeName string, devicePath string) error {
+	if snapPath := os.Getenv("SNAP"); snapPath != "" {
+		systemdCryptsetupPath = filepath.Join(snapPath, "usr/bin/systemd-cryptsetup")
+	}
 	return secboot.ActivateVolumeWithRecoveryKey(
 		volumeName,
 		devicePath,
@@ -23,6 +35,9 @@ func MountVolume(volumeName string, devicePath string) error {
 
 // UnmountVolume deactivates the specified volume.
 func UnmountVolume(volumeName string) error {
+	if snapPath := os.Getenv("SNAP"); snapPath != "" {
+		systemdCryptsetupPath = filepath.Join(snapPath, "usr/bin/systemd-cryptsetup")
+	}
 	return secboot.DeactivateVolume(volumeName)
 }
 
