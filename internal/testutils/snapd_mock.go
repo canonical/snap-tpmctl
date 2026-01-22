@@ -6,9 +6,8 @@ import (
 	"encoding/json"
 	"errors"
 
-	"snap-tpmctl/internal/snapd"
-
 	"github.com/snapcore/snapd/client"
+	"snap-tpmctl/internal/snapd"
 )
 
 // MockConfig holds configuration for MockSnapdClient behavior.
