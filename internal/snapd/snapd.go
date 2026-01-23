@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net/http"
 	"net/url"
 	"time"
 	_ "unsafe" // Required for go:linkname directives
@@ -62,6 +63,22 @@ func (c *Client) setGenericHeaders(headers map[string]string) map[string]string 
 	headers["Content-Type"] = "application/json"
 
 	return headers
+}
+
+// notice polls the snapd notices endpoint for change updates until completion or timeout.
+func (c *Client) notice(ctx context.Context, changeID string) error {
+	query := url.Values{}
+	query.Add("after", time.Now().UTC().Format(time.RFC3339Nano))
+	query.Add("keys", changeID)
+	query.Add("timeout", "1h")
+	query.Add("types", "change-update")
+
+	_, err := c.doSyncRequest(ctx, http.MethodGet, "/v2/notices", query, nil, nil)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // response is the base response structure from snapd.
@@ -128,33 +145,26 @@ func (c *Client) doAsyncRequest(ctx context.Context, method, path string, query 
 		return nil, err
 	}
 
-	// TODO: use notices api
-	ticker := time.NewTicker(50 * time.Millisecond)
-	defer ticker.Stop()
+	// wait for the task to be completed
+	if err := c.notice(ctx, changeID); err != nil {
+		return nil, err
+	}
 
-	for {
-		select {
-		case <-ctx.Done():
-			return nil, ctx.Err()
-		case <-ticker.C:
-			change, err := c.snapd.Change(changeID)
-			if err != nil {
-				return nil, err
-			}
+	// retrieve informations about the change
+	change, err := c.snapd.Change(changeID)
+	if err != nil {
+		return nil, err
+	}
 
-			if change.Ready {
-				if change.Err != "" {
-					return nil, &Error{
-						Message: change.Err,
-					}
-				}
-
-				return &asyncResponse{
-					ID: change.ID,
-				}, nil
-			}
+	if change.Err != "" {
+		return nil, &Error{
+			Message: change.Err,
 		}
 	}
+
+	return &asyncResponse{
+		ID: change.ID,
+	}, nil
 }
 
 //go:linkname doSync github.com/snapcore/snapd/client.(*Client).doSync
