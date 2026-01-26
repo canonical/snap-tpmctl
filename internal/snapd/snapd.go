@@ -47,6 +47,7 @@ type ClientOption func(*Client)
 func NewClient(opts ...ClientOption) *Client {
 	return &Client{
 		snapd: snapdClient.New(&snapdClient.Config{
+			DisableAuth: true,
 			Interactive: true,
 			Socket:      defaultSocketPath,
 			UserAgent:   defaultUserAgent,
