@@ -71,3 +71,16 @@ func CheckKey(ctx context.Context, client keyChecker, recoveryKey string) (bool,
 
 	return ok, nil
 }
+
+type keyRemover interface {
+	RemoveRecoveryKey(ctx context.Context, recoveryKey string) error
+}
+
+// RemoveRecoveryKey removes a recovery key from the system.
+func RemoveRecoveryKey(ctx context.Context, client keyRemover, recoveryKey string) error {
+	if err := client.RemoveRecoveryKey(ctx, recoveryKey); err != nil {
+		return fmt.Errorf("failed to remove recovery key: %w", err)
+	}
+
+	return nil
+}

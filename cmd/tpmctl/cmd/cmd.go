@@ -64,6 +64,7 @@ func newRootCmd() cli.Command {
 			newReplacePinCmd(),
 			newRegenerateKeyCmd(),
 			newRemovePINCmd(),
+			newRemoveRecoveryKey(),
 			newRemovePassphraseCmd(),
 			newStatusCmd(),
 			newUnmountVolumeCmd(),

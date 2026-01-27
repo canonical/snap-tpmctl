@@ -67,3 +67,41 @@ func newRemovePINCmd() *cli.Command {
 		},
 	}
 }
+
+func newRemoveRecoveryKey() *cli.Command {
+	var recoveryKeyName string
+
+	return &cli.Command{
+		Name:    "remove-recovery-key",
+		Usage:   "Remove the recovery key form the system",
+		Suggest: true,
+		Arguments: []cli.Argument{
+			&cli.StringArg{
+				Name:        "key-id",
+				UsageText:   "<key-id>",
+				Destination: &recoveryKeyName,
+			},
+		},
+		Action: func(ctx context.Context, cmd *cli.Command) error {
+			// Ensure that the user's effective ID is root
+			if os.Geteuid() != 0 {
+				return fmt.Errorf("this command requires elevated privileges. Please run with sudo")
+			}
+
+			c := snapd.NewClient()
+
+			// Validate the recovery key name
+			if err := tpm.ValidateRecoveryKeyName(ctx, c, recoveryKeyName); err != nil {
+				return err
+			}
+
+			if err := tui.WithSpinner("Removing recovery key...", func() error {
+				return tpm.RemoveRecoveryKey(ctx, c, recoveryKeyName)
+			}); err != nil {
+				return err
+			}
+			fmt.Println("PIN removed successfully")
+			return nil
+		},
+	}
+}

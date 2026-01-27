@@ -109,3 +109,21 @@ func (c *Client) CheckRecoveryKey(ctx context.Context, recoveryKey string, conta
 
 	return true, nil
 }
+
+// RemoveRecoveryKey removes a recovery key from the system.
+func (c *Client) RemoveRecoveryKey(ctx context.Context, recoveryKey string) error {
+	panic("not implemented")
+
+	// body := struct {
+	// 	Action      string `json:"action"`
+	// 	RecoveryKey string `json:"recovery-key"`
+	// }{
+	// 	Action:      "remove-recovery-key",
+	// 	RecoveryKey: recoveryKey,
+	// }
+
+	// if _, err := c.doSyncRequest(ctx, http.MethodPost, "/v2/system-volumes", nil, nil, body); err != nil {
+	// 	return err
+	// }
+	// return nil
+}
