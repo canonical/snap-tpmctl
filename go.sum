@@ -60,6 +60,8 @@ github.com/snapcore/snapd v0.0.0-20260121122130-7b51e42969a0 h1:wc64OExweb99316v
 github.com/snapcore/snapd v0.0.0-20260121122130-7b51e42969a0/go.mod h1:dvC9NyhdJRvu/FH7jWQe5dfsYBoNdYxG9r74+Wkm+mE=
 github.com/snapcore/snapd v0.0.0-20260128063429-c3be32030ec4 h1:blW8WGqafaTuzscoG0g8k8pbl4o+JdrFQxUTLB9RLTY=
 github.com/snapcore/snapd v0.0.0-20260128063429-c3be32030ec4/go.mod h1:dvC9NyhdJRvu/FH7jWQe5dfsYBoNdYxG9r74+Wkm+mE=
+github.com/snapcore/snapd v0.0.0-20260129071130-c3c474131988 h1:ZqZ6+2D2EnfexpwgL3pO5FHG+lBfdScIxClyPmLwYnM=
+github.com/snapcore/snapd v0.0.0-20260129071130-c3c474131988/go.mod h1:dvC9NyhdJRvu/FH7jWQe5dfsYBoNdYxG9r74+Wkm+mE=
 github.com/stretchr/testify v1.11.1 h1:7s2iGBzp5EwR7/aIZr8ao5+dra3wiQyKjjFuvgVKu7U=
 github.com/stretchr/testify v1.11.1/go.mod h1:wZwfW3scLgRK+23gO65QZefKpKQRnfz6sD981Nm4B6U=
 github.com/urfave/cli/v3 v3.6.1 h1:j8Qq8NyUawj/7rTYdBGrxcH7A/j7/G8Q5LhWEW4G3Mo=
