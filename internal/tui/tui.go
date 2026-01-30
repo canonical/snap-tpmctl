@@ -10,11 +10,27 @@ import (
 	"strings"
 	"text/tabwriter"
 	"time"
+
+	"github.com/snapcore/snapd/progress"
+)
+
+var stdin io.Reader = os.Stdin
+var stdout io.Writer = os.Stdout
+
+// these are the bits of the ANSI escapes (beyond \r) that we use
+// (names of the terminfo capabilities, see terminfo(5)).
+var (
+	// clear to end of line.
+	clrEOL = "\033[K"
+	// make cursor invisible.
+	cursorInvisible = "\033[?25l"
+	// make cursor visible.
+	cursorVisible = "\033[?25h"
 )
 
 // ReadUserInput reads a line of input from the user via stdin.
 func ReadUserInput() (string, error) {
-	reader := bufio.NewReader(os.Stdin)
+	reader := bufio.NewReader(stdin)
 	key, err := reader.ReadString('\n')
 	if err != nil {
 		return "", fmt.Errorf("failed to read input: %w", err)
@@ -26,17 +42,22 @@ func ReadUserInput() (string, error) {
 
 // ClearLine clears the current line in the terminal.
 func ClearLine() {
-	fmt.Print("\033[1A\033[2K")
+	fmt.Fprint(stdout, "\r", clrEOL)
 }
 
-// clearCurrentLine clears the current line without moving cursor up.
-func clearCurrentLine() {
-	fmt.Print("\r\033[K")
+// HideCursor hides the cursor in the terminal.
+func HideCursor() {
+	fmt.Fprint(stdout, "\r", cursorInvisible, clrEOL)
+}
+
+// ShowCursor makes the cursor visible in the terminal.
+func ShowCursor() {
+	fmt.Fprint(stdout, "\r", cursorVisible, clrEOL)
 }
 
 // ReadUserSecret prompts the user for sensitive input and clears the line after reading.
 func ReadUserSecret(form string) (string, error) {
-	fmt.Print(form)
+	fmt.Fprintf(stdout, "%s", form)
 	defer ClearLine()
 
 	input, err := ReadUserInput()
@@ -57,13 +78,6 @@ func WithSpinner(message string, fn func() error) error {
 
 // WithSpinnerResult executes a function while displaying a spinner in the terminal.
 func WithSpinnerResult[T any](message string, fn func() (T, error)) (T, error) {
-	spinnerChars := []string{"-", "\\", "|", "/"}
-	i := 0
-
-	// Timer to trigger changing the spinner char to produce a loading spinner
-	ticker := time.NewTicker(100 * time.Millisecond)
-	defer ticker.Stop()
-
 	// Generic result channel
 	done := make(chan struct {
 		result T
@@ -79,21 +93,21 @@ func WithSpinnerResult[T any](message string, fn func() (T, error)) (T, error) {
 		}{result, err}
 	}()
 
-	// Hide cursor while spinning
-	fmt.Print("\033[?25l")
-	defer fmt.Print("\033[?25h")
+	// Timer to trigger changing the spinner char to produce a loading spinner
+	ticker := time.NewTicker(100 * time.Millisecond)
+	defer ticker.Stop()
 
-	// Spin until we get a result from the function
-	fmt.Printf("%s %s", message, spinnerChars[0])
+	// Hide cursor while spinning
+	HideCursor()
+
+	var spinner progress.ANSIMeter
 	for {
 		select {
 		case res := <-done:
-			clearCurrentLine()
+			spinner.Finished()
 			return res.result, res.err
 		case <-ticker.C:
-			clearCurrentLine()
-			i++
-			fmt.Printf("%s %s", message, spinnerChars[i%len(spinnerChars)])
+			spinner.Spin(message)
 		}
 	}
 }
