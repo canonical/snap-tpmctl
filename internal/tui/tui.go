@@ -2,7 +2,6 @@
 package tui
 
 import (
-	"bufio"
 	"bytes"
 	"fmt"
 	"io"
@@ -12,9 +11,9 @@ import (
 	"time"
 
 	"github.com/snapcore/snapd/progress"
+	"golang.org/x/term"
 )
 
-var stdin io.Reader = os.Stdin
 var stdout io.Writer = os.Stdout
 
 // these are the bits of the ANSI escapes (beyond \r) that we use
@@ -28,23 +27,6 @@ var (
 	cursorVisible = "\033[?25h"
 )
 
-// ReadUserInput reads a line of input from the user via stdin.
-func ReadUserInput() (string, error) {
-	reader := bufio.NewReader(stdin)
-	key, err := reader.ReadString('\n')
-	if err != nil {
-		return "", fmt.Errorf("failed to read input: %w", err)
-	}
-	key = strings.TrimSpace(key)
-
-	return key, nil
-}
-
-// ClearLine clears the current line in the terminal.
-func ClearLine() {
-	fmt.Fprint(stdout, "\r", clrEOL)
-}
-
 // HideCursor hides the cursor in the terminal.
 func HideCursor() {
 	fmt.Fprint(stdout, "\r", cursorInvisible, clrEOL)
@@ -55,17 +37,16 @@ func ShowCursor() {
 	fmt.Fprint(stdout, "\r", cursorVisible, clrEOL)
 }
 
-// ReadUserSecret prompts the user for sensitive input and clears the line after reading.
+// ReadUserSecret prompts the user for sensitive input with no echo on typing.
 func ReadUserSecret(form string) (string, error) {
 	fmt.Fprintf(stdout, "%s", form)
-	defer ClearLine()
 
-	input, err := ReadUserInput()
+	input, err := term.ReadPassword(int(os.Stdin.Fd()))
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to read input: %w", err)
 	}
 
-	return input, nil
+	return string(input), nil
 }
 
 // WithSpinner executes an error-only function while displaying a spinner in the terminal.

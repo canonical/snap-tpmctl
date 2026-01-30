@@ -9,7 +9,7 @@ VM      := $(VM_USER)@$(VM_HOST)
 REMOTE_DIR ?= ~/snap-tpmctl
 
 # SSH / RSYNC options
-SSH_OPTS ?= -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR
+SSH_OPTS ?= -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR -tt
 RSYNC_OPTS ?= -az --delete --exclude .git --exclude bin --exclude '*.snap' --exclude '*.swp'
 
 # Binary name
