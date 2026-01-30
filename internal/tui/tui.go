@@ -21,11 +21,19 @@ var stdout io.Writer = os.Stdout
 var (
 	// clear to end of line.
 	clrEOL = "\033[K"
+	// move cursor up one line.
+	cursorUp = "\033[1A"
 	// make cursor invisible.
 	cursorInvisible = "\033[?25l"
 	// make cursor visible.
 	cursorVisible = "\033[?25h"
 )
+
+// ClearPreviousLines clears the previous lines in the terminal.
+func ClearPreviousLines(lines int) {
+	clr := fmt.Sprint("\r", cursorUp, clrEOL)
+	fmt.Fprint(stdout, strings.Repeat(clr, lines))
+}
 
 // HideCursor hides the cursor in the terminal.
 func HideCursor() {
