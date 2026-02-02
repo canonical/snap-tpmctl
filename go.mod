@@ -7,6 +7,7 @@ require (
 	github.com/snapcore/secboot v0.0.0-20260126133925-99e0bbda867d
 	github.com/snapcore/snapd v0.0.0-20260128063429-c3be32030ec4
 	github.com/urfave/cli/v3 v3.6.2
+	golang.org/x/term v0.39.0
 )
 
 require (
@@ -20,7 +21,9 @@ require (
 	github.com/godbus/dbus/v5 v5.1.0 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
+	github.com/mattn/go-runewidth v0.0.15 // indirect
 	github.com/pilebones/go-udev v0.9.0 // indirect
+	github.com/rivo/uniseg v0.2.0 // indirect
 	github.com/rogpeppe/go-internal v1.14.1 // indirect
 	github.com/snapcore/go-gettext v0.0.0-20230721153050-9082cdc2db05 // indirect
 	golang.org/x/crypto v0.47.0 // indirect
