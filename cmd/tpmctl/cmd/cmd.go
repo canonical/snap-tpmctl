@@ -2,10 +2,10 @@ package cmd
 
 import (
 	"context"
-	"os"
+	"log/slog"
+	"snap-tpmctl/internal/log"
 
 	"github.com/urfave/cli/v3"
-	"snap-tpmctl/internal/log"
 )
 
 /*
@@ -29,8 +29,8 @@ func New(args []string) App {
 }
 
 // Run is the main entry point of the app.
-func (a App) Run() error {
-	return a.root.Run(context.Background(), a.args)
+func (a App) Run(ctx context.Context) error {
+	return a.root.Run(ctx, a.args)
 }
 
 func newRootCmd() cli.Command {
@@ -79,21 +79,20 @@ func newRootCmd() cli.Command {
 			},
 		},
 		Before: func(ctx context.Context, cmd *cli.Command) (context.Context, error) {
-			setupLogging(verbosity)
+			setupLogging(ctx, verbosity)
 			return ctx, nil
 		},
 	}
 }
 
-func setupLogging(level int) {
-	switch level {
+// setupLogging sets up the logging level based on verbosity.
+func setupLogging(ctx context.Context, verbosity int) {
+	switch verbosity {
 	case 0:
-		log.SetLevel(log.WarnLevel)
+		log.SetLoggerLevelInContext(ctx, slog.LevelWarn)
 	case 1:
-		log.SetLevel(log.InfoLevel)
+		log.SetLoggerLevelInContext(ctx, slog.LevelInfo)
 	default:
-		log.SetLevel(log.DebugLevel)
+		log.SetLoggerLevelInContext(ctx, slog.LevelDebug)
 	}
-
-	log.SetOutput(os.Stderr)
 }
