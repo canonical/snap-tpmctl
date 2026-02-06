@@ -1,8 +1,8 @@
-name: tpmctl
+name: snap-tpmctl
 base: core24
 version: 0.1.0
 summary: Ubuntu TPM and FDE management tool
-title: TPM Control Tool
+title: Snap TPM/FDE Control Tool
 description: |
   snap-tpmctl is a command-line tool for managing TPM (Trusted Platform Module)
   and Full Disk Encryption (FDE) features on Ubuntu systems. It provides commands
@@ -15,7 +15,7 @@ grade: stable
 confinement: strict
 
 apps:
-  tpmctl:
+  snap-tpmctl:
     command: bin/tpmctl
     plugs:
       - block-devices
@@ -32,11 +32,11 @@ plugs:
     allow-partitions: true
   mountctl:
     interface: mount-control
-    namespace: host
     mount:
       - what: /dev/mapper/**
         where: /run/**
         type: [ext2, ext3, ext4, xfs, vfat, ntfs]
+        namespace: host
         options: [rw, relatime]
         persistent: true
 
