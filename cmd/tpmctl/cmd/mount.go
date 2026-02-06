@@ -5,10 +5,9 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/urfave/cli/v3"
 	"snap-tpmctl/internal/tpm"
 	"snap-tpmctl/internal/tui"
-
-	"github.com/urfave/cli/v3"
 )
 
 func newMountVolumeCmd() *cli.Command {
