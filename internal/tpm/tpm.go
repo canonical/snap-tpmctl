@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
+	"syscall"
 	// Needed for go:linkname.
 	_ "unsafe"
 
@@ -19,26 +21,64 @@ import (
 var systemdCryptsetupPath string
 
 // MountVolume activates the specified encrypted volume using the provided device path.
-func MountVolume(volumeName string, devicePath string) error {
+func MountVolume(directory string, device string) error {
 	if snapPath := os.Getenv("SNAP"); snapPath != "" {
 		systemdCryptsetupPath = filepath.Join(snapPath, "usr/bin/systemd-cryptsetup")
 	}
-	return secboot.ActivateVolumeWithRecoveryKey(
-		volumeName,
-		devicePath,
-		&authRequestor{},
-		&secboot.ActivateVolumeOptions{
-			RecoveryKeyTries: 3,
-		},
-	)
+
+	volumeName := luksVolumeName(directory)
+	mapperPath := filepath.Join("/dev/mapper/", volumeName)
+
+	// Check if volume is already active
+	if _, err := os.Stat(mapperPath); os.IsNotExist(err) {
+		if err := secboot.ActivateVolumeWithRecoveryKey(
+			volumeName,
+			device,
+			&authRequestor{},
+			&secboot.ActivateVolumeOptions{
+				RecoveryKeyTries: 3,
+			},
+		); err != nil {
+			return fmt.Errorf("unable to activate volume: %w", err)
+		}
+	}
+
+	if err := os.MkdirAll(directory, 0750); err != nil {
+		return fmt.Errorf("unable to create directory: %w", err)
+	}
+
+	if err := syscall.Mount(mapperPath, directory, "ext4", 0, ""); err != nil {
+		return fmt.Errorf("unable to mount volume: %w", err)
+	}
+
+	return nil
 }
 
 // UnmountVolume deactivates the specified volume.
-func UnmountVolume(volumeName string) error {
+func UnmountVolume(directory string) error {
 	if snapPath := os.Getenv("SNAP"); snapPath != "" {
 		systemdCryptsetupPath = filepath.Join(snapPath, "usr/bin/systemd-cryptsetup")
 	}
-	return secboot.DeactivateVolume(volumeName)
+
+	if err := syscall.Unmount(directory, 0); err != nil {
+		return fmt.Errorf("unable to unmount volume: %w", err)
+	}
+
+	if err := os.RemoveAll(directory); err != nil {
+		return fmt.Errorf("unable to remove mount point: %w", err)
+	}
+
+	volumeName := luksVolumeName(directory)
+	if err := secboot.DeactivateVolume(volumeName); err != nil {
+		return fmt.Errorf("unable to deactivate volume: %w", err)
+	}
+
+	return nil
+}
+
+// luksVolumeName converts a directory path into a valid LUKS volume name.
+func luksVolumeName(dir string) string {
+	return strings.TrimLeft(strings.ReplaceAll(dir, "/", "-"), "-")
 }
 
 type authRequestor struct{}
