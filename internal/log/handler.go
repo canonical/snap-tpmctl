@@ -7,56 +7,41 @@ import (
 	"log/slog"
 )
 
-// SimpleHandler writes logs in the format: <level> <message>.
-type SimpleHandler struct {
-	slog.TextHandler
-	w io.Writer
+// simpleHandler writes logs in the format: <level> <message>.
+type simpleHandler struct {
+	level slog.Leveler
+	w     io.Writer
 }
 
-// NewSimpleHandler creates a new SimpleHandler that writes to the provided io.Writer.
-func NewSimpleHandler(w io.Writer, level slog.Level) slog.Handler {
-	opts := &slog.HandlerOptions{
-		Level: level,
-	}
-	return &SimpleHandler{
-		TextHandler: *slog.NewTextHandler(w, opts),
-		w:           w,
+// newSimpleHandler creates a new simpleHandler that writes to the provided io.Writer.
+func newSimpleHandler(w io.Writer, leveler slog.Leveler) slog.Handler {
+	return &simpleHandler{
+		level: leveler,
+		w:     w,
 	}
 }
 
-// Handle implements the slog.Handler interface.
-func (h *SimpleHandler) Handle(ctx context.Context, r slog.Record) error {
+// Enabled checks if the handler is enabled for the given log level.
+func (h *simpleHandler) Enabled(ctx context.Context, l slog.Level) bool {
+	minLevel := slog.LevelWarn
+	if h.level != nil {
+		minLevel = h.level.Level()
+	}
+	return l >= minLevel
+}
+
+// Handle formats the record to include the level and then the message.
+func (h *simpleHandler) Handle(ctx context.Context, r slog.Record) error {
 	_, err := fmt.Fprintf(h.w, "%s %s\n", r.Level.String(), r.Message)
 	return err
 }
 
-// Enabled checks if the handler is enabled for the given log level.
-func (h *SimpleHandler) Enabled(ctx context.Context, level slog.Level) bool {
-	return h.TextHandler.Enabled(ctx, level)
+// WithAttrs is not implemented in our simpleHandler.
+func (h *simpleHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
+	panic("WithAttrs is not implemented for simpleHandler")
 }
 
-// WithAttrs returns a new SimpleHandler with the specified attributes.
-func (h *SimpleHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
-	textHandler, ok := h.TextHandler.WithAttrs(attrs).(*slog.TextHandler)
-	if !ok {
-		panic("WithAttrs did not return a *slog.TextHandler")
-	}
-
-	return &SimpleHandler{
-		TextHandler: *textHandler,
-		w:           h.w,
-	}
-}
-
-// WithGroup returns a new SimpleHandler with the specified group name.
-func (h *SimpleHandler) WithGroup(name string) slog.Handler {
-	textHandler, ok := h.TextHandler.WithGroup(name).(*slog.TextHandler)
-	if !ok {
-		panic("WithGroup did not return a *slog.TextHandler")
-	}
-
-	return &SimpleHandler{
-		TextHandler: *textHandler,
-		w:           h.w,
-	}
+// WithGroup is not implemented in our simpleHandler.
+func (h *simpleHandler) WithGroup(name string) slog.Handler {
+	panic("WithGroup is not implemented for simpleHandler")
 }

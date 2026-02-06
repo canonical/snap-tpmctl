@@ -3,14 +3,13 @@ package main
 
 import (
 	"context"
-	"log/slog"
 	"os"
-
 	"snap-tpmctl/cmd/tpmctl/cmd"
+	"snap-tpmctl/internal/log"
 )
 
 type app interface {
-	Run() error
+	Run(ctx context.Context) error
 }
 
 func main() {
@@ -19,23 +18,10 @@ func main() {
 }
 
 func run(ctx context.Context, a app) int {
-	if err := a.Run(); err != nil {
-		logError(ctx, err.Error())
+	if err := a.Run(ctx); err != nil {
+		log.Error(ctx, "the error is: %v", err)
 		return 1
 	}
 
 	return 0
-}
-
-type loggerKeyType string
-
-const loggerKey loggerKeyType = "logger"
-
-func logError(ctx context.Context, msg string, args ...any) {
-	logger, ok := ctx.Value(loggerKey).(*slog.Logger)
-	if !ok {
-		// If no logger is set, fallback to the default logger.
-		logger = slog.Default()
-	}
-	logger.Error(msg, args...)
 }

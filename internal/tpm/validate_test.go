@@ -196,8 +196,6 @@ func TestIsValidRecoveryKey(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			testutils.TestLogger(t.Output())
-
 			err := tpm.ValidateRecoveryKey(tc.key)
 
 			if tc.wantErr {
@@ -351,8 +349,6 @@ func TestValidateDevicePath(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			testutils.TestLogger(t.Output())
-
 			err := tpm.ValidateDevicePath(tc.path)
 
 			if tc.wantErr {
@@ -401,8 +397,6 @@ func TestValidateVolumeName(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
-
-			testutils.TestLogger(t.Output())
 
 			err := tpm.ValidateVolumeName(tc.volumeName)
 
