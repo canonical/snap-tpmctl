@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-
 	// Needed for go:linkname.
 	_ "unsafe"
 
@@ -20,26 +19,34 @@ import (
 var systemdCryptsetupPath string
 
 // MountVolume activates the specified encrypted volume using the provided device path.
-func MountVolume(volumeName string, devicePath string) error {
+func MountVolume(directory string, device string) error {
 	if snapPath := os.Getenv("SNAP"); snapPath != "" {
 		systemdCryptsetupPath = filepath.Join(snapPath, "usr/bin/systemd-cryptsetup")
 	}
-	return secboot.ActivateVolumeWithRecoveryKey(
-		volumeName,
-		devicePath,
+	if err := secboot.ActivateVolumeWithRecoveryKey(
+		directory,
+		device,
 		&authRequestor{},
 		&secboot.ActivateVolumeOptions{
 			RecoveryKeyTries: 3,
 		},
-	)
+	); err != nil {
+		return fmt.Errorf("unable to activate volume: %w", err)
+	}
+
+	return nil
 }
 
 // UnmountVolume deactivates the specified volume.
-func UnmountVolume(volumeName string) error {
+func UnmountVolume(directory string) error {
 	if snapPath := os.Getenv("SNAP"); snapPath != "" {
 		systemdCryptsetupPath = filepath.Join(snapPath, "usr/bin/systemd-cryptsetup")
 	}
-	return secboot.DeactivateVolume(volumeName)
+	if err := secboot.DeactivateVolume(directory); err != nil {
+		return fmt.Errorf("unable to deactivate volume: %w", err)
+	}
+
+	return nil
 }
 
 type authRequestor struct{}

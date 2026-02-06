@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"path/filepath"
 	"regexp"
 	"slices"
 	"strings"
@@ -213,14 +214,15 @@ func ValidateDevicePath(devicePath string) error {
 	return nil
 }
 
-// ValidateVolumeName validates that a volume name is not empty and follows valid conventions.
-func ValidateVolumeName(volumeName string) error {
-	if volumeName == "" {
-		return fmt.Errorf("volume name cannot be empty")
+// ValidateDiretoryPath validates that a directory path is not empty and is a valid absolute or relative path.
+func ValidateDiretoryPath(dir string) error {
+	if dir == "" {
+		return fmt.Errorf("directory path cannot be empty")
 	}
 
-	if strings.Contains(volumeName, "/") {
-		return fmt.Errorf("volume name cannot contain slashes")
+	norm := filepath.Clean(dir)
+	if !filepath.IsAbs(norm) && !filepath.IsLocal(norm) {
+		return fmt.Errorf("directory path must be a valid absolute or relative path")
 	}
 
 	return nil
