@@ -50,6 +50,8 @@ func ReadUserSecret(form string) (string, error) {
 	fmt.Fprintf(stdout, "%s", form)
 
 	input, err := term.ReadPassword(int(os.Stdin.Fd()))
+	fmt.Fprintln(stdout)
+
 	if err != nil {
 		return "", fmt.Errorf("failed to read input: %w", err)
 	}
