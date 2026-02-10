@@ -5,6 +5,7 @@ import (
 	"context"
 	"io"
 	"log/slog"
+	"os"
 	"snap-tpmctl/internal/log"
 	"strings"
 	"testing"
@@ -96,4 +97,31 @@ func TestAllLogLevels(t *testing.T) {
 			is.Equal(logs.String(), tc.want)
 		})
 	}
+}
+
+func TestDefaultLoggerLogToStderr(t *testing.T) {
+	// No parallel: this test uses a global logger which logs to stderr.
+
+	is := is.New(t)
+
+	// Capture stderr
+	r, w, _ := os.Pipe()
+	defer w.Close()
+	old := os.Stderr
+	os.Stderr = w
+	t.Cleanup(func() {
+		os.Stderr = old
+	})
+
+	msg := "logged on stderr by default logger"
+
+	log.Warn(context.Background(), msg)
+
+	// Copy the cpature to a buffer.
+	w.Close()
+	var buf bytes.Buffer
+	_, err := io.Copy(&buf, r)
+	is.NoErr(err) // Helper: io.Copy should succeed.
+
+	is.True(strings.Contains(buf.String(), msg)) // The message has been logged to stderr.
 }
