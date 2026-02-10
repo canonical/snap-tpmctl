@@ -38,7 +38,7 @@ func newMountVolumeCmd() *cli.Command {
 				return err
 			}
 
-			if err := tpm.MountVolume(dir, device); err != nil {
+			if err := tpm.MountVolume(device, dir); err != nil {
 				return err
 			}
 

@@ -21,12 +21,12 @@ import (
 var systemdCryptsetupPath string
 
 // MountVolume activates the specified encrypted volume using the provided device path.
-func MountVolume(directory string, device string) error {
+func MountVolume(device, target string) error {
 	if snapPath := os.Getenv("SNAP"); snapPath != "" {
 		systemdCryptsetupPath = filepath.Join(snapPath, "usr/bin/systemd-cryptsetup")
 	}
 
-	volumeName := luksVolumeName(directory)
+	volumeName := luksVolumeName(target)
 	mapperPath := filepath.Join("/dev/mapper/", volumeName)
 
 	// Check if volume is already active
@@ -43,11 +43,11 @@ func MountVolume(directory string, device string) error {
 		}
 	}
 
-	if err := os.MkdirAll(directory, 0750); err != nil {
+	if err := os.MkdirAll(target, 0750); err != nil {
 		return fmt.Errorf("unable to create directory: %w", err)
 	}
 
-	if err := syscall.Mount(mapperPath, directory, "ext4", 0, ""); err != nil {
+	if err := syscall.Mount(mapperPath, target, "ext4", 0, ""); err != nil {
 		return fmt.Errorf("unable to mount volume: %w", err)
 	}
 
@@ -55,20 +55,20 @@ func MountVolume(directory string, device string) error {
 }
 
 // UnmountVolume deactivates the specified volume.
-func UnmountVolume(directory string) error {
+func UnmountVolume(target string) error {
 	if snapPath := os.Getenv("SNAP"); snapPath != "" {
 		systemdCryptsetupPath = filepath.Join(snapPath, "usr/bin/systemd-cryptsetup")
 	}
 
-	if err := syscall.Unmount(directory, 0); err != nil {
+	if err := syscall.Unmount(target, 0); err != nil {
 		return fmt.Errorf("unable to unmount volume: %w", err)
 	}
 
-	if err := os.RemoveAll(directory); err != nil {
+	if err := os.RemoveAll(target); err != nil {
 		return fmt.Errorf("unable to remove mount point: %w", err)
 	}
 
-	volumeName := luksVolumeName(directory)
+	volumeName := luksVolumeName(target)
 	if err := secboot.DeactivateVolume(volumeName); err != nil {
 		return fmt.Errorf("unable to deactivate volume: %w", err)
 	}
@@ -77,8 +77,8 @@ func UnmountVolume(directory string) error {
 }
 
 // luksVolumeName converts a directory path into a valid LUKS volume name.
-func luksVolumeName(dir string) string {
-	return strings.TrimLeft(strings.ReplaceAll(dir, "/", "-"), "-")
+func luksVolumeName(p string) string {
+	return strings.TrimLeft(strings.ReplaceAll(p, "/", "-"), "-")
 }
 
 type authRequestor struct{}
