@@ -18,27 +18,27 @@ type loggerWithDynamicLevel struct {
 // defaultLogger is the default logger instance used when no logger is found in the context.
 var defaultLogger loggerWithDynamicLevel
 
-func init() {
+func new(w io.Writer) loggerWithDynamicLevel {
 	levelvar := &slog.LevelVar{}
-	th := newSimpleHandler(os.Stderr, levelvar)
-	defaultLogger = loggerWithDynamicLevel{
+	levelvar.Set(slog.LevelWarn) // Set default log level to Warning.
+	th := newSimpleHandler(w, levelvar)
+	return loggerWithDynamicLevel{
 		Logger:   slog.New(th),
 		levelvar: levelvar,
 	}
 }
 
-// WithContextLogger returns a context that contains a logger that writes to the provided io.Writer.
-func WithContextLogger(ctx context.Context, w io.Writer) context.Context {
-	levelvar := &slog.LevelVar{}
-	th := newSimpleHandler(w, levelvar)
-	logger := loggerWithDynamicLevel{
-		Logger:   slog.New(th),
-		levelvar: levelvar,
-	}
+func init() {
+	defaultLogger = new(os.Stderr)
+}
+
+// WithLoggerInContext returns a context that embeds a logger that writes to the io.Writer.
+func WithLoggerInContext(ctx context.Context, w io.Writer) context.Context {
+	logger := new(w)
 	return context.WithValue(ctx, loggerKey, &logger)
 }
 
-// SetLoggerLevelInContext sets the logger level embedded into the context.
+// SetLoggerLevelInContext sets the log level for the logger embedded into the context.
 func SetLoggerLevelInContext(ctx context.Context, level slog.Level) {
 	logger := loggerFromContext(ctx)
 	logger.levelvar.Set(level)

@@ -21,6 +21,7 @@ require (
 	github.com/godbus/dbus/v5 v5.1.0 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
+	github.com/matryer/is v1.4.1 // indirect
 	github.com/mattn/go-runewidth v0.0.15 // indirect
 	github.com/pilebones/go-udev v0.9.0 // indirect
 	github.com/rivo/uniseg v0.2.0 // indirect

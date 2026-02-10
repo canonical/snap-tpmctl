@@ -36,7 +36,7 @@ func TestRun(t *testing.T) {
 
 			var logs bytes.Buffer
 			out := io.MultiWriter(&logs, t.Output())
-			ctx := log.WithContextLogger(context.Background(), out)
+			ctx := log.WithLoggerInContext(context.Background(), out)
 
 			got := run(ctx, tc.app)
 			be.Equal(t, tc.want, got) // Return value does not match
