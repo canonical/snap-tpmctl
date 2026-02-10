@@ -28,8 +28,16 @@ func new(w io.Writer) loggerWithDynamicLevel {
 	}
 }
 
+// stderrWriter is a writer that always writes to the current os.Stderr.
+// This allows tests to redirect os.Stderr and have the logger follow the redirection.
+type stderrWriter struct{}
+
+func (w stderrWriter) Write(p []byte) (n int, err error) {
+	return os.Stderr.Write(p)
+}
+
 func init() {
-	defaultLogger = new(os.Stderr)
+	defaultLogger = new(stderrWriter{})
 }
 
 // WithLoggerInContext returns a context that embeds a logger that writes to the io.Writer.
