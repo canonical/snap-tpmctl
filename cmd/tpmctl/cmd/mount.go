@@ -34,7 +34,7 @@ func newMountVolumeCmd() *cli.Command {
 				return err
 			}
 
-			if err := tpm.ValidateDiretoryPath(dir); err != nil {
+			if err := tpm.ValidateDirectoryPath(dir); err != nil {
 				return err
 			}
 
@@ -62,7 +62,7 @@ func newUnmountVolumeCmd() *cli.Command {
 			},
 		},
 		Action: func(ctx context.Context, cmd *cli.Command) error {
-			if err := tpm.ValidateDiretoryPath(dir); err != nil {
+			if err := tpm.ValidateDirectoryPath(dir); err != nil {
 				return err
 			}
 

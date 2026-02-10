@@ -415,7 +415,7 @@ func TestValidateDirectoryPath(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			err := tpm.ValidateDiretoryPath(tc.dest)
+			err := tpm.ValidateDirectoryPath(tc.dest)
 
 			if tc.wantErr {
 				be.Err(t, err, tc.wantInErr)
