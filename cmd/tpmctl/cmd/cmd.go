@@ -38,6 +38,7 @@ func newRootCmd() cli.Command {
 	var verbosity int
 
 	// Custom cli version flag
+	// TODO: This should be a command itself, not a flag.
 	cli.VersionFlag = &cli.BoolFlag{
 		Name:    "version",
 		Aliases: []string{"V"},

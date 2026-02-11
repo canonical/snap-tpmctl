@@ -8,6 +8,8 @@ import (
 	"github.com/matryer/is"
 )
 
+// TODO: add tests to every subcommands.
+
 func TestRun(t *testing.T) {
 	t.Parallel()
 	is := is.New(t)

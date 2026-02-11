@@ -6,6 +6,8 @@ import (
 	"net/http"
 )
 
+// TODO: move struct to exported version of them if available in snapd.
+
 // ReplacePassphrase replaces a passphrase to the specified keyslots.
 // This is an async operation that waits for completion.
 func (c *Client) ReplacePassphrase(ctx context.Context, oldPassphrase string, newPassphrase string, keySlots []KeySlot) error {

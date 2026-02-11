@@ -6,6 +6,8 @@ import (
 
 	"github.com/canonical/snap-tpmctl/internal/testutils"
 	"github.com/canonical/snap-tpmctl/internal/tpm"
+
+	// TODO: move to is instead
 	"github.com/nalgeon/be"
 )
 
