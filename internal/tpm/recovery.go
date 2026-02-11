@@ -9,7 +9,7 @@ import (
 
 // keyCreator defines the interface for snapd operations needed for key management.
 type keyCreator interface {
-	GenerateRecoveryKey(ctx context.Context) (*snapd.GenerateRecoveryKeyResult, error)
+	GenerateRecoveryKey(ctx context.Context) (snapd.GenerateRecoveryKeyResult, error)
 	AddRecoveryKey(ctx context.Context, keyID string, slots []snapd.KeySlot) error
 	ReplaceRecoveryKey(ctx context.Context, keyID string, slots []snapd.KeySlot) error
 }
@@ -21,38 +21,38 @@ type CreateKeyResult struct {
 }
 
 // CreateKey creates a new recovery key with the given name. Input should be validated using ValidateRecoveryKeyNameUnique first.
-func CreateKey(ctx context.Context, client keyCreator, recoveryKeyName string) (result *CreateKeyResult, err error) {
+func CreateKey(ctx context.Context, client keyCreator, recoveryKeyName string) (result CreateKeyResult, err error) {
 	key, err := client.GenerateRecoveryKey(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("failed to generate recovery key: %w", err)
+		return result, fmt.Errorf("failed to generate recovery key: %w", err)
 	}
 
 	keySlots := []snapd.KeySlot{{Name: recoveryKeyName}}
 
 	if err := client.AddRecoveryKey(ctx, key.KeyID, keySlots); err != nil {
-		return nil, fmt.Errorf("failed to add recovery key: %w", err)
+		return result, fmt.Errorf("failed to add recovery key: %w", err)
 	}
 
-	return &CreateKeyResult{
+	return CreateKeyResult{
 		RecoveryKey: key.RecoveryKey,
 		KeyID:       key.KeyID,
 	}, nil
 }
 
 // RegenerateKey replaces an existing recovery key with a new one with the given name. Input should be validated using ValidateRecoveryKeyName first.
-func RegenerateKey(ctx context.Context, client keyCreator, recoveryKeyName string) (result *CreateKeyResult, err error) {
+func RegenerateKey(ctx context.Context, client keyCreator, recoveryKeyName string) (result CreateKeyResult, err error) {
 	key, err := client.GenerateRecoveryKey(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("failed to generate recovery key: %w", err)
+		return result, fmt.Errorf("failed to generate recovery key: %w", err)
 	}
 
 	keySlots := []snapd.KeySlot{{Name: recoveryKeyName}}
 
 	if err := client.ReplaceRecoveryKey(ctx, key.KeyID, keySlots); err != nil {
-		return nil, fmt.Errorf("failed to replace recovery key: %w", err)
+		return result, fmt.Errorf("failed to replace recovery key: %w", err)
 	}
 
-	return &CreateKeyResult{
+	return CreateKeyResult{
 		RecoveryKey: key.RecoveryKey,
 		KeyID:       key.KeyID,
 	}, nil

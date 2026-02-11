@@ -143,19 +143,19 @@ func (m MockSnapdClient) LoadAuthFromHome() error {
 }
 
 // GenerateRecoveryKey simulates generating a new recovery key.
-func (m MockSnapdClient) GenerateRecoveryKey(ctx context.Context) (*snapd.GenerateRecoveryKeyResult, error) {
+func (m MockSnapdClient) GenerateRecoveryKey(ctx context.Context) (snapd.GenerateRecoveryKeyResult, error) {
 	if m.config.GenerateKeyError {
-		return nil, errors.New("mocked error for GenerateRecoveryKey: cannot generate recovery key: snapd error")
+		return snapd.GenerateRecoveryKeyResult{}, errors.New("mocked error for GenerateRecoveryKey: cannot generate recovery key: snapd error")
 	}
-	return m.generatedKey, nil
+	return *m.generatedKey, nil
 }
 
 // EnumerateKeySlots simulates enumerating system volume key slots.
-func (m MockSnapdClient) EnumerateKeySlots(ctx context.Context) (*snapd.SystemVolumesResult, error) {
+func (m MockSnapdClient) EnumerateKeySlots(ctx context.Context) (snapd.SystemVolumesResult, error) {
 	if m.config.EnumerateError {
-		return nil, errors.New("mocked error for EnumerateKeySlots: cannot enumerate key slots: snapd error")
+		return snapd.SystemVolumesResult{}, errors.New("mocked error for ListVolumeInfo: cannot list volume info: snapd error")
 	}
-	return m.systemVolumes, nil
+	return *m.systemVolumes, nil
 }
 
 // AddRecoveryKey simulates adding a recovery key to specified slots.

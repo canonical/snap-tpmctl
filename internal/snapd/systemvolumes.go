@@ -15,18 +15,18 @@ type KeySlotInfo struct {
 }
 
 // IsRecoveryKey returns true if the keyslot is a recovery key.
-func (slot *KeySlotInfo) IsRecoveryKey() bool {
+func (slot KeySlotInfo) IsRecoveryKey() bool {
 	return slot.Type == "recovery"
 }
 
 // IsPassphrase returns true if the keyslot uses passphrase authentication.
-func (slot *KeySlotInfo) IsPassphrase() bool {
-	return slot.AuthMode == "passphrase"
+func (slot KeySlotInfo) IsPassphrase() bool {
+	return slot.AuthMode == string(AuthModePassphrase)
 }
 
 // IsPin returns true if the keyslot uses pin authentication.
-func (slot *KeySlotInfo) IsPin() bool {
-	return slot.AuthMode == "pin"
+func (slot KeySlotInfo) IsPin() bool {
+	return slot.AuthMode == string(AuthModePin)
 }
 
 // VolumeInfo describes a system volume.
@@ -43,16 +43,16 @@ type SystemVolumesResult struct {
 }
 
 // EnumerateKeySlots gets information about system volumes.
-func (c *Client) EnumerateKeySlots(ctx context.Context) (*SystemVolumesResult, error) {
+func (c *Client) EnumerateKeySlots(ctx context.Context) (result SystemVolumesResult, err error) {
 	resp, err := c.doSyncRequest(ctx, http.MethodGet, "/v2/system-volumes", nil, nil, nil)
 	if err != nil {
-		return nil, err
+		return result, err
 	}
 
 	var volumes SystemVolumesResult
 	if err := json.Unmarshal(resp.Result, &volumes); err != nil {
-		return nil, err
+		return result, err
 	}
 
-	return &volumes, nil
+	return volumes, nil
 }

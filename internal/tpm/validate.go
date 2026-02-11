@@ -18,7 +18,7 @@ import (
 type authValidator interface {
 	CheckPassphrase(ctx context.Context, passphrase string) error
 	CheckPIN(ctx context.Context, pin string) error
-	EnumerateKeySlots(ctx context.Context) (*snapd.SystemVolumesResult, error)
+	EnumerateKeySlots(ctx context.Context) (snapd.SystemVolumesResult, error)
 }
 
 // resultValue represents the value field in validation error responses from snapd.

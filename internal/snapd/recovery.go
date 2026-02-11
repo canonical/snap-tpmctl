@@ -24,7 +24,7 @@ type GenerateRecoveryKeyResult struct {
 }
 
 // GenerateRecoveryKey creates a new recovery key and returns the key and its ID.
-func (c *Client) GenerateRecoveryKey(ctx context.Context) (*GenerateRecoveryKeyResult, error) {
+func (c *Client) GenerateRecoveryKey(ctx context.Context) (result GenerateRecoveryKeyResult, err error) {
 	body := struct {
 		Action string `json:"action"`
 	}{
@@ -33,15 +33,14 @@ func (c *Client) GenerateRecoveryKey(ctx context.Context) (*GenerateRecoveryKeyR
 
 	resp, err := c.doSyncRequest(ctx, http.MethodPost, "/v2/system-volumes", nil, nil, &body)
 	if err != nil {
-		return nil, err
+		return result, err
 	}
 
-	var result GenerateRecoveryKeyResult
 	if err := json.Unmarshal(resp.Result, &result); err != nil {
-		return nil, err
+		return result, err
 	}
 
-	return &result, nil
+	return result, nil
 }
 
 // AddRecoveryKey adds a recovery key to the specified keyslots.

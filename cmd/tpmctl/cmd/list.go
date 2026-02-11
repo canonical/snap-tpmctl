@@ -119,8 +119,8 @@ type key struct {
 	volumeName    string
 }
 
-func getAllKeys(data *snapd.SystemVolumesResult) []key {
-	if data == nil {
+func getAllKeys(data snapd.SystemVolumesResult) []key {
+	if len(data.ByContainerRole) == 0 {
 		return nil
 	}
 
@@ -158,7 +158,7 @@ func getAllKeys(data *snapd.SystemVolumesResult) []key {
 	return allKeys
 }
 
-func displayAllKeys(w io.Writer, data *snapd.SystemVolumesResult, hideHeaders bool) error {
+func displayAllKeys(w io.Writer, data snapd.SystemVolumesResult, hideHeaders bool) error {
 	keys := getAllKeys(data)
 
 	rows := [][]string{}
@@ -192,7 +192,7 @@ func displayAllKeys(w io.Writer, data *snapd.SystemVolumesResult, hideHeaders bo
 	return nil
 }
 
-func parseKeySlots(data *snapd.SystemVolumesResult, filter func(*snapd.KeySlotInfo) bool) []string {
+func parseKeySlots(data snapd.SystemVolumesResult, filter func(*snapd.KeySlotInfo) bool) []string {
 	keys := getAllKeys(data)
 
 	var result []string
