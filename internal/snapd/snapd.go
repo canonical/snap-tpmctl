@@ -55,8 +55,8 @@ func New(args ...Option) *Client {
 	}
 }
 
-// setGenericHeaders sets the common HTTP headers for snapd API requests.
-func (c *Client) setGenericHeaders(headers map[string]string) map[string]string {
+// addGenericHeaders returns the common HTTP headers for snapd API requests.
+func addGenericHeaders(headers map[string]string) map[string]string {
 	if headers == nil {
 		headers = map[string]string{}
 	}
@@ -95,7 +95,7 @@ func (c *Client) doSyncRequest(_ context.Context, method, path string, query url
 	}
 
 	var result json.RawMessage
-	_, err := doSync(c.snapd, method, path, query, c.setGenericHeaders(headers), &b, &result)
+	_, err := doSync(c.snapd, method, path, query, addGenericHeaders(headers), &b, &result)
 	var snapdErr *snapdClient.Error
 	if errors.As(err, &snapdErr) {
 		value, err := json.Marshal(snapdErr.Value)
