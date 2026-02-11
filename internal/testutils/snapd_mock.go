@@ -282,7 +282,7 @@ func (m MockSnapdClient) ReplacePIN(ctx context.Context, oldPin string, newPin s
 }
 
 // ReplacePlatformKey simulates replacing a platform key.
-func (m MockSnapdClient) ReplacePlatformKey(ctx context.Context, authMode snapd.AuthMode, pin, passphrase string) error {
+func (m MockSnapdClient) ReplacePlatformKey(ctx context.Context, authMode snapd.AuthMode, secret string) error {
 	if m.config.ReplacePlatformKeyError {
 		return errors.New("mocked error for ReplacePlatformKey: cannot replace platform key: permission denied")
 	}

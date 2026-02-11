@@ -11,7 +11,7 @@ import (
 type authReplacer interface {
 	ReplacePassphrase(ctx context.Context, oldPassphrase string, newPassphrase string, keySlots []snapd.KeySlot) error
 	ReplacePIN(ctx context.Context, oldPin string, newPin string, keySlots []snapd.KeySlot) error
-	ReplacePlatformKey(ctx context.Context, authMode snapd.AuthMode, pin, passphrase string) error
+	ReplacePlatformKey(ctx context.Context, authMode snapd.AuthMode, secret string) error
 }
 
 // ReplacePassphrase replaces the passphrase using the provided client.
@@ -36,7 +36,7 @@ func ReplacePIN(ctx context.Context, client authReplacer, oldPin, newPin string)
 
 // AddPassphrase adds passphrase authentication to the platform key.
 func AddPassphrase(ctx context.Context, client authReplacer, passphrase string) error {
-	err := client.ReplacePlatformKey(ctx, snapd.AuthModePassphrase, "", passphrase)
+	err := client.ReplacePlatformKey(ctx, snapd.AuthModePassphrase, passphrase)
 	if err != nil {
 		return fmt.Errorf("failed to add passphrase: %w", err)
 	}
@@ -46,7 +46,7 @@ func AddPassphrase(ctx context.Context, client authReplacer, passphrase string) 
 
 // AddPIN adds PIN authentication to the platform key.
 func AddPIN(ctx context.Context, client authReplacer, pin string) error {
-	err := client.ReplacePlatformKey(ctx, snapd.AuthModePin, pin, "")
+	err := client.ReplacePlatformKey(ctx, snapd.AuthModePin, pin)
 	if err != nil {
 		return fmt.Errorf("failed to add PIN: %w", err)
 	}
@@ -56,7 +56,7 @@ func AddPIN(ctx context.Context, client authReplacer, pin string) error {
 
 // RemovePassphrase removes passphrase authentication from the platform key.
 func RemovePassphrase(ctx context.Context, client authReplacer) error {
-	err := client.ReplacePlatformKey(ctx, snapd.AuthModeNone, "", "")
+	err := client.ReplacePlatformKey(ctx, snapd.AuthModeNone, "")
 	if err != nil {
 		return fmt.Errorf("failed to remove passphrase: %w", err)
 	}
@@ -66,7 +66,7 @@ func RemovePassphrase(ctx context.Context, client authReplacer) error {
 
 // RemovePIN removes PIN authentication from the platform key.
 func RemovePIN(ctx context.Context, client authReplacer) error {
-	err := client.ReplacePlatformKey(ctx, snapd.AuthModeNone, "", "")
+	err := client.ReplacePlatformKey(ctx, snapd.AuthModeNone, "")
 	if err != nil {
 		return fmt.Errorf("failed to remove PIN: %w", err)
 	}

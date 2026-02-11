@@ -94,7 +94,19 @@ const (
 )
 
 // ReplacePlatformKey replaces the platform key with the specified authentication.
-func (c *Client) ReplacePlatformKey(ctx context.Context, authMode AuthMode, pin, passphrase string) error {
+func (c *Client) ReplacePlatformKey(ctx context.Context, authMode AuthMode, secret string) error {
+	if authMode == AuthModeNone && secret != "" {
+		return fmt.Errorf("expected no secret when auth mode is none, got: %q", secret)
+	}
+
+	var passphrase, pin string
+	switch authMode {
+	case AuthModePin:
+		pin = secret
+	case AuthModePassphrase:
+		passphrase = secret
+	}
+
 	body := struct {
 		Action     string   `json:"action"`
 		AuthMode   AuthMode `json:"auth-mode"`
