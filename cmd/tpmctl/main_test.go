@@ -4,15 +4,16 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"io"
+	"snap-tpmctl/internal/log"
 	"testing"
 
 	"github.com/nalgeon/be"
-	"snap-tpmctl/internal/testutils"
 )
 
 type mockApp struct{ err error }
 
-func (m mockApp) Run() error {
+func (m mockApp) Run(ctx context.Context) error {
 	return m.err
 }
 
@@ -33,8 +34,9 @@ func TestRun(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			logger, logs := testutils.TestLoggerWithBuffer(t.Output())
-			ctx := context.WithValue(context.Background(), loggerKey, logger)
+			var logs bytes.Buffer
+			out := io.MultiWriter(&logs, t.Output())
+			ctx := log.WithLoggerInContext(context.Background(), out)
 
 			got := run(ctx, tc.app)
 			be.Equal(t, tc.want, got) // Return value does not match

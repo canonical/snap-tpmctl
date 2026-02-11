@@ -1,4 +1,5 @@
-// Package log is a temporary package until we forge our log structure.
+// package log provides logging utilities for the application.
+// It supports redirecting logs via a context to a specific logger, like test ones.
 package log
 
 import (
@@ -6,156 +7,68 @@ import (
 	"fmt"
 	"io"
 	"log/slog"
-	"maps"
+	"os"
 )
 
-type (
-	// Level is the log level for the logs.
-	Level = slog.Level
+type loggerWithDynamicLevel struct {
+	*slog.Logger
+	levelvar *slog.LevelVar
+}
 
-	// Handler is the log handler function.
-	Handler = func(_ context.Context, _ Level, format string, args ...any)
-)
+// defaultLogger is the default logger instance used when no logger is found in the context.
+var defaultLogger loggerWithDynamicLevel
 
-var logLevel slog.Level
-
-const (
-	// ErrorLevel level. Logs. Used for errors that should definitely be noted.
-	// Commonly used for hooks to send errors to an error tracking service.
-	ErrorLevel = slog.LevelError
-	// WarnLevel level. Non-critical entries that deserve eyes.
-	WarnLevel = slog.LevelWarn
-	// NoticeLevel level. Normal but significant conditions. Conditions that are not error conditions, but that may
-	// require special handling. slog doesn't have a Notice level, so we use the average between Info and Warn.
-	NoticeLevel = (slog.LevelInfo + slog.LevelWarn) / 2
-	// InfoLevel level. General operational entries about what's going on inside the application.
-	InfoLevel = slog.LevelInfo
-	// DebugLevel level. Usually only enabled when debugging. Very verbose logging.
-	DebugLevel = slog.LevelDebug
-)
-
-func logFuncAdapter(slogFunc func(ctx context.Context, msg string, args ...any)) Handler {
-	return func(ctx context.Context, _ Level, format string, args ...any) {
-		slogFunc(ctx, fmt.Sprintf(format, args...))
+// newLogger creates a new loggerWithDynamicLevel that writes to the provided io.Writer and allows dynamic log level changes.
+func newLogger(w io.Writer) loggerWithDynamicLevel {
+	levelvar := &slog.LevelVar{}
+	levelvar.Set(slog.LevelWarn) // Set default log level to Warning.
+	th := newSimpleHandler(w, levelvar)
+	return loggerWithDynamicLevel{
+		Logger:   slog.New(th),
+		levelvar: levelvar,
 	}
 }
 
-var allLevels = []slog.Level{
-	DebugLevel,
-	InfoLevel,
-	NoticeLevel,
-	WarnLevel,
-	ErrorLevel,
+// stderrWriter is a writer that always writes to the current os.Stderr.
+// This allows tests to redirect os.Stderr and have the logger follow the redirection.
+type stderrWriter struct{}
+
+func (w stderrWriter) Write(p []byte) (n int, err error) {
+	return os.Stderr.Write(p)
 }
 
-var defaultHandlers = map[Level]Handler{
-	DebugLevel: logFuncAdapter(slog.DebugContext),
-	InfoLevel:  logFuncAdapter(slog.InfoContext),
-	// slog doesn't have a Notice level, so in the default handler, we use Warn instead.
-	NoticeLevel: logFuncAdapter(slog.WarnContext),
-	WarnLevel:   logFuncAdapter(slog.WarnContext),
-	ErrorLevel:  logFuncAdapter(slog.ErrorContext),
-}
-var handlers = maps.Clone(defaultHandlers)
-
-// GetLevel gets the standard logger level.
-func GetLevel() Level {
-	return logLevel
+func init() {
+	defaultLogger = newLogger(stderrWriter{})
 }
 
-// IsLevelEnabled checks if the log level is greater than the level param.
-func IsLevelEnabled(level Level) bool {
-	return isLevelEnabled(context.Background(), level)
+// WithLoggerInContext returns a context that embeds a logger that writes to the io.Writer.
+func WithLoggerInContext(ctx context.Context, w io.Writer) context.Context {
+	logger := newLogger(w)
+	return context.WithValue(ctx, loggerKey, &logger)
 }
 
-func isLevelEnabled(context context.Context, level Level) bool {
-	return slog.Default().Enabled(context, level)
+// SetLoggerLevelInContext sets the log level for the logger embedded into the context.
+func SetLoggerLevelInContext(ctx context.Context, level slog.Level) {
+	logger := loggerFromContext(ctx)
+	logger.levelvar.Set(level)
 }
 
-// SetLevel sets the standard logger level.
-func SetLevel(level Level) {
-	logLevel = level
-	slog.SetLogLoggerLevel(level)
+type loggerKeyType string
+
+const loggerKey loggerKeyType = "logger"
+
+// log is a helper function that retrieves the logger from the context and logs the message.
+func log(ctx context.Context, level slog.Level, msg string, args ...any) {
+	msg = fmt.Sprintf(msg, args...)
+	logger := loggerFromContext(ctx)
+	logger.Log(ctx, level, msg)
 }
 
-// SetOutput sets the log output.
-func SetOutput(out io.Writer) {
-	slog.SetDefault(slog.New(NewSimpleHandler(out, GetLevel())))
-}
-
-func log(ctx context.Context, level Level, args ...any) {
-	if !isLevelEnabled(ctx, level) {
-		return
+func loggerFromContext(ctx context.Context) *loggerWithDynamicLevel {
+	logger, ok := ctx.Value(loggerKey).(*loggerWithDynamicLevel)
+	if !ok {
+		// If no logger is set, fallback to the default logger.
+		return &defaultLogger
 	}
-
-	logf(ctx, level, fmt.Sprint(args...))
-}
-
-func logf(ctx context.Context, level Level, format string, args ...any) {
-	if !isLevelEnabled(ctx, level) {
-		return
-	}
-
-	handler := handlers[level]
-	handler(ctx, level, format, args...)
-}
-
-// Debug outputs messages with the level [DebugLevel] (when that is enabled) using the
-// configured logging handler.
-func Debug(ctx context.Context, args ...any) {
-	log(ctx, DebugLevel, args...)
-}
-
-// Debugf outputs messages with the level [DebugLevel] (when that is enabled) using the
-// configured logging handler.
-func Debugf(ctx context.Context, format string, args ...any) {
-	logf(ctx, DebugLevel, format, args...)
-}
-
-// Info outputs messages with the level [InfoLevel] (when that is enabled) using the
-// configured logging handler.
-func Info(ctx context.Context, args ...any) {
-	log(ctx, InfoLevel, args...)
-}
-
-// Infof outputs messages with the level [InfoLevel] (when that is enabled) using the
-// configured logging handler.
-func Infof(ctx context.Context, format string, args ...any) {
-	logf(ctx, InfoLevel, format, args...)
-}
-
-// Notice outputs messages with the level [NoticeLevel] (when that is enabled) using the
-// configured logging handler.
-func Notice(ctx context.Context, args ...any) {
-	log(ctx, NoticeLevel, args...)
-}
-
-// Noticef outputs messages with the level [NoticeLevel] (when that is enabled) using the
-// configured logging handler.
-func Noticef(ctx context.Context, format string, args ...any) {
-	logf(ctx, NoticeLevel, format, args...)
-}
-
-// Warning outputs messages with the level [WarningLevel] (when that is enabled) using the
-// configured logging handler.
-func Warning(ctx context.Context, args ...any) {
-	log(ctx, WarnLevel, args...)
-}
-
-// Warningf outputs messages with the level [WarningLevel] (when that is enabled) using the
-// configured logging handler.
-func Warningf(ctx context.Context, format string, args ...any) {
-	logf(ctx, WarnLevel, format, args...)
-}
-
-// Error outputs messages with the level [ErrorLevel] (when that is enabled) using the
-// configured logging handler.
-func Error(ctx context.Context, args ...any) {
-	log(ctx, ErrorLevel, args...)
-}
-
-// Errorf outputs messages with the level [ErrorLevel] (when that is enabled) using the
-// configured logging handler.
-func Errorf(ctx context.Context, format string, args ...any) {
-	logf(ctx, ErrorLevel, format, args...)
+	return logger
 }
