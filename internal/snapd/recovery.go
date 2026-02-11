@@ -97,6 +97,7 @@ func (c *Client) CheckRecoveryKey(ctx context.Context, recoveryKey string, conta
 
 	_, err := c.doSyncRequest(ctx, http.MethodPost, "/v2/system-volumes", nil, nil, body)
 	var e *Error
+	// The recovery key is a valid candidate, but not a current correct recovery key.
 	if errors.As(err, &e) && e.Kind == client.ErrorKindInvalidRecoveryKey {
 		return false, nil
 	}

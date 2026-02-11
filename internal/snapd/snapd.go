@@ -85,8 +85,7 @@ func (c *Client) notice(ctx context.Context, changeID string) error {
 	query.Add("timeout", "1h")
 	query.Add("types", "change-update")
 
-	_, err := c.doSyncRequest(ctx, http.MethodGet, "/v2/notices", query, nil, nil)
-	if err != nil {
+	if _, err := c.doSyncRequest(ctx, http.MethodGet, "/v2/notices", query, nil, nil); err != nil {
 		return err
 	}
 
@@ -98,6 +97,8 @@ type response struct {
 	Result json.RawMessage
 }
 
+// doSyncRequest performs a synchronous request to snapd and returns the response.
+//
 //nolint:unparam // path parameter kept for future extensibility
 func (c *Client) doSyncRequest(_ context.Context, method, path string, query url.Values, headers map[string]string, body any) (*response, error) {
 	var b bytes.Buffer
