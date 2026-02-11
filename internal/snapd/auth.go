@@ -2,6 +2,7 @@ package snapd
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 )
 

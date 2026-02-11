@@ -3,12 +3,10 @@ package tpm
 import (
 	"context"
 	"fmt"
-
-	"github.com/canonical/snap-tpmctl/internal/snapd"
 )
 
 type fdeStatusClient interface {
-	FdeStatus(ctx context.Context) (*snapd.FdeStatusResult, error)
+	FdeStatus(ctx context.Context) (string, error)
 }
 
 // FdeStatus retrieves the Full Disk Encryption status from snapd.
@@ -18,5 +16,5 @@ func FdeStatus(ctx context.Context, client fdeStatusClient) (string, error) {
 		return "", fmt.Errorf("failed to retrieve the FDE status: %w", err)
 	}
 
-	return status.Status, nil
+	return status, nil
 }

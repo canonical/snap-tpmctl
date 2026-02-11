@@ -55,7 +55,7 @@ type MockSnapdClient struct {
 	// Return values
 	generatedKey  *snapd.GenerateRecoveryKeyResult
 	systemVolumes *snapd.SystemVolumesResult
-	fdeStatus     *snapd.FdeStatusResult
+	fdeStatus     string
 }
 
 // NewMockSnapdClient creates a new mock snapd client with the given configuration.
@@ -73,7 +73,7 @@ func NewMockSnapdClient(cfg MockConfig) *MockSnapdClient {
 
 	return &MockSnapdClient{
 		config:    cfg,
-		fdeStatus: &snapd.FdeStatusResult{Status: fdeStatusValue},
+		fdeStatus: fdeStatusValue,
 		generatedKey: &snapd.GenerateRecoveryKeyResult{
 			KeyID:       "test-key-id-12345",
 			RecoveryKey: "12345-67890-12345-67890-12345-67890-12345-67890",
@@ -290,9 +290,9 @@ func (m MockSnapdClient) ReplacePlatformKey(ctx context.Context, authMode snapd.
 }
 
 // FdeStatus simulates retrieving the current FDE status.
-func (m MockSnapdClient) FdeStatus(ctx context.Context) (*snapd.FdeStatusResult, error) {
+func (m MockSnapdClient) FdeStatus(ctx context.Context) (string, error) {
 	if m.config.FdeStatusError {
-		return nil, errors.New("mocked error for FdeStatus: cannot retrieve FDE status: snapd error")
+		return "", errors.New("mocked error for FdeStatus: cannot retrieve FDE status: snapd error")
 	}
 
 	return m.fdeStatus, nil
