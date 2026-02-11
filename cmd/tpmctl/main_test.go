@@ -1,15 +1,12 @@
 package main
 
 import (
-	"bytes"
 	"context"
 	"errors"
-	"io"
 	"strings"
 	"testing"
 
-	"github.com/canonical/snap-tpmctl/internal/log"
-
+	"github.com/canonical/snap-tpmctl/internal/testutils"
 	"github.com/matryer/is"
 )
 
@@ -29,7 +26,7 @@ func TestRun(t *testing.T) {
 		wantInLog string
 	}{
 		"Returns 0 on success":        {app: mockApp{err: nil}, want: 0},
-		"Returns 1 when got an error": {app: mockApp{err: errors.New("desired error")}, want: 1, wantInLog: "desired errors"},
+		"Returns 1 when got an error": {app: mockApp{err: errors.New("desired error")}, want: 1, wantInLog: "desired error"},
 	}
 
 	for name, tc := range tests {
@@ -37,9 +34,7 @@ func TestRun(t *testing.T) {
 			t.Parallel()
 			is := is.NewRelaxed(t)
 
-			var logs bytes.Buffer
-			w := io.MultiWriter(&logs, t.Output())
-			ctx := log.WithLoggerInContext(context.Background(), w)
+			ctx, logs := testutils.TestLoggerWithBuffer(t)
 
 			got := run(ctx, tc.app)
 			is.Equal(tc.want, got) // Return value does not match exit code
