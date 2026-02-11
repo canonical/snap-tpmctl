@@ -42,8 +42,8 @@ type SystemVolumesResult struct {
 	ByContainerRole map[string]VolumeInfo `json:"by-container-role"`
 }
 
-// EnumerateKeySlots gets information about system volumes.
-func (c *Client) EnumerateKeySlots(ctx context.Context) (result SystemVolumesResult, err error) {
+// ListVolumeInfo gets information about system volumes.
+func (c *Client) ListVolumeInfo(ctx context.Context) (result SystemVolumesResult, err error) {
 	resp, err := c.doSyncRequest(ctx, http.MethodGet, "/v2/system-volumes", nil, nil, nil)
 	if err != nil {
 		return result, err

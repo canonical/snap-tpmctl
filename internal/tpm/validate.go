@@ -18,7 +18,7 @@ import (
 type authValidator interface {
 	CheckPassphrase(ctx context.Context, passphrase string) error
 	CheckPIN(ctx context.Context, pin string) error
-	EnumerateKeySlots(ctx context.Context) (snapd.SystemVolumesResult, error)
+	ListVolumeInfo(ctx context.Context) (snapd.SystemVolumesResult, error)
 }
 
 // resultValue represents the value field in validation error responses from snapd.
@@ -112,7 +112,7 @@ func IsValidPIN(ctx context.Context, client authValidator, pin, confirm string) 
 
 // ValidateAuthMode checks if the current authentication mode matches the expected mode.
 func ValidateAuthMode(ctx context.Context, client authValidator, expectedAuthMode snapd.AuthMode) error {
-	result, err := client.EnumerateKeySlots(ctx)
+	result, err := client.ListVolumeInfo(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to enumerate key slots: %w", err)
 	}
@@ -165,7 +165,7 @@ func ValidateRecoveryKeyNameUnique(ctx context.Context, client authValidator, re
 	}
 
 	// Recovery key name cannot already be in use.
-	result, err := client.EnumerateKeySlots(ctx)
+	result, err := client.ListVolumeInfo(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to enumerate key slots: %w", err)
 	}

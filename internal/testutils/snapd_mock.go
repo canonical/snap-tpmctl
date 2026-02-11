@@ -150,8 +150,8 @@ func (m MockSnapdClient) GenerateRecoveryKey(ctx context.Context) (snapd.Generat
 	return *m.generatedKey, nil
 }
 
-// EnumerateKeySlots simulates enumerating system volume key slots.
-func (m MockSnapdClient) EnumerateKeySlots(ctx context.Context) (snapd.SystemVolumesResult, error) {
+// ListVolumeInfo simulates listing system volume information.
+func (m MockSnapdClient) ListVolumeInfo(ctx context.Context) (snapd.SystemVolumesResult, error) {
 	if m.config.EnumerateError {
 		return snapd.SystemVolumesResult{}, errors.New("mocked error for ListVolumeInfo: cannot list volume info: snapd error")
 	}

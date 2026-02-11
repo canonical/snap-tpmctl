@@ -30,7 +30,7 @@ func newListAllCmd() *cli.Command {
 		Action: func(ctx context.Context, cmd *cli.Command) error {
 			c := snapd.NewClient()
 
-			result, err := c.EnumerateKeySlots(ctx)
+			result, err := c.ListVolumeInfo(ctx)
 			if err != nil {
 				return err
 			}
@@ -52,7 +52,7 @@ func newListPassphraseCmd() *cli.Command {
 		Action: func(ctx context.Context, cmd *cli.Command) error {
 			c := snapd.NewClient()
 
-			result, err := c.EnumerateKeySlots(ctx)
+			result, err := c.ListVolumeInfo(ctx)
 			if err != nil {
 				return err
 			}
@@ -74,7 +74,7 @@ func newListRecoveryKeyCmd() *cli.Command {
 		Action: func(ctx context.Context, cmd *cli.Command) error {
 			c := snapd.NewClient()
 
-			result, err := c.EnumerateKeySlots(ctx)
+			result, err := c.ListVolumeInfo(ctx)
 			if err != nil {
 				return err
 			}
@@ -96,7 +96,7 @@ func newListPinCmd() *cli.Command {
 		Action: func(ctx context.Context, cmd *cli.Command) error {
 			c := snapd.NewClient()
 
-			result, err := c.EnumerateKeySlots(ctx)
+			result, err := c.ListVolumeInfo(ctx)
 			if err != nil {
 				return err
 			}
