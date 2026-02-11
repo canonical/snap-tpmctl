@@ -40,16 +40,27 @@ type Client struct {
 	snapd *snapdClient.Client
 }
 
+type options struct {
+	socket string
+}
+
 // Option is a function that configures a Client.
-type Option func(*Client)
+type Option func(*options)
 
 // New creates a new snapd client.
 func New(args ...Option) *Client {
+	o := options{
+		socket: defaultSocketPath,
+	}
+	for _, f := range args {
+		f(&o)
+	}
+
 	return &Client{
 		snapd: snapdClient.New(&snapdClient.Config{
 			DisableAuth: true,
 			Interactive: true,
-			Socket:      defaultSocketPath,
+			Socket:      o.socket,
 			UserAgent:   defaultUserAgent,
 		}),
 	}
