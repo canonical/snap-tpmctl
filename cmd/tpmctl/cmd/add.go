@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/canonical/snap-tpmctl/internal/snapd"
+	"github.com/canonical/snap-tpmctl/internal/tpm"
+	"github.com/canonical/snap-tpmctl/internal/tui"
 	"github.com/urfave/cli/v3"
-	"snap-tpmctl/internal/snapd"
-	"snap-tpmctl/internal/tpm"
-	"snap-tpmctl/internal/tui"
 )
 
 //nolint:dupl // PIN and passphrase commands have intentionally similar structure

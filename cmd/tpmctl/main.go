@@ -4,8 +4,9 @@ package main
 import (
 	"context"
 	"os"
-	"snap-tpmctl/cmd/tpmctl/cmd"
-	"snap-tpmctl/internal/log"
+
+	"github.com/canonical/snap-tpmctl/cmd/tpmctl/cmd"
+	"github.com/canonical/snap-tpmctl/internal/log"
 )
 
 type app interface {

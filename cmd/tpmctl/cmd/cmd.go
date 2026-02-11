@@ -3,7 +3,8 @@ package cmd
 import (
 	"context"
 	"log/slog"
-	"snap-tpmctl/internal/log"
+
+	"github.com/canonical/snap-tpmctl/internal/log"
 
 	"github.com/urfave/cli/v3"
 )

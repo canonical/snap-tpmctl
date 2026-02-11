@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/canonical/snap-tpmctl/internal/tui"
 	"github.com/nalgeon/be"
-	"snap-tpmctl/internal/tui"
 )
 
 func TestWithSpinner(t *testing.T) {

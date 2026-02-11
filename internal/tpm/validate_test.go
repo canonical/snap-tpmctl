@@ -4,10 +4,10 @@ import (
 	"context"
 	"testing"
 
+	"github.com/canonical/snap-tpmctl/internal/snapd"
+	"github.com/canonical/snap-tpmctl/internal/testutils"
+	"github.com/canonical/snap-tpmctl/internal/tpm"
 	"github.com/nalgeon/be"
-	"snap-tpmctl/internal/snapd"
-	"snap-tpmctl/internal/testutils"
-	"snap-tpmctl/internal/tpm"
 )
 
 func TestIsValidPassphrase(t *testing.T) {

@@ -6,11 +6,12 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+
 	// Needed for go:linkname.
 	_ "unsafe"
 
+	"github.com/canonical/snap-tpmctl/internal/tui"
 	"github.com/snapcore/secboot"
-	"snap-tpmctl/internal/tui"
 )
 
 // We are executing through a snap, thus we need to link to the actual package location.

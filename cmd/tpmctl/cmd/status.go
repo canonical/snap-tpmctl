@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/canonical/snap-tpmctl/internal/snapd"
+	"github.com/canonical/snap-tpmctl/internal/tpm"
 	"github.com/urfave/cli/v3"
-	"snap-tpmctl/internal/snapd"
-	"snap-tpmctl/internal/tpm"
 )
 
 func newStatusCmd() *cli.Command {

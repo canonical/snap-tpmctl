@@ -5,9 +5,10 @@ import (
 	"context"
 	"errors"
 	"io"
-	"snap-tpmctl/internal/log"
 	"strings"
 	"testing"
+
+	"github.com/canonical/snap-tpmctl/internal/log"
 
 	"github.com/matryer/is"
 )

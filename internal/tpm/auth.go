@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"snap-tpmctl/internal/snapd"
+	"github.com/canonical/snap-tpmctl/internal/snapd"
 )
 
 // authReplacer defines the interface for snapd operations needed for changing authentication.

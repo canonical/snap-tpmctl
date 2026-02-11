@@ -4,9 +4,9 @@ import (
 	"context"
 	"testing"
 
+	"github.com/canonical/snap-tpmctl/internal/testutils"
+	"github.com/canonical/snap-tpmctl/internal/tpm"
 	"github.com/nalgeon/be"
-	"snap-tpmctl/internal/testutils"
-	"snap-tpmctl/internal/tpm"
 )
 
 //nolint:dupl // CreateKey and RegenerateKey have intentionally similar structure.

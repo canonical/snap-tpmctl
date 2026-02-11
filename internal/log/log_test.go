@@ -6,10 +6,10 @@ import (
 	"io"
 	"log/slog"
 	"os"
-	"snap-tpmctl/internal/log"
 	"strings"
 	"testing"
 
+	"github.com/canonical/snap-tpmctl/internal/log"
 	"github.com/matryer/is"
 )
 

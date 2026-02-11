@@ -1,8 +1,9 @@
-module snap-tpmctl
+module github.com/canonical/snap-tpmctl
 
 go 1.25.5
 
 require (
+	github.com/matryer/is v1.4.1
 	github.com/nalgeon/be v0.3.0
 	github.com/snapcore/secboot v0.0.0-20260126133925-99e0bbda867d
 	github.com/snapcore/snapd v0.0.0-20260128063429-c3be32030ec4
@@ -21,7 +22,6 @@ require (
 	github.com/godbus/dbus/v5 v5.1.0 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
-	github.com/matryer/is v1.4.1 // indirect
 	github.com/mattn/go-runewidth v0.0.15 // indirect
 	github.com/pilebones/go-udev v0.9.0 // indirect
 	github.com/rivo/uniseg v0.2.0 // indirect
