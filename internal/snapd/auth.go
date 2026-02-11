@@ -20,8 +20,7 @@ func (c *Client) ReplacePassphrase(ctx context.Context, oldPassphrase string, ne
 		KeySlots:      keySlots,
 	}
 
-	_, err := c.doAsyncRequest(ctx, http.MethodPost, "/v2/system-volumes", nil, nil, body)
-	if err != nil {
+	if err := c.doAsyncRequest(ctx, http.MethodPost, "/v2/system-volumes", nil, nil, body); err != nil {
 		return err
 	}
 
@@ -77,8 +76,7 @@ func (c *Client) ReplacePIN(ctx context.Context, oldPin string, newPin string, k
 		KeySlots: keySlots,
 	}
 
-	_, err := c.doAsyncRequest(ctx, http.MethodPost, "/v2/system-volumes", nil, nil, body)
-	if err != nil {
+	if err := c.doAsyncRequest(ctx, http.MethodPost, "/v2/system-volumes", nil, nil, body); err != nil {
 		return err
 	}
 
@@ -109,8 +107,7 @@ func (c *Client) ReplacePlatformKey(ctx context.Context, authMode AuthMode, pin,
 		Passphrase: passphrase,
 	}
 
-	_, err := c.doAsyncRequest(ctx, http.MethodPost, "/v2/system-volumes", nil, nil, body)
-	if err != nil {
+	if err := c.doAsyncRequest(ctx, http.MethodPost, "/v2/system-volumes", nil, nil, body); err != nil {
 		return err
 	}
 

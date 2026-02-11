@@ -57,8 +57,7 @@ func (c *Client) AddRecoveryKey(ctx context.Context, keyID string, keySlots []Ke
 		KeySlots: keySlots,
 	}
 
-	_, err := c.doAsyncRequest(ctx, http.MethodPost, "/v2/system-volumes", nil, nil, body)
-	if err != nil {
+	if err := c.doAsyncRequest(ctx, http.MethodPost, "/v2/system-volumes", nil, nil, body); err != nil {
 		return err
 	}
 
@@ -78,8 +77,7 @@ func (c *Client) ReplaceRecoveryKey(ctx context.Context, keyID string, keySlots 
 		KeySlots: keySlots,
 	}
 
-	_, err := c.doAsyncRequest(ctx, http.MethodPost, "/v2/system-volumes", nil, nil, body)
-	if err != nil {
+	if err := c.doAsyncRequest(ctx, http.MethodPost, "/v2/system-volumes", nil, nil, body); err != nil {
 		return err
 	}
 

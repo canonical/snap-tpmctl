@@ -116,56 +116,49 @@ func (c *Client) doSyncRequest(_ context.Context, method, path string, query url
 	return &response{Result: result}, nil
 }
 
-// asyncResponse represents the status of a change.
-type asyncResponse struct {
-	ID string
-}
-
-//nolint:unparam // asyncResponse parameter kept for future extensibility
-func (c *Client) doAsyncRequest(ctx context.Context, method, path string, query url.Values, headers map[string]string, body any) (*asyncResponse, error) {
+// doAsyncRequest performs an asynchronous request to snapd, wait for it to be done, and returns if successful.
+func (c *Client) doAsyncRequest(ctx context.Context, method, path string, query url.Values, headers map[string]string, body any) error {
 	var b bytes.Buffer
 	if err := json.NewEncoder(&b).Encode(&body); err != nil {
-		return nil, err
+		return err
 	}
 
-	changeID, err := doAsync(c.snapd, method, path, query, c.setGenericHeaders(headers), &b)
+	changeID, err := doAsync(c.snapd, method, path, query, addGenericHeaders(headers), &b)
 	var snapdErr *snapdClient.Error
 	if errors.As(err, &snapdErr) {
 		value, err := json.Marshal(snapdErr.Value)
 		if err != nil {
-			return nil, err
+			return err
 		}
 
-		return nil, &Error{
+		return &Error{
 			Kind:    snapdErr.Kind,
 			Message: snapdErr.Message,
 			Value:   value,
 		}
 	}
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	// wait for the task to be completed
 	if err := c.notice(ctx, changeID); err != nil {
-		return nil, err
+		return err
 	}
 
 	// retrieve informations about the change
 	change, err := c.snapd.Change(changeID)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	if change.Err != "" {
-		return nil, &Error{
+		return &Error{
 			Message: change.Err,
 		}
 	}
 
-	return &asyncResponse{
-		ID: change.ID,
-	}, nil
+	return nil
 }
 
 //go:linkname doSync github.com/snapcore/snapd/client.(*Client).doSync
