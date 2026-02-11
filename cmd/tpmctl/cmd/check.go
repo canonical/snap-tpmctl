@@ -17,7 +17,7 @@ func newCheckCmd() *cli.Command {
 		Usage:   "Check recovery key",
 		Suggest: true,
 		Action: func(ctx context.Context, cmd *cli.Command) error {
-			c := snapd.NewClient()
+			c := snapd.New()
 
 			key, err := tui.ReadUserSecret("Enter recovery key: ")
 			if err != nil {

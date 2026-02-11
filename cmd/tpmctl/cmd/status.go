@@ -16,7 +16,7 @@ func newStatusCmd() *cli.Command {
 		Usage:   "Show current TPM/FDE status",
 		Suggest: true,
 		Action: func(ctx context.Context, cmd *cli.Command) error {
-			c := snapd.NewClient()
+			c := snapd.New()
 
 			status, err := tpm.FdeStatus(ctx, c)
 			if err != nil {

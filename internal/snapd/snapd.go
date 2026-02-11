@@ -40,11 +40,11 @@ type Client struct {
 	snapd *snapdClient.Client
 }
 
-// ClientOption is a function that configures a Client.
-type ClientOption func(*Client)
+// Option is a function that configures a Client.
+type Option func(*Client)
 
-// NewClient creates a new snapd client.
-func NewClient(opts ...ClientOption) *Client {
+// New creates a new snapd client.
+func New(args ...Option) *Client {
 	return &Client{
 		snapd: snapdClient.New(&snapdClient.Config{
 			DisableAuth: true,

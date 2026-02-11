@@ -15,7 +15,7 @@ func newReplacePassphraseCmd() *cli.Command {
 		Name:  "replace-passphrase",
 		Usage: "Replace encryption passphrase",
 		Action: func(ctx context.Context, cmd *cli.Command) error {
-			c := snapd.NewClient()
+			c := snapd.New()
 
 			oldPassphrase, err := tui.ReadUserSecret("Enter current passphrase: ")
 			if err != nil {
@@ -52,7 +52,7 @@ func newReplacePinCmd() *cli.Command {
 		Name:  "replace-pin",
 		Usage: "Replace encryption PIN",
 		Action: func(ctx context.Context, cmd *cli.Command) error {
-			c := snapd.NewClient()
+			c := snapd.New()
 
 			oldPin, err := tui.ReadUserSecret("Enter current PIN: ")
 			if err != nil {

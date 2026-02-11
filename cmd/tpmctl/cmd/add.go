@@ -22,7 +22,7 @@ func newAddPassphraseCmd() *cli.Command {
 				return fmt.Errorf("this command requires elevated privileges. Please run with sudo")
 			}
 
-			c := snapd.NewClient()
+			c := snapd.New()
 
 			// Validate auth mode is currently none
 			if err := tpm.ValidateAuthMode(ctx, c, snapd.AuthModeNone); err != nil {
@@ -65,7 +65,7 @@ func newAddPINCmd() *cli.Command {
 				return fmt.Errorf("this command requires elevated privileges. Please run with sudo")
 			}
 
-			c := snapd.NewClient()
+			c := snapd.New()
 
 			// Validate auth mode is currently none
 			if err := tpm.ValidateAuthMode(ctx, c, snapd.AuthModeNone); err != nil {

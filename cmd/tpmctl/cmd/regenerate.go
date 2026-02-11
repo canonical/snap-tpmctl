@@ -29,7 +29,7 @@ func newRegenerateKeyCmd() *cli.Command {
 			// behaviour showing the key, waiting for user confirmation and then
 			// replace the key and removing it from the screen
 
-			c := snapd.NewClient()
+			c := snapd.New()
 
 			// Validate the recovery key name
 			if err := tpm.ValidateRecoveryKeyName(ctx, c, recoveryKeyName); err != nil {

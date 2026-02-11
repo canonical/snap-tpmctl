@@ -26,7 +26,7 @@ func newCreateKeyCmd() *cli.Command {
 			},
 		},
 		Action: func(ctx context.Context, cmd *cli.Command) error {
-			c := snapd.NewClient()
+			c := snapd.New()
 
 			// Validate the recovery key name
 			if err := tpm.ValidateRecoveryKeyNameUnique(ctx, c, recoveryKeyName); err != nil {

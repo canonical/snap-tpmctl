@@ -28,7 +28,7 @@ func newListAllCmd() *cli.Command {
 			},
 		},
 		Action: func(ctx context.Context, cmd *cli.Command) error {
-			c := snapd.NewClient()
+			c := snapd.New()
 
 			result, err := c.ListVolumeInfo(ctx)
 			if err != nil {
@@ -50,7 +50,7 @@ func newListPassphraseCmd() *cli.Command {
 		Usage:   "List passphrases",
 		Suggest: true,
 		Action: func(ctx context.Context, cmd *cli.Command) error {
-			c := snapd.NewClient()
+			c := snapd.New()
 
 			result, err := c.ListVolumeInfo(ctx)
 			if err != nil {
@@ -72,7 +72,7 @@ func newListRecoveryKeyCmd() *cli.Command {
 		Usage:   "List recovery keys",
 		Suggest: true,
 		Action: func(ctx context.Context, cmd *cli.Command) error {
-			c := snapd.NewClient()
+			c := snapd.New()
 
 			result, err := c.ListVolumeInfo(ctx)
 			if err != nil {
@@ -94,7 +94,7 @@ func newListPinCmd() *cli.Command {
 		Usage:   "List pins",
 		Suggest: true,
 		Action: func(ctx context.Context, cmd *cli.Command) error {
-			c := snapd.NewClient()
+			c := snapd.New()
 
 			result, err := c.ListVolumeInfo(ctx)
 			if err != nil {
