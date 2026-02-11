@@ -6,9 +6,10 @@ import (
 	"errors"
 	"io"
 	"snap-tpmctl/internal/log"
+	"strings"
 	"testing"
 
-	"github.com/nalgeon/be"
+	"github.com/matryer/is"
 )
 
 type mockApp struct{ err error }
@@ -27,24 +28,23 @@ func TestRun(t *testing.T) {
 		wantInLog string
 	}{
 		"Returns 0 on success":        {app: mockApp{err: nil}, want: 0},
-		"Returns 1 when got an error": {app: mockApp{err: errors.New("desired error")}, want: 1, wantInLog: "desired error"},
+		"Returns 1 when got an error": {app: mockApp{err: errors.New("desired error")}, want: 1, wantInLog: "desired errors"},
 	}
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
+			is := is.NewRelaxed(t)
 
 			var logs bytes.Buffer
-			out := io.MultiWriter(&logs, t.Output())
-			ctx := log.WithLoggerInContext(context.Background(), out)
+			w := io.MultiWriter(&logs, t.Output())
+			ctx := log.WithLoggerInContext(context.Background(), w)
 
 			got := run(ctx, tc.app)
-			be.Equal(t, tc.want, got) // Return value does not match
+			is.Equal(tc.want, got) // Return value does not match exit code
 
 			if tc.wantInLog != "" {
-				if !bytes.Contains(logs.Bytes(), []byte(tc.wantInLog)) {
-					t.Errorf("expected log to contain %q, but it didn't. Got: %s", tc.wantInLog, logs.String())
-				}
+				is.True(strings.Contains(logs.String(), tc.wantInLog)) // Log does not contain expected message
 			}
 		})
 	}
