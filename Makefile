@@ -48,7 +48,6 @@ remote-snap: sync
 	@ssh $(SSH_OPTS) $(VM) 'snap connect $(BIN_NAME):mount-observe'
 	@ssh $(SSH_OPTS) $(VM) 'snap connect $(BIN_NAME):block-devices'
 	@ssh $(SSH_OPTS) $(VM) 'snap connect $(BIN_NAME):dm-crypt'
-	@ssh $(SSH_OPTS) $(VM) 'snap connect $(BIN_NAME):mkdir'
 	@echo 'Snap installed and configured on remote VM.'
 
 run:

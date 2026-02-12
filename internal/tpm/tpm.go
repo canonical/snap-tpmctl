@@ -8,8 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 	"syscall"
-	// Needed for go:linkname.
-	_ "unsafe"
+	_ "unsafe" // Needed for go:linkname.
 
 	"github.com/canonical/snap-tpmctl/internal/tui"
 	"github.com/snapcore/secboot"
@@ -29,6 +28,10 @@ func MountVolume(device, target string) error {
 	volumeName := luksVolumeName(target)
 	mapperPath := filepath.Join("/dev/mapper/", volumeName)
 
+	if err := os.MkdirAll(target, 0750); err != nil {
+		return fmt.Errorf("unable to create directory: %w", err)
+	}
+
 	// Check if volume is already active
 	if _, err := os.Stat(mapperPath); os.IsNotExist(err) {
 		if err := secboot.ActivateVolumeWithRecoveryKey(
@@ -41,10 +44,6 @@ func MountVolume(device, target string) error {
 		); err != nil {
 			return fmt.Errorf("unable to activate volume: %w", err)
 		}
-	}
-
-	if err := os.MkdirAll(target, 0750); err != nil {
-		return fmt.Errorf("unable to create directory: %w", err)
 	}
 
 	if err := syscall.Mount(mapperPath, target, "ext4", syscall.MS_RELATIME, "rw"); err != nil {

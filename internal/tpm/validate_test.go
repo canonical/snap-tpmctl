@@ -369,24 +369,16 @@ func TestValidateDirectoryPath(t *testing.T) {
 		wantErr   bool
 		wantInErr string
 	}{
-		"valid directory path": {
-			dest:    "my-volume",
-			wantErr: false,
-		},
-		"valid directory path with numbers": {
-			dest:    "volume-123",
-			wantErr: false,
-		},
-		"valid directory absolute path": {
+		"valid absolute directory path": {
 			dest:    "/mnt/volume",
 			wantErr: false,
 		},
-		"valid directory relative path": {
-			dest:    "./mnt/volume",
+		"valid absolute directory path with subdirectory": {
+			dest:    "/mnt/folder/volume",
 			wantErr: false,
 		},
-		"valid directory path with subdirectory": {
-			dest:    "folder/subfolder/volume",
+		"valid absolute directory path with subdirectory and parent": {
+			dest:    "/mnt/folder/../../volume",
 			wantErr: false,
 		},
 		"empty directory path": {
@@ -394,20 +386,30 @@ func TestValidateDirectoryPath(t *testing.T) {
 			wantErr:   true,
 			wantInErr: "directory path cannot be empty",
 		},
+		"relative directory path": {
+			dest:      "my-volume",
+			wantErr:   true,
+			wantInErr: "directory path must be a valid absolute path",
+		},
+		"relative directory path with numbers": {
+			dest:      "volume-123",
+			wantErr:   true,
+			wantInErr: "directory path must be a valid absolute path",
+		},
+		"relative directory path with dot prefix": {
+			dest:      "./mnt/volume",
+			wantErr:   true,
+			wantInErr: "directory path must be a valid absolute path",
+		},
+		"relative directory path with subdirectory": {
+			dest:      "folder/subfolder/volume",
+			wantErr:   true,
+			wantInErr: "directory path must be a valid absolute path",
+		},
 		"directory path escaping with parent directory": {
 			dest:      "../../mnt/vol",
 			wantErr:   true,
-			wantInErr: "directory path must be a valid absolute or relative path",
-		},
-		"directory path with excessive parent references": {
-			dest:      "../../../../../../../root",
-			wantErr:   true,
-			wantInErr: "directory path must be a valid absolute or relative path",
-		},
-		"directory path escaping from subdirectory": {
-			dest:      "folder/../../vol",
-			wantErr:   true,
-			wantInErr: "directory path must be a valid absolute or relative path",
+			wantInErr: "directory path must be a valid absolute path",
 		},
 	}
 
