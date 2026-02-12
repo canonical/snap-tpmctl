@@ -21,25 +21,19 @@ apps:
       - block-devices
       - dm-crypt
       - hardware-observe
-      - home
       - mountctl
       - mount-observe
       - network
       - snapd-control
-      - mkdir
 
 plugs:
   block-devices:
     allow-partitions: true
-  mkdir:
-    interface: system-files
-    write:
-      - /media
   mountctl:
     interface: mount-control
     mount:
       - what: /dev/**
-        where: /media/**
+        where: /**
         type: [ext2, ext3, ext4, xfs, vfat, ntfs]
         namespace: host
         options: [rw, relatime]
