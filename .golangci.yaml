@@ -61,9 +61,6 @@ linters:
       # We don't want to rename this package at this point
       - path: internal/users/types/(.+)\.go$
         text: "var-naming: avoid meaningless package names"
-      # Keep method parameter for future flexibility even if currently unused
-      - path: internal/snapd/snapd\.go$
-        text: "doAsyncRequest.*always receives"
     paths:
       - third_party$
       - builtin$
