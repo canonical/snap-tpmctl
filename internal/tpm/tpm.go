@@ -47,7 +47,7 @@ func MountVolume(device, target string) error {
 		return fmt.Errorf("unable to create directory: %w", err)
 	}
 
-	if err := syscall.Mount(mapperPath, target, "ext4", 0, ""); err != nil {
+	if err := syscall.Mount(mapperPath, target, "ext4", syscall.MS_RELATIME, "rw"); err != nil {
 		return fmt.Errorf("unable to mount volume: %w", err)
 	}
 

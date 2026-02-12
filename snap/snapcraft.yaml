@@ -26,19 +26,23 @@ apps:
       - mount-observe
       - network
       - snapd-control
+      - mkdir
 
 plugs:
   block-devices:
     allow-partitions: true
+  mkdir:
+    interface: system-files
+    write:
+      - /media
   mountctl:
     interface: mount-control
     mount:
-      - what: /dev/mapper/**
-        where: /run/**
+      - what: /dev/**
+        where: /media/**
         type: [ext2, ext3, ext4, xfs, vfat, ntfs]
         namespace: host
         options: [rw, relatime]
-        persistent: true
 
 parts:
   tpmctl:
