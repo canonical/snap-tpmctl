@@ -360,37 +360,56 @@ func TestValidateDevicePath(t *testing.T) {
 	}
 }
 
-func TestValidateVolumeName(t *testing.T) {
+func TestValidateDirectoryPath(t *testing.T) {
 	t.Parallel()
 
 	tests := map[string]struct {
-		volumeName string
+		dest string
 
 		wantErr   bool
 		wantInErr string
 	}{
-		"valid volume name": {
-			volumeName: "my-volume",
-			wantErr:    false,
+		"valid absolute directory path": {
+			dest:    "/mnt/volume",
+			wantErr: false,
 		},
-		"valid volume name with numbers": {
-			volumeName: "volume-123",
-			wantErr:    false,
+		"valid absolute directory path with subdirectory": {
+			dest:    "/mnt/folder/volume",
+			wantErr: false,
 		},
-		"empty volume name": {
-			volumeName: "",
-			wantErr:    true,
-			wantInErr:  "volume name cannot be empty",
+		"valid absolute directory path with subdirectory and parent": {
+			dest:    "/mnt/folder/../../volume",
+			wantErr: false,
 		},
-		"volume name with slash": {
-			volumeName: "my/volume",
-			wantErr:    true,
-			wantInErr:  "volume name cannot contain slashes",
+		"empty directory path": {
+			dest:      "",
+			wantErr:   true,
+			wantInErr: "directory path cannot be empty",
 		},
-		"volume name with multiple slashes": {
-			volumeName: "my/vol/ume",
-			wantErr:    true,
-			wantInErr:  "volume name cannot contain slashes",
+		"relative directory path": {
+			dest:      "my-volume",
+			wantErr:   true,
+			wantInErr: "directory path must be a valid absolute path",
+		},
+		"relative directory path with numbers": {
+			dest:      "volume-123",
+			wantErr:   true,
+			wantInErr: "directory path must be a valid absolute path",
+		},
+		"relative directory path with dot prefix": {
+			dest:      "./mnt/volume",
+			wantErr:   true,
+			wantInErr: "directory path must be a valid absolute path",
+		},
+		"relative directory path with subdirectory": {
+			dest:      "folder/subfolder/volume",
+			wantErr:   true,
+			wantInErr: "directory path must be a valid absolute path",
+		},
+		"directory path escaping with parent directory": {
+			dest:      "../../mnt/vol",
+			wantErr:   true,
+			wantInErr: "directory path must be a valid absolute path",
 		},
 	}
 
@@ -398,7 +417,7 @@ func TestValidateVolumeName(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			err := tpm.ValidateVolumeName(tc.volumeName)
+			err := tpm.ValidateDirectoryPath(tc.dest)
 
 			if tc.wantErr {
 				be.Err(t, err, tc.wantInErr)

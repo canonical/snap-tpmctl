@@ -11,7 +11,7 @@ import (
 )
 
 func newMountVolumeCmd() *cli.Command {
-	var devicePath, volumeName string
+	var device, dir string
 
 	return &cli.Command{
 		Name:    "mount-volume",
@@ -19,26 +19,26 @@ func newMountVolumeCmd() *cli.Command {
 		Suggest: true,
 		Arguments: []cli.Argument{
 			&cli.StringArg{
-				Name:        "device-path",
-				UsageText:   "<device-path>",
-				Destination: &devicePath,
+				Name:        "device",
+				UsageText:   "<device>",
+				Destination: &device,
 			},
 			&cli.StringArg{
-				Name:        "volume-name",
-				UsageText:   "<volume-name>",
-				Destination: &volumeName,
+				Name:        "dir",
+				UsageText:   "<dir>",
+				Destination: &dir,
 			},
 		},
 		Action: func(ctx context.Context, cmd *cli.Command) error {
-			if err := tpm.ValidateDevicePath(devicePath); err != nil {
+			if err := tpm.ValidateDevicePath(device); err != nil {
 				return err
 			}
 
-			if err := tpm.ValidateVolumeName(volumeName); err != nil {
+			if err := tpm.ValidateDirectoryPath(dir); err != nil {
 				return err
 			}
 
-			if err := tpm.MountVolume(volumeName, devicePath); err != nil {
+			if err := tpm.MountVolume(device, dir); err != nil {
 				return err
 			}
 
@@ -48,7 +48,7 @@ func newMountVolumeCmd() *cli.Command {
 }
 
 func newUnmountVolumeCmd() *cli.Command {
-	var volumeName string
+	var dir string
 
 	return &cli.Command{
 		Name:    "unmount-volume",
@@ -56,17 +56,17 @@ func newUnmountVolumeCmd() *cli.Command {
 		Suggest: true,
 		Arguments: []cli.Argument{
 			&cli.StringArg{
-				Name:        "volume-name",
-				UsageText:   "<volume-name>",
-				Destination: &volumeName,
+				Name:        "dir",
+				UsageText:   "<dir>",
+				Destination: &dir,
 			},
 		},
 		Action: func(ctx context.Context, cmd *cli.Command) error {
-			if err := tpm.ValidateVolumeName(volumeName); err != nil {
+			if err := tpm.ValidateDirectoryPath(dir); err != nil {
 				return err
 			}
 
-			if err := tpm.UnmountVolume(volumeName); err != nil {
+			if err := tpm.UnmountVolume(dir); err != nil {
 				return err
 			}
 

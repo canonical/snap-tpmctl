@@ -21,7 +21,6 @@ apps:
       - block-devices
       - dm-crypt
       - hardware-observe
-      - home
       - mountctl
       - mount-observe
       - network
@@ -33,12 +32,11 @@ plugs:
   mountctl:
     interface: mount-control
     mount:
-      - what: /dev/mapper/**
-        where: /run/**
+      - what: /dev/**
+        where: /**
         type: [ext2, ext3, ext4, xfs, vfat, ntfs]
         namespace: host
         options: [rw, relatime]
-        persistent: true
 
 parts:
   tpmctl:
