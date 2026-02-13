@@ -5,7 +5,6 @@ import (
 	"log/slog"
 
 	"github.com/canonical/snap-tpmctl/internal/log"
-
 	"github.com/urfave/cli/v3"
 )
 
