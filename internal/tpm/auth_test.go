@@ -6,9 +6,7 @@ import (
 
 	"github.com/canonical/snap-tpmctl/internal/testutils"
 	"github.com/canonical/snap-tpmctl/internal/tpm"
-
-	// TODO: move to is instead
-	"github.com/nalgeon/be"
+	"github.com/matryer/is"
 )
 
 func TestReplacePassphrase(t *testing.T) {
@@ -30,6 +28,7 @@ func TestReplacePassphrase(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
+			is := is.New(t)
 
 			ctx := context.Background()
 			mockClient := testutils.NewMockSnapdClient(testutils.MockConfig{
@@ -39,10 +38,10 @@ func TestReplacePassphrase(t *testing.T) {
 			err := tpm.ReplacePassphrase(ctx, mockClient, tc.oldPassphrase, tc.newPassphrase)
 
 			if tc.wantErr {
-				be.Err(t, err)
+				is.True(err != nil) // Expected an error but got nil
 				return
 			}
-			be.Err(t, err, nil)
+			is.NoErr(err) // Unexpected error
 		})
 	}
 }
@@ -66,6 +65,7 @@ func TestReplacePIN(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
+			is := is.New(t)
 
 			ctx := context.Background()
 			mockClient := testutils.NewMockSnapdClient(testutils.MockConfig{
@@ -75,10 +75,10 @@ func TestReplacePIN(t *testing.T) {
 			err := tpm.ReplacePIN(ctx, mockClient, tc.oldPin, tc.newPin)
 
 			if tc.wantErr {
-				be.Err(t, err)
+				is.True(err != nil) // Expected an error but got nil
 				return
 			}
-			be.Err(t, err, nil)
+			is.NoErr(err) // Unexpected error
 		})
 	}
 }
@@ -99,6 +99,7 @@ func TestAddPIN(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
+			is := is.New(t)
 
 			ctx := context.Background()
 			mockClient := testutils.NewMockSnapdClient(testutils.MockConfig{
@@ -108,10 +109,10 @@ func TestAddPIN(t *testing.T) {
 			err := tpm.AddPIN(ctx, mockClient, "123456")
 
 			if tc.wantErr {
-				be.Err(t, err)
+				is.True(err != nil) // Expected an error but got nil
 				return
 			}
-			be.Err(t, err, nil)
+			is.NoErr(err) // Unexpected error
 		})
 	}
 }
@@ -133,6 +134,7 @@ func TestRemovePIN(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
+			is := is.New(t)
 
 			ctx := context.Background()
 			mockClient := testutils.NewMockSnapdClient(testutils.MockConfig{
@@ -142,10 +144,10 @@ func TestRemovePIN(t *testing.T) {
 			err := tpm.RemovePIN(ctx, mockClient)
 
 			if tc.wantErr {
-				be.Err(t, err)
+				is.True(err != nil) // Expected an error but got nil
 				return
 			}
-			be.Err(t, err, nil)
+			is.NoErr(err) // Unexpected error
 		})
 	}
 }
@@ -167,6 +169,7 @@ func TestAddPassphrase(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
+			is := is.New(t)
 
 			ctx := context.Background()
 			mockClient := testutils.NewMockSnapdClient(testutils.MockConfig{
@@ -176,10 +179,10 @@ func TestAddPassphrase(t *testing.T) {
 			err := tpm.AddPassphrase(ctx, mockClient, "my-secure-passphrase")
 
 			if tc.wantErr {
-				be.Err(t, err)
+				is.True(err != nil) // Expected an error but got nil
 				return
 			}
-			be.Err(t, err, nil)
+			is.NoErr(err) // Unexpected error
 		})
 	}
 }
@@ -201,6 +204,7 @@ func TestRemovePassphrase(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
+			is := is.New(t)
 
 			ctx := context.Background()
 			mockClient := testutils.NewMockSnapdClient(testutils.MockConfig{
@@ -210,10 +214,10 @@ func TestRemovePassphrase(t *testing.T) {
 			err := tpm.RemovePassphrase(ctx, mockClient)
 
 			if tc.wantErr {
-				be.Err(t, err)
+				is.True(err != nil) // Expected an error but got nil
 				return
 			}
-			be.Err(t, err, nil)
+			is.NoErr(err) // Unexpected error
 		})
 	}
 }

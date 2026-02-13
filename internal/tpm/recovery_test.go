@@ -6,7 +6,7 @@ import (
 
 	"github.com/canonical/snap-tpmctl/internal/testutils"
 	"github.com/canonical/snap-tpmctl/internal/tpm"
-	"github.com/nalgeon/be"
+	"github.com/matryer/is"
 )
 
 //nolint:dupl // CreateKey and RegenerateKey have intentionally similar structure.
@@ -39,6 +39,7 @@ func TestCreateKey(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
+			is := is.New(t)
 
 			ctx := context.Background()
 			mockClient := testutils.NewMockSnapdClient(testutils.MockConfig{
@@ -49,12 +50,12 @@ func TestCreateKey(t *testing.T) {
 			res, err := tpm.CreateKey(ctx, mockClient, tc.recoveryKeyName)
 
 			if tc.wantErr {
-				be.Err(t, err)
+				is.True(err != nil)
 				return
 			}
-			be.Err(t, err, nil)
-			be.Equal(t, "test-key-id-12345", res.KeyID)
-			be.Equal(t, "12345-67890-12345-67890-12345-67890-12345-67890", res.RecoveryKey)
+			is.NoErr(err)
+			is.Equal("test-key-id-12345", res.KeyID)
+			is.Equal("12345-67890-12345-67890-12345-67890-12345-67890", res.RecoveryKey)
 		})
 	}
 }
@@ -89,6 +90,7 @@ func TestRegenerateKey(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
+			is := is.New(t)
 
 			ctx := context.Background()
 			mockClient := testutils.NewMockSnapdClient(testutils.MockConfig{
@@ -99,12 +101,12 @@ func TestRegenerateKey(t *testing.T) {
 			res, err := tpm.RegenerateKey(ctx, mockClient, tc.recoveryKeyName)
 
 			if tc.wantErr {
-				be.Err(t, err)
+				is.True(err != nil)
 				return
 			}
-			be.Err(t, err, nil)
-			be.Equal(t, "test-key-id-12345", res.KeyID)
-			be.Equal(t, "12345-67890-12345-67890-12345-67890-12345-67890", res.RecoveryKey)
+			is.NoErr(err)
+			is.Equal("test-key-id-12345", res.KeyID)
+			is.Equal("12345-67890-12345-67890-12345-67890-12345-67890", res.RecoveryKey)
 		})
 	}
 }
@@ -135,6 +137,7 @@ func TestCheckKey(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
+			is := is.New(t)
 
 			ctx := context.Background()
 			mockClient := testutils.NewMockSnapdClient(testutils.MockConfig{
@@ -145,11 +148,11 @@ func TestCheckKey(t *testing.T) {
 			valid, err := tpm.CheckKey(ctx, mockClient, "test-key")
 
 			if tc.wantErr {
-				be.Err(t, err)
+				is.True(err != nil)
 				return
 			}
-			be.Err(t, err, nil)
-			be.Equal(t, tc.wantValid, valid)
+			is.NoErr(err)
+			is.Equal(tc.wantValid, valid)
 		})
 	}
 }

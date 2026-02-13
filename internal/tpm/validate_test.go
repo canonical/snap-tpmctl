@@ -7,7 +7,7 @@ import (
 	"github.com/canonical/snap-tpmctl/internal/snapd"
 	"github.com/canonical/snap-tpmctl/internal/testutils"
 	"github.com/canonical/snap-tpmctl/internal/tpm"
-	"github.com/nalgeon/be"
+	"github.com/matryer/is"
 )
 
 func TestIsValidPassphrase(t *testing.T) {
@@ -39,6 +39,7 @@ func TestIsValidPassphrase(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
+			is := is.New(t)
 
 			ctx := context.Background()
 			mockClient := testutils.NewMockSnapdClient(testutils.MockConfig{
@@ -64,10 +65,10 @@ func TestIsValidPassphrase(t *testing.T) {
 			err := tpm.IsValidPassphrase(ctx, mockClient, passphrase, confirm)
 
 			if tc.wantErr {
-				be.Err(t, err)
+				is.True(err != nil)
 				return
 			}
-			be.Err(t, err, nil)
+			is.NoErr(err)
 		})
 	}
 }
@@ -100,6 +101,7 @@ func TestIsValidPIN(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
+			is := is.New(t)
 
 			ctx := context.Background()
 			mockClient := testutils.NewMockSnapdClient(testutils.MockConfig{
@@ -124,10 +126,10 @@ func TestIsValidPIN(t *testing.T) {
 			err := tpm.IsValidPIN(ctx, mockClient, pin, confirm)
 
 			if tc.wantErr {
-				be.Err(t, err)
+				is.True(err != nil)
 				return
 			}
-			be.Err(t, err, nil)
+			is.NoErr(err)
 		})
 	}
 }
@@ -195,14 +197,15 @@ func TestIsValidRecoveryKey(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
+			is := is.New(t)
 
 			err := tpm.ValidateRecoveryKey(tc.key)
 
 			if tc.wantErr {
-				be.Err(t, err, tc.wantInErr)
+				is.True(err != nil)
 				return
 			}
-			be.Err(t, err, nil)
+			is.NoErr(err)
 		})
 	}
 }
@@ -244,6 +247,7 @@ func TestValidateRecoveryKeyNameUnique(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
+			is := is.New(t)
 
 			ctx := context.Background()
 
@@ -254,10 +258,10 @@ func TestValidateRecoveryKeyNameUnique(t *testing.T) {
 			err := tpm.ValidateRecoveryKeyNameUnique(ctx, mockClient, tc.recoveryKeyName)
 
 			if tc.wantErr {
-				be.Err(t, err)
+				is.True(err != nil)
 				return
 			}
-			be.Err(t, err, nil)
+			is.NoErr(err)
 		})
 	}
 }
@@ -295,6 +299,7 @@ func TestValidateAuthMode(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
+			is := is.New(t)
 
 			ctx := context.Background()
 
@@ -312,10 +317,10 @@ func TestValidateAuthMode(t *testing.T) {
 			err := tpm.ValidateAuthMode(ctx, mockClient, tc.expectedAuthMode)
 
 			if tc.wantErr {
-				be.Err(t, err)
+				is.True(err != nil)
 				return
 			}
-			be.Err(t, err, nil)
+			is.NoErr(err)
 		})
 	}
 }
@@ -348,14 +353,15 @@ func TestValidateDevicePath(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
+			is := is.New(t)
 
 			err := tpm.ValidateDevicePath(tc.path)
 
 			if tc.wantErr {
-				be.Err(t, err, tc.wantInErr)
+				is.True(err != nil)
 				return
 			}
-			be.Err(t, err, nil)
+			is.NoErr(err)
 		})
 	}
 }
@@ -397,14 +403,15 @@ func TestValidateVolumeName(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
+			is := is.New(t)
 
 			err := tpm.ValidateVolumeName(tc.volumeName)
 
 			if tc.wantErr {
-				be.Err(t, err, tc.wantInErr)
+				is.True(err != nil)
 				return
 			}
-			be.Err(t, err, nil)
+			is.NoErr(err)
 		})
 	}
 }
