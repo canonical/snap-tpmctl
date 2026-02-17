@@ -2,7 +2,7 @@
 
 # Default VM connection (override with: make VM_HOST=...)
 VM_USER ?= root
-VM_HOST ?= 192.168.122.105
+VM_HOST ?= 192.168.122.178
 VM      := $(VM_USER)@$(VM_HOST)
 
 # Remote project directory (override with: make REMOTE_DIR=...)
@@ -13,7 +13,7 @@ SSH_OPTS ?= -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLe
 RSYNC_OPTS ?= -az --delete --exclude .git --exclude bin --exclude '*.snap' --exclude '*.swp'
 
 # Binary name
-BIN_NAME := tpmctl
+BIN_NAME := snap-tpmctl
 LOCAL_BIN := bin/$(BIN_NAME)
 
 # Extract version from git tags
@@ -35,26 +35,26 @@ build:
 
 snap:
 	@echo 'Building snap locally...'
-	@snapcraft pack $(SNAPCRAFT_BACKEND)
+	@snapcraft pack
 
 snap-clean:
 	@echo 'Cleaning snap artifacts...'
-	@snapcraft clean $(SNAPCRAFT_BACKEND)
+	@snapcraft clean
 	@rm -f *.snap
 	@echo 'Snap artifacts cleaned.'
 
 remote-snap: sync
 	@echo 'Building snap on remote VM...'
-	@ssh $(SSH_OPTS) $(VM) 'cd $(REMOTE_DIR) && snapcraft pack $(SNAPCRAFT_BACKEND)'
+	@ssh $(SSH_OPTS) $(VM) 'cd $(REMOTE_DIR) && snapcraft pack'
 	@echo 'Installing snap on remote VM...'
 	@ssh $(SSH_OPTS) $(VM) 'cd $(REMOTE_DIR) && snap install *.snap --dangerous'
 	@echo 'Connecting snap interfaces...'
-	@ssh $(SSH_OPTS) $(VM) 'snap connect tpmctl:snapd-control'
-	@ssh $(SSH_OPTS) $(VM) 'snap connect tpmctl:hardware-observe'
-	@ssh $(SSH_OPTS) $(VM) 'snap connect tpmctl:mountctl'
-	@ssh $(SSH_OPTS) $(VM) 'snap connect tpmctl:mount-observe'
-	@ssh $(SSH_OPTS) $(VM) 'snap connect tpmctl:block-devices'
-	@ssh $(SSH_OPTS) $(VM) 'snap connect tpmctl:dm-crypt'
+	@ssh $(SSH_OPTS) $(VM) 'snap connect $(BIN_NAME):snapd-control'
+	@ssh $(SSH_OPTS) $(VM) 'snap connect $(BIN_NAME):hardware-observe'
+	@ssh $(SSH_OPTS) $(VM) 'snap connect $(BIN_NAME):mountctl'
+	@ssh $(SSH_OPTS) $(VM) 'snap connect $(BIN_NAME):mount-observe'
+	@ssh $(SSH_OPTS) $(VM) 'snap connect $(BIN_NAME):block-devices'
+	@ssh $(SSH_OPTS) $(VM) 'snap connect $(BIN_NAME):dm-crypt'
 	@echo 'Snap installed and configured on remote VM.'
 
 run:
