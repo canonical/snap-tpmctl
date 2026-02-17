@@ -33,6 +33,9 @@ func (a App) Run(ctx context.Context) error {
 	return a.root.Run(ctx, a.args)
 }
 
+// version is set at build time via ldflags.
+var version = "dev"
+
 func newRootCmd() cli.Command {
 	var verbosity int
 

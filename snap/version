@@ -1,0 +1,55 @@
+#!/bin/sh
+set -eu
+
+# This scripts prints the version of the snap based on the git tags and the
+# current commits. The version is determined as follows:
+#
+# The highest version tag that starts with a number is used, with the leading v stripped.
+# For example:
+# * v0.1.0 -> 0.1.0
+#
+# 1. If current commit is tagged, that tag is used with this version as is.
+# 2. If current commit is not tagged, the version is:
+#    <latest tag>+<commit_sha>
+#
+# The version is appended with ".dirty" if there are uncommitted changes.
+
+# strip_branch_tag_prefix removes any non-numeric prefix ending with a
+# dash (e.g. "v") from the tag name.
+# $1: tag: the tag name to strip the prefix from.
+strip_branch_tag_prefix() {
+    tag="${1}"
+
+    echo "${tag}" | sed 's/^[^0-9]*//'
+}
+
+get_version() {
+    # Get the highest version tag which is prefixed with the current branch name.
+    tag=$(git -c "versionsort.suffix=-pre" tag --sort=-v:refname | head -1)
+
+    version="${tag}"
+    if [ -z "${version}" ]; then
+        # No tag found, use "notag" as version.
+        version="notag"
+    fi
+    version=$(strip_branch_tag_prefix "${version}")
+
+    # If the highest version tag is on the current commit, use it as is after
+    # stripping the prefix.
+    if [ -n "${tag}" ] && [ "$(git describe --tags --exact-match 2>/dev/null)" = "${tag}" ]; then
+        echo "${version}"
+        return
+    fi
+
+    # Current commit is not tagged, append commit(s) sha.
+    version="${version}+$(git rev-parse --short=7 HEAD)"
+    echo "${version}"
+}
+
+version=$(get_version)
+# append ".dirty" if there are uncommitted changes.
+if [ -n "$(git status --porcelain)" ]; then
+    version="${version}.dirty"
+fi
+
+echo "${version}"

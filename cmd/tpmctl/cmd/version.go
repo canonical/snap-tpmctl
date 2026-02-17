@@ -6,9 +6,6 @@ import (
 	"github.com/urfave/cli/v3"
 )
 
-// version is set at build time via ldflags.
-var version = "dev"
-
 func newVersionCmd() *cli.Command {
 	return &cli.Command{
 		Name:    "version",
