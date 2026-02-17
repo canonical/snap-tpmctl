@@ -2,6 +2,8 @@ package tpm_test
 
 import (
 	"context"
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/canonical/snap-tpmctl/internal/snapd"
@@ -363,22 +365,28 @@ func TestValidateDevicePath(t *testing.T) {
 func TestValidateDirectoryPath(t *testing.T) {
 	t.Parallel()
 
+	p, _ := os.Getwd()
+
 	tests := map[string]struct {
 		dest string
+		res  string
 
 		wantErr   bool
 		wantInErr string
 	}{
 		"valid absolute directory path": {
 			dest:    "/mnt/volume",
+			res:     "/mnt/volume",
 			wantErr: false,
 		},
 		"valid absolute directory path with subdirectory": {
 			dest:    "/mnt/folder/volume",
+			res:     "/mnt/folder/volume",
 			wantErr: false,
 		},
 		"valid absolute directory path with subdirectory and parent": {
 			dest:    "/mnt/folder/../../volume",
+			res:     "/mnt/folder/../../volume",
 			wantErr: false,
 		},
 		"empty directory path": {
@@ -387,29 +395,29 @@ func TestValidateDirectoryPath(t *testing.T) {
 			wantInErr: "directory path cannot be empty",
 		},
 		"relative directory path": {
-			dest:      "my-volume",
-			wantErr:   true,
-			wantInErr: "directory path must be a valid absolute path",
+			dest:    "my-volume",
+			res:     filepath.Join(p, "my-volume"),
+			wantErr: false,
 		},
 		"relative directory path with numbers": {
-			dest:      "volume-123",
-			wantErr:   true,
-			wantInErr: "directory path must be a valid absolute path",
+			dest:    "volume-123",
+			res:     filepath.Join(p, "volume-123"),
+			wantErr: false,
 		},
 		"relative directory path with dot prefix": {
-			dest:      "./mnt/volume",
-			wantErr:   true,
-			wantInErr: "directory path must be a valid absolute path",
+			dest:    "./mnt/volume",
+			res:     filepath.Join(p, "mnt/volume"),
+			wantErr: false,
 		},
 		"relative directory path with subdirectory": {
-			dest:      "folder/subfolder/volume",
-			wantErr:   true,
-			wantInErr: "directory path must be a valid absolute path",
+			dest:    "folder/subfolder/volume",
+			res:     filepath.Join(p, "folder/subfolder/volume"),
+			wantErr: false,
 		},
 		"directory path escaping with parent directory": {
-			dest:      "../../mnt/vol",
-			wantErr:   true,
-			wantInErr: "directory path must be a valid absolute path",
+			dest:    "../../mnt/vol",
+			res:     filepath.Join(p, "../../mnt/vol"),
+			wantErr: false,
 		},
 	}
 
@@ -417,13 +425,14 @@ func TestValidateDirectoryPath(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			err := tpm.ValidateDirectoryPath(tc.dest)
+			res, err := tpm.MakeDirectoryPathAbsolute(tc.dest)
 
 			if tc.wantErr {
 				be.Err(t, err, tc.wantInErr)
 				return
 			}
 			be.Err(t, err, nil)
+			be.Equal(t, res, tc.res)
 		})
 	}
 }

@@ -214,15 +214,20 @@ func ValidateDevicePath(devicePath string) error {
 	return nil
 }
 
-// ValidateDirectoryPath validates that a directory path is not empty and is a valid absolute path.
-func ValidateDirectoryPath(dir string) error {
+// MakeDirectoryPathAbsolute resolves to an absolute path.
+func MakeDirectoryPathAbsolute(dir string) (string, error) {
 	if dir == "" {
-		return fmt.Errorf("directory path cannot be empty")
+		return "", fmt.Errorf("directory path cannot be empty")
 	}
 
-	if !filepath.IsAbs(dir) {
-		return fmt.Errorf("directory path must be a valid absolute path")
+	if filepath.IsAbs(dir) {
+		return dir, nil
 	}
 
-	return nil
+	// Relative path: resolve against current working directory
+	r, err := os.Getwd()
+	if err != nil {
+		return "", fmt.Errorf("could not resolve current directory. Please use an absolute path")
+	}
+	return filepath.Join(r, dir), nil
 }

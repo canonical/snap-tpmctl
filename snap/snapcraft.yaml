@@ -25,6 +25,7 @@ apps:
       - mount-observe
       - network
       - snapd-control
+      - home
 
 plugs:
   block-devices:

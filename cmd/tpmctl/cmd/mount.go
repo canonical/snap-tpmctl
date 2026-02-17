@@ -34,11 +34,12 @@ func newMountVolumeCmd() *cli.Command {
 				return err
 			}
 
-			if err := tpm.ValidateDirectoryPath(dir); err != nil {
+			p, err := tpm.MakeDirectoryPathAbsolute(dir)
+			if err != nil {
 				return err
 			}
 
-			if err := tpm.MountVolume(device, dir); err != nil {
+			if err := tpm.MountVolume(device, p); err != nil {
 				return err
 			}
 
@@ -62,11 +63,12 @@ func newUnmountVolumeCmd() *cli.Command {
 			},
 		},
 		Action: func(ctx context.Context, cmd *cli.Command) error {
-			if err := tpm.ValidateDirectoryPath(dir); err != nil {
+			p, err := tpm.MakeDirectoryPathAbsolute(dir)
+			if err != nil {
 				return err
 			}
 
-			if err := tpm.UnmountVolume(dir); err != nil {
+			if err := tpm.UnmountVolume(p); err != nil {
 				return err
 			}
 
