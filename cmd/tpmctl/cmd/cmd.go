@@ -33,23 +33,19 @@ func (a App) Run(ctx context.Context) error {
 	return a.root.Run(ctx, a.args)
 }
 
+// version is set at build time via ldflags.
+var version = "dev"
+
 func newRootCmd() cli.Command {
 	var verbosity int
-
-	// Custom cli version flag
-	// TODO: This should be a command itself, not a flag.
-	cli.VersionFlag = &cli.BoolFlag{
-		Name:    "version",
-		Aliases: []string{"V"},
-		Usage:   "print the version",
-	}
 
 	return cli.Command{
 		Name:                   "snap-tpmctl",
 		Usage:                  "Ubuntu TPM and FDE management tool",
-		Version:                "0.1.0",
+		Version:                version,
 		UseShortOptionHandling: true,
 		EnableShellCompletion:  true,
+		HideVersion:            true,
 		Commands: []*cli.Command{
 			newAddPINCmd(),
 			newAddPassphraseCmd(),
@@ -68,6 +64,7 @@ func newRootCmd() cli.Command {
 			newRemovePassphraseCmd(),
 			newStatusCmd(),
 			newUnmountVolumeCmd(),
+			newVersionCmd(),
 		},
 		Flags: []cli.Flag{
 			&cli.BoolFlag{

@@ -16,6 +16,10 @@ RSYNC_OPTS ?= -az --delete --exclude .git --exclude bin --exclude '*.snap' --exc
 BIN_NAME := tpmctl
 LOCAL_BIN := bin/$(BIN_NAME)
 
+# Extract version from git tags
+VERSION := $(shell git describe --tags --always --dirty 2>/dev/null)
+LDFLAGS := -X github.com/canonical/snap-tpmctl/cmd/tpmctl/cmd.version=$(VERSION)
+
 # Snapcraft backend (override with: make SNAPCRAFT_BACKEND=--destructive-mode)
 SNAPCRAFT_BACKEND ?= --use-lxd
 
@@ -27,7 +31,7 @@ SNAPCRAFT_BACKEND ?= --use-lxd
 
 build:
 	@mkdir -p bin
-	go build -o $(LOCAL_BIN) ./cmd/tpmctl
+	go build -ldflags="$(LDFLAGS)" -o $(LOCAL_BIN) ./cmd/tpmctl
 
 snap:
 	@echo 'Building snap locally...'
@@ -64,7 +68,7 @@ sync:
 	@rsync $(RSYNC_OPTS) ./ $(VM):$(REMOTE_DIR)
 
 remote-build: sync
-	@ssh $(SSH_OPTS) $(VM) 'cd $(REMOTE_DIR) && mkdir -p bin && go build -o $(LOCAL_BIN) ./cmd/tpmctl'
+	@ssh $(SSH_OPTS) $(VM) 'cd $(REMOTE_DIR) && mkdir -p bin && go build -ldflags="$(LDFLAGS)" -o $(LOCAL_BIN) ./cmd/tpmctl'
 
 remote-run: remote-build
 	@ssh $(SSH_OPTS) $(VM) 'cd $(REMOTE_DIR) && $(LOCAL_BIN) $(filter-out $@,$(MAKECMDGOALS))'
