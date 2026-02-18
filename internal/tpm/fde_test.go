@@ -6,7 +6,7 @@ import (
 
 	"github.com/canonical/snap-tpmctl/internal/testutils"
 	"github.com/canonical/snap-tpmctl/internal/tpm"
-	"github.com/nalgeon/be"
+	"github.com/matryer/is"
 )
 
 func TestFdeStatus(t *testing.T) {
@@ -34,6 +34,7 @@ func TestFdeStatus(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
+			is := is.New(t)
 
 			ctx := context.Background()
 			mockClient := testutils.NewMockSnapdClient(tc.cfg)
@@ -41,12 +42,12 @@ func TestFdeStatus(t *testing.T) {
 			res, err := tpm.FdeStatus(ctx, mockClient)
 
 			if tc.wantErr {
-				be.Err(t, err)
+				is.True(err != nil)
 				return
 			}
 
-			be.Err(t, err, nil)
-			be.Equal(t, tc.want, res)
+			is.NoErr(err)
+			is.Equal(tc.want, res)
 		})
 	}
 }

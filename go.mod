@@ -4,7 +4,6 @@ go 1.25.5
 
 require (
 	github.com/matryer/is v1.4.1
-	github.com/nalgeon/be v0.3.0
 	github.com/snapcore/secboot v0.0.0-20260126133925-99e0bbda867d
 	github.com/snapcore/snapd v0.0.0-20260128063429-c3be32030ec4
 	github.com/urfave/cli/v3 v3.6.2
