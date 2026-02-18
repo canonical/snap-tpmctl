@@ -28,6 +28,25 @@ type Error struct {
 	Value   json.RawMessage
 }
 
+// newErrorFromSnapdError attempts to converts a snapdClient.Error to an internal snapd.Error with JSON-marshaled Value.
+// If the provided error is not a snapdClient.Error or if marshaling the Value fails, it returns the original error.
+func newErrorFromSnapdError(err error) error {
+	snapdErr, ok := errors.AsType[*snapdClient.Error](err)
+	if !ok {
+		return err
+	}
+
+	value, e := json.Marshal(snapdErr.Value)
+	if e != nil {
+		return err
+	}
+	return &Error{
+		Kind:    snapdErr.Kind,
+		Message: snapdErr.Message,
+		Value:   value,
+	}
+}
+
 func (e *Error) Error() string {
 	if e.Kind != "" {
 		return fmt.Sprintf("snapd error: %s (%s)", e.Message, e.Kind)
@@ -108,20 +127,7 @@ func (c *Client) doSyncRequest(_ context.Context, method, path string, query url
 
 	var result json.RawMessage
 	_, err := doSync(c.snapd, method, path, query, addGenericHeaders(headers), &b, &result)
-	var snapdErr *snapdClient.Error
-	if errors.As(err, &snapdErr) {
-		value, err := json.Marshal(snapdErr.Value)
-		if err != nil {
-			return nil, err
-		}
-
-		return nil, &Error{
-			Kind:    snapdErr.Kind,
-			Message: snapdErr.Message,
-			Value:   value,
-		}
-	}
-	if err != nil {
+	if err := newErrorFromSnapdError(err); err != nil {
 		return nil, err
 	}
 
@@ -136,20 +142,7 @@ func (c *Client) doAsyncRequest(ctx context.Context, method, path string, query 
 	}
 
 	changeID, err := doAsync(c.snapd, method, path, query, addGenericHeaders(headers), &b)
-	var snapdErr *snapdClient.Error
-	if errors.As(err, &snapdErr) {
-		value, err := json.Marshal(snapdErr.Value)
-		if err != nil {
-			return err
-		}
-
-		return &Error{
-			Kind:    snapdErr.Kind,
-			Message: snapdErr.Message,
-			Value:   value,
-		}
-	}
-	if err != nil {
+	if err := newErrorFromSnapdError(err); err != nil {
 		return err
 	}
 

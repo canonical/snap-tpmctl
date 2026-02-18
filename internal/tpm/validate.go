@@ -32,8 +32,8 @@ type resultValue struct {
 
 // handleValidationError processes snapd validation errors and returns appropriate error messages.
 func handleValidationError(err error, authMode string) error {
-	var snapdErr *snapd.Error
-	if !errors.As(err, &snapdErr) {
+	snapdErr, ok := errors.AsType[*snapd.Error](err)
+	if !ok {
 		return fmt.Errorf("failed to check %s: %w", authMode, err)
 	}
 
