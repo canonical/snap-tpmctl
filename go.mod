@@ -1,6 +1,6 @@
 module github.com/canonical/snap-tpmctl
 
-go 1.25.5
+go 1.26.0
 
 require (
 	github.com/matryer/is v1.4.1
