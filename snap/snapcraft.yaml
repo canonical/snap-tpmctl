@@ -1,6 +1,6 @@
 name: snap-tpmctl
 base: core24
-version: 0.1.0
+adopt-info: version
 summary: Ubuntu TPM and FDE management tool
 title: Snap TPM/FDE Control Tool
 description: |
@@ -21,11 +21,11 @@ apps:
       - block-devices
       - dm-crypt
       - hardware-observe
-      - home
       - mountctl
       - mount-observe
       - network
       - snapd-control
+      - home
 
 plugs:
   block-devices:
@@ -33,12 +33,11 @@ plugs:
   mountctl:
     interface: mount-control
     mount:
-      - what: /dev/mapper/**
-        where: /run/**
+      - what: /dev/**
+        where: /**
         type: [ext2, ext3, ext4, xfs, vfat, ntfs]
         namespace: host
         options: [rw, relatime]
-        persistent: true
 
 parts:
   tpmctl:
@@ -49,8 +48,13 @@ parts:
     build-packages:
       - gcc
       - pkg-config
+      - git
     override-build: |
-      go build -o $SNAPCRAFT_PART_INSTALL/bin/tpmctl ./cmd/tpmctl
+      VERSION=$(craftctl get version)
+      LDFLAGS="-X github.com/canonical/snap-tpmctl/cmd/tpmctl/cmd.Version=$VERSION"
+      go build -ldflags="$LDFLAGS" -o $SNAPCRAFT_PART_INSTALL/bin/tpmctl ./cmd/tpmctl
+    after:
+      - version
 
   systemd-cryptsetup:
     plugin: nil
@@ -61,3 +65,12 @@ parts:
     override-prime: |
       mkdir -p ${CRAFT_PRIME}/usr/bin
       cp -a ${CRAFT_STAGE}/usr/bin/systemd-cryptsetup ${CRAFT_PRIME}/usr/bin/
+
+  # Build the snap version from the git repository and current tree state.
+  version:
+    source: .
+    plugin: nil
+    build-packages:
+      - git # The script needs Git.
+    override-build: |
+      craftctl set version="$(./snap/version)"

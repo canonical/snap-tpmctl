@@ -1,8 +1,10 @@
 package cmd
 
 import (
+	"bufio"
 	"context"
 	"fmt"
+	"os"
 
 	"github.com/canonical/snap-tpmctl/internal/snapd"
 	"github.com/canonical/snap-tpmctl/internal/tpm"
@@ -25,10 +27,6 @@ func newRegenerateKeyCmd() *cli.Command {
 			},
 		},
 		Action: func(ctx context.Context, cmd *cli.Command) error {
-			// TODO: decide if we want to match exactly the security center
-			// behaviour showing the key, waiting for user confirmation and then
-			// replace the key and removing it from the screen
-
 			c := snapd.New()
 
 			// Validate the recovery key name
@@ -44,7 +42,11 @@ func newRegenerateKeyCmd() *cli.Command {
 			}
 
 			fmt.Printf("Recovery Key: %s\n", result.RecoveryKey)
-			fmt.Printf("Key ID: %s\n", result.KeyID)
+
+			// Wait for user to confirm by pressing Enter
+			fmt.Print("Save the recovery key somewhere safe. Press Enter to continue...")
+			_, _ = bufio.NewReader(os.Stdin).ReadString('\n')
+			tui.ClearPreviousLines(2)
 
 			return nil
 		},
