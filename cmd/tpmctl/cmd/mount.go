@@ -124,14 +124,15 @@ func newGetLuksKeyFromRecoveryKeyCmd() *cli.Command {
 				return err
 			}
 
+			format := "LUKS key (hex): %x\n"
 			switch {
 			case hex:
-				fmt.Printf("%x\n", key)
+				format = "%x\n"
 			case escaped:
-				fmt.Printf("%q\n", key)
-			default:
-				fmt.Printf("LUKS key (hex): %x\n", key)
+				format = "%q\n"
 			}
+
+			fmt.Printf(format, key)
 
 			return nil
 		},
