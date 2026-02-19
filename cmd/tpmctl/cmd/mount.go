@@ -102,6 +102,7 @@ func newGetLuksKeyFromRecoveryKeyCmd() *cli.Command {
 		Usage:   "Get LUKS key from recovery key",
 		Suggest: true,
 		Flags: []cli.Flag{
+			// TODO: check conflicting flags (hex and escaped cannot be used together)
 			&cli.BoolFlag{
 				Name:        "hex",
 				Usage:       "Output key in hexadecimal format",

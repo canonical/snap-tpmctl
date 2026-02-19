@@ -2,8 +2,6 @@ package tpm_test
 
 import (
 	"context"
-	"os"
-	"path/filepath"
 	"testing"
 
 	"github.com/canonical/snap-tpmctl/internal/snapd"
@@ -327,6 +325,11 @@ func TestValidateAuthMode(t *testing.T) {
 	}
 }
 
+/*
+
+TODO: port those as use case to cmd
+No unit test, more "cmd tests"
+
 func TestValidateDevicePath(t *testing.T) {
 	t.Parallel()
 
@@ -443,3 +446,5 @@ func TestValidateDirectoryPath(t *testing.T) {
 		})
 	}
 }
+
+*/

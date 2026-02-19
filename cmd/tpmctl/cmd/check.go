@@ -34,7 +34,6 @@ func newCheckCmd() *cli.Command {
 				return err
 			}
 
-			// TODO: print better messages
 			msg := "Recovery key does not work"
 			if ok {
 				msg = "Recovery key works"
