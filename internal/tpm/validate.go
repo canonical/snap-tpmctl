@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"path/filepath"
 	"regexp"
 	"slices"
 	"strings"
@@ -214,22 +213,4 @@ func ValidateDevicePath(devicePath string) error {
 	}
 
 	return nil
-}
-
-// MakeDirectoryPathAbsolute resolves to an absolute path.
-func MakeDirectoryPathAbsolute(dir string) (string, error) {
-	if dir == "" {
-		return "", fmt.Errorf("directory path cannot be empty")
-	}
-
-	if filepath.IsAbs(dir) {
-		return dir, nil
-	}
-
-	// Relative path: resolve against current working directory
-	r, err := os.Getwd()
-	if err != nil {
-		return "", fmt.Errorf("could not resolve current directory. Please use an absolute path")
-	}
-	return filepath.Join(r, dir), nil
 }

@@ -30,11 +30,11 @@ func newMountVolumeCmd() *cli.Command {
 			},
 		},
 		Action: func(ctx context.Context, cmd *cli.Command) error {
-			if err := tpm.ValidateDevicePath(device); err != nil {
+			if err := devicePathExists(device); err != nil {
 				return err
 			}
 
-			p, err := tpm.MakeDirectoryPathAbsolute(dir)
+			p, err := ensurePathIsAbolute(dir)
 			if err != nil {
 				return err
 			}
@@ -63,7 +63,7 @@ func newUnmountVolumeCmd() *cli.Command {
 			},
 		},
 		Action: func(ctx context.Context, cmd *cli.Command) error {
-			p, err := tpm.MakeDirectoryPathAbsolute(dir)
+			p, err := ensurePathIsAbolute(dir)
 			if err != nil {
 				return err
 			}
@@ -134,4 +134,39 @@ func newGetLuksKeyFromRecoveryKeyCmd() *cli.Command {
 			return nil
 		},
 	}
+}
+
+// devicePathExists validates that a device path exists in the system.
+func devicePathExists(p string) error {
+	if p == "" {
+		return fmt.Errorf("device path cannot be empty")
+	}
+
+	// Check if the device actually exists
+	if _, err := os.Stat(p); err != nil {
+		if os.IsNotExist(err) {
+			return fmt.Errorf("device %q does not exist", p)
+		}
+		return fmt.Errorf("failed to check device %q: %w", p, err)
+	}
+
+	return nil
+}
+
+// ensurePathIsAbolute resolves to an absolute path.
+func ensurePathIsAbolute(p string) (string, error) {
+	if p == "" {
+		return "", fmt.Errorf("directory path cannot be empty")
+	}
+
+	if filepath.IsAbs(p) {
+		return p, nil
+	}
+
+	// Relative path: resolve against current working directory
+	r, err := os.Getwd()
+	if err != nil {
+		return "", fmt.Errorf("could not resolve current directory. Please use an absolute path")
+	}
+	return filepath.Join(r, p), nil
 }
