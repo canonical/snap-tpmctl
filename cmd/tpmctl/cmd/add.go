@@ -72,7 +72,7 @@ func newAddPINCmd() *cli.Command {
 			s := tpm.New()
 
 			// Validate auth mode is currently none
-			if err := s.ValidateAuthMode(ctx,  snapd.AuthModeNone); err != nil {
+			if err := s.ValidateAuthMode(ctx, snapd.AuthModeNone); err != nil {
 				return err
 			}
 
