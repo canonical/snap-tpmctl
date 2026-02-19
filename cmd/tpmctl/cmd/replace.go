@@ -32,7 +32,11 @@ func newReplacePassphraseCmd() *cli.Command {
 				return err
 			}
 
-			if err := tpm.IsValidPassphrase(ctx, c, newPassphrase, confirmPassphrase); err != nil {
+			if newPassphrase != confirmPassphrase {
+				return fmt.Errorf("passphrase confirmation does not match")
+			}
+
+			if err := tpm.IsValidPassphrase(ctx, newPassphrase); err != nil {
 				return err
 			}
 
@@ -69,12 +73,16 @@ func newReplacePinCmd() *cli.Command {
 				return err
 			}
 
-			if err := tpm.IsValidPIN(ctx, c, newPin, confirmPin); err != nil {
+			if newPin != confirmPin {
+				return fmt.Errorf("PIN confirmation does not match")
+			}
+
+			if err := tpm.IsValidPIN(ctx, newPin); err != nil {
 				return err
 			}
 
 			if err := tui.WithSpinner("Replacing PIN...", func() error {
-				return tpm.ReplacePIN(ctx, c, oldPin, newPin)
+				return tpm.ReplacePIN(ctx, oldPin, newPin)
 			}); err != nil {
 				return err
 			}

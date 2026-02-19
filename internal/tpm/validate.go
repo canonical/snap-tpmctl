@@ -70,14 +70,20 @@ func handleValidationError(err error, authMode string) error {
 	}
 }
 
-// IsValidPassphrase validates that the passphrase and confirmation match and are not empty.
-func IsValidPassphrase(ctx context.Context, client authValidator, passphrase, confirm string) error {
-	if passphrase == "" || confirm == "" {
-		return fmt.Errorf("passphrase cannot be empty, try again")
-	}
+// IsValidPassphrase checks the entropy of the passphrase.
+/* TODO:
+ What is returned by snapd on invalid passphrase/PIN?
+-> ask for forgivness, not permission
 
-	if passphrase != confirm {
-		return fmt.Errorf("passphrases do not match, try again")
+If it makes sense: drop all the validation here.
+
+If the error message is "suboptimal", then, check in AddPassphrase/AddPIN… directly the validity of the passphrase and
+turns those into private functions.
+
+*/
+func (s SnapTPM) IsValidPassphrase(ctx context.Context, passphrase string) error {
+	if passphrase == "" {
+		return fmt.Errorf("passphrase cannot be empty, try again")
 	}
 
 	if err := client.CheckPassphrase(ctx, passphrase); err != nil {
@@ -87,9 +93,9 @@ func IsValidPassphrase(ctx context.Context, client authValidator, passphrase, co
 	return nil
 }
 
-// IsValidPIN validates that the PIN and confirmation match and are not empty.
-func IsValidPIN(ctx context.Context, client authValidator, pin, confirm string) error {
-	if pin == "" || confirm == "" {
+// IsValidPIN checks that the PIN is only made of digits
+func (s SnapTPM) IsValidPIN(ctx context.Context, pin string) error {
+	if pin == "" {
 		return fmt.Errorf("PIN cannot be empty, try again")
 	}
 
@@ -98,10 +104,6 @@ func IsValidPIN(ctx context.Context, client authValidator, pin, confirm string) 
 		if ch < '0' || ch > '9' {
 			return fmt.Errorf("PIN must contain only digits, try again")
 		}
-	}
-
-	if pin != confirm {
-		return fmt.Errorf("PINs do not match, try again")
 	}
 
 	if err := client.CheckPIN(ctx, pin); err != nil {
