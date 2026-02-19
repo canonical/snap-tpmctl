@@ -4,42 +4,26 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+
+	snapdClient "github.com/snapcore/snapd/client"
 )
 
-// KeySlotInfo describes a keyslot in a volume.
-type KeySlotInfo struct {
-	Type         string   `json:"type"`
-	AuthMode     string   `json:"auth-mode,omitempty"`
-	PlatformName string   `json:"platform-name,omitempty"`
-	Roles        []string `json:"roles,omitempty"`
-}
+type SystemVolumesResult = snapdClient.SystemVolumesResult
+type SystemVolumesStructureInfo = snapdClient.SystemVolumesStructureInfo
+type KeySlotInfo = snapdClient.KeyslotInfo
 
-// IsRecoveryKey returns true if the keyslot is a recovery key.
-func (slot KeySlotInfo) IsRecoveryKey() bool {
-	return slot.Type == "recovery"
+func IsRecoveryKey(slot KeySlotInfo) bool {
+	return slot.Type == snapdClient.KeyslotTypeRecovery
 }
 
 // IsPassphrase returns true if the keyslot uses passphrase authentication.
-func (slot KeySlotInfo) IsPassphrase() bool {
-	return slot.AuthMode == string(AuthModePassphrase)
+func IsPassphrase(slot KeySlotInfo) bool {
+	return slot.AuthMode == AuthModePassphrase
 }
 
-// IsPin returns true if the keyslot uses pin authentication.
-func (slot KeySlotInfo) IsPin() bool {
-	return slot.AuthMode == string(AuthModePin)
-}
-
-// VolumeInfo describes a system volume.
-type VolumeInfo struct {
-	Name       string                 `json:"name"`
-	VolumeName string                 `json:"volume-name"`
-	Encrypted  bool                   `json:"encrypted"`
-	KeySlots   map[string]KeySlotInfo `json:"keyslots,omitempty"`
-}
-
-// SystemVolumesResult describes the system volumes response.
-type SystemVolumesResult struct {
-	ByContainerRole map[string]VolumeInfo `json:"by-container-role"`
+// IsPIN returns true if the keyslot uses pin authentication.
+func IsPIN(slot KeySlotInfo) bool {
+	return slot.AuthMode == AuthModePIN
 }
 
 // ListVolumeInfo gets information about system volumes.

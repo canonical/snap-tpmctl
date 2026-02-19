@@ -57,7 +57,7 @@ func newListPassphraseCmd() *cli.Command {
 				return err
 			}
 
-			data := parseKeySlots(result, (*snapd.KeySlotInfo).IsPassphrase)
+			data := parseKeySlots(result, snapd.IsPassphrase)
 
 			displayKeySlotsFromMap(os.Stdout, "Passphrases", data)
 
@@ -79,7 +79,7 @@ func newListRecoveryKeyCmd() *cli.Command {
 				return err
 			}
 
-			data := parseKeySlots(result, (*snapd.KeySlotInfo).IsRecoveryKey)
+			data := parseKeySlots(result, snapd.IsRecoveryKey)
 
 			displayKeySlotsFromMap(os.Stdout, "Recovery Keys", data)
 
@@ -88,7 +88,7 @@ func newListRecoveryKeyCmd() *cli.Command {
 	}
 }
 
-func newListPinCmd() *cli.Command {
+func newListPINCmd() *cli.Command {
 	return &cli.Command{
 		Name:    "list-pins",
 		Usage:   "List pins",
@@ -101,9 +101,9 @@ func newListPinCmd() *cli.Command {
 				return err
 			}
 
-			data := parseKeySlots(result, (*snapd.KeySlotInfo).IsPin)
+			data := parseKeySlots(result, snapd.IsPIN)
 
-			displayKeySlotsFromMap(os.Stdout, "Pins", data)
+			displayKeySlotsFromMap(os.Stdout, "PINs", data)
 
 			return nil
 		},
@@ -137,7 +137,7 @@ func getAllKeys(data snapd.SystemVolumesResult) []key {
 		volumeName := data.ByContainerRole[role].VolumeName
 
 		var keys []key
-		for k, v := range data.ByContainerRole[role].KeySlots {
+		for k, v := range data.ByContainerRole[role].Keyslots {
 			keys = append(keys, key{
 				keySlotName:   k,
 				KeySlotInfo:   v,
@@ -158,17 +158,17 @@ func getAllKeys(data snapd.SystemVolumesResult) []key {
 	return allKeys
 }
 
+func dashIfEmpty[T ~string](s T) string {
+	if strings.TrimSpace(string(s)) == "" {
+		return "-"
+	}
+	return string(s)
+}
+
 func displayAllKeys(w io.Writer, data snapd.SystemVolumesResult, hideHeaders bool) error {
 	keys := getAllKeys(data)
 
 	rows := [][]string{}
-	dashIfEmpty := func(s string) string {
-		if strings.TrimSpace(s) == "" {
-			return "-"
-		}
-		return s
-	}
-
 	for _, k := range keys {
 		rows = append(rows, []string{
 			k.containerRole,
@@ -192,12 +192,12 @@ func displayAllKeys(w io.Writer, data snapd.SystemVolumesResult, hideHeaders boo
 	return nil
 }
 
-func parseKeySlots(data snapd.SystemVolumesResult, filter func(*snapd.KeySlotInfo) bool) []string {
+func parseKeySlots(data snapd.SystemVolumesResult, filter func(snapd.KeySlotInfo) bool) []string {
 	keys := getAllKeys(data)
 
 	var result []string
 	for _, k := range keys {
-		if !filter(&k.KeySlotInfo) {
+		if !filter(k.KeySlotInfo) {
 			continue
 		}
 

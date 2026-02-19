@@ -10,12 +10,12 @@ import (
 
 // CreateKey creates a new recovery key with the given name. Input should be validated using ValidateRecoveryKeyNameUnique first.
 func (s SnapTPM) CreateKey(ctx context.Context, recoveryKeyName string) (recoveryKey string, err error) {
-	key, err := s.snapdClient.GenerateRecoveryKey)(ctx)
+	key, err := s.snapdClient.GenerateRecoveryKey(ctx)
 	if err != nil {
 		return "", fmt.Errorf("failed to generate recovery key: %w", err)
 	}
 
-	keySlots := []snapd.KeySlot{{Name: recoveryKeyName}}
+	keySlots := []snapd.Keyslot{{Name: recoveryKeyName}}
 
 	if err := s.snapdClient.AddRecoveryKey(ctx, key.KeyID, keySlots); err != nil {
 		return "", fmt.Errorf("failed to add recovery key: %w", err)
@@ -31,7 +31,7 @@ func (s SnapTPM) RegenerateKey(ctx context.Context, recoveryKeyName string) (rec
 		return "", fmt.Errorf("failed to generate recovery key: %w", err)
 	}
 
-	keySlots := []snapd.KeySlot{{Name: recoveryKeyName}}
+	keySlots := []snapd.Keyslot{{Name: recoveryKeyName}}
 
 	if err := s.snapdClient.ReplaceRecoveryKey(ctx, key.KeyID, keySlots); err != nil {
 		return "", fmt.Errorf("failed to replace recovery key: %w", err)

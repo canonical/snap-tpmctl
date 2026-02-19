@@ -50,38 +50,38 @@ func newReplacePassphraseCmd() *cli.Command {
 	}
 }
 
-func newReplacePinCmd() *cli.Command {
+func newReplacePINCmd() *cli.Command {
 	return &cli.Command{
 		Name:  "replace-pin",
 		Usage: "Replace encryption PIN",
 		Action: func(ctx context.Context, cmd *cli.Command) error {
 			s := tpm.New()
 
-			oldPin, err := tui.ReadUserSecret("Enter current PIN: ")
+			oldPIN, err := tui.ReadUserSecret("Enter current PIN: ")
 			if err != nil {
 				return err
 			}
 
-			newPin, err := tui.ReadUserSecret("Enter new PIN: ")
+			newPIN, err := tui.ReadUserSecret("Enter new PIN: ")
 			if err != nil {
 				return err
 			}
 
-			confirmPin, err := tui.ReadUserSecret("Confirm new PIN: ")
+			confirmPIN, err := tui.ReadUserSecret("Confirm new PIN: ")
 			if err != nil {
 				return err
 			}
 
-			if newPin != confirmPin {
+			if newPIN != confirmPIN {
 				return fmt.Errorf("PIN confirmation does not match")
 			}
 
-			if err := s.IsValidPIN(ctx, newPin); err != nil {
+			if err := s.IsValidPIN(ctx, newPIN); err != nil {
 				return err
 			}
 
 			if err := tui.WithSpinner("Replacing PIN...", func() error {
-				return s.ReplacePIN(ctx, oldPin, newPin)
+				return s.ReplacePIN(ctx, oldPIN, newPIN)
 			}); err != nil {
 				return err
 			}

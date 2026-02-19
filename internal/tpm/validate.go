@@ -116,17 +116,17 @@ func (s SnapTPM) ValidateAuthMode(ctx context.Context, expectedAuthMode snapd.Au
 		return fmt.Errorf("system-data container role not found")
 	}
 
-	defaultKeyslot, ok := systemData.KeySlots["default"]
+	defaultKeyslot, ok := systemData.Keyslots["default"]
 	if !ok {
 		return fmt.Errorf("default key slot not found in system-data")
 	}
 
-	defaultFallbackKeyslot, ok := systemData.KeySlots["default-fallback"]
+	defaultFallbackKeyslot, ok := systemData.Keyslots["default-fallback"]
 	if !ok {
 		return fmt.Errorf("default-fallback key slot not found in system-data")
 	}
 
-	if defaultKeyslot.AuthMode != string(expectedAuthMode) || defaultFallbackKeyslot.AuthMode != string(expectedAuthMode) {
+	if defaultKeyslot.AuthMode != expectedAuthMode || defaultFallbackKeyslot.AuthMode != expectedAuthMode {
 		return fmt.Errorf("authentication mode mismatch: expected %s, got default=%s, default-fallback=%s",
 			expectedAuthMode,
 			defaultKeyslot.AuthMode,
@@ -150,7 +150,7 @@ func (s SnapTPM) ValidateRecoveryKeyNameUnique(ctx context.Context, recoveryKeyN
 	}
 
 	for _, volumeInfo := range result.ByContainerRole {
-		for slotName := range volumeInfo.KeySlots {
+		for slotName := range volumeInfo.Keyslots {
 			if slotName == recoveryKeyName {
 				return fmt.Errorf("recovery key name %q is already in use", recoveryKeyName)
 			}

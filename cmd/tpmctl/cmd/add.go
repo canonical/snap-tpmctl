@@ -76,26 +76,26 @@ func newAddPINCmd() *cli.Command {
 				return err
 			}
 
-			newPin, err := tui.ReadUserSecret("Enter new PIN: ")
+			newPIN, err := tui.ReadUserSecret("Enter new PIN: ")
 			if err != nil {
 				return err
 			}
 
-			confirmPin, err := tui.ReadUserSecret("Confirm new PIN: ")
+			confirmPIN, err := tui.ReadUserSecret("Confirm new PIN: ")
 			if err != nil {
 				return err
 			}
 
-			if newPin != confirmPin {
+			if newPIN != confirmPIN {
 				return fmt.Errorf("PIN confirmation does not match")
 			}
 
-			if err := s.IsValidPIN(ctx, newPin); err != nil {
+			if err := s.IsValidPIN(ctx, newPIN); err != nil {
 				return err
 			}
 
 			if err := tui.WithSpinner("Adding PIN...", func() error {
-				return s.AddPIN(ctx, newPin)
+				return s.AddPIN(ctx, newPIN)
 			}); err != nil {
 				return err
 			}
