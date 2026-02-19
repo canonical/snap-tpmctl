@@ -95,7 +95,6 @@ func newUnmountVolumeCmd() *cli.Command {
 }
 
 func newGetLuksKeyFromRecoveryKeyCmd() *cli.Command {
-	var outputFile string
 	var hex, escaped bool
 
 	return &cli.Command{
@@ -103,11 +102,6 @@ func newGetLuksKeyFromRecoveryKeyCmd() *cli.Command {
 		Usage:   "Get LUKS key from recovery key",
 		Suggest: true,
 		Flags: []cli.Flag{
-			&cli.StringFlag{
-				Name:        "file",
-				Usage:       "Write binary key to file with secure permissions (600)",
-				Destination: &outputFile,
-			},
 			&cli.BoolFlag{
 				Name:        "hex",
 				Usage:       "Output key in hexadecimal format",
@@ -128,15 +122,6 @@ func newGetLuksKeyFromRecoveryKeyCmd() *cli.Command {
 			key, err := tpm.GetLuksKey(recoveryKey)
 			if err != nil {
 				return err
-			}
-
-			if outputFile != "" {
-				if err := os.WriteFile(outputFile, key, 0600); err != nil {
-					return fmt.Errorf("failed to write key to file: %w", err)
-				}
-				fmt.Printf("Binary key written to: %s\n", outputFile)
-
-				return nil
 			}
 
 			switch {
