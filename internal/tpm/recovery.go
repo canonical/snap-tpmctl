@@ -21,45 +21,36 @@ type CreateKeyResult struct {
 }
 
 // CreateKey creates a new recovery key with the given name. Input should be validated using ValidateRecoveryKeyNameUnique first.
-func CreateKey(ctx context.Context, client keyCreator, recoveryKeyName string) (result CreateKeyResult, err error) {
-	key, err := client.GenerateRecoveryKey(ctx)
+func CreateKey(ctx context.Context, client keyCreator, recoveryKeyName string) (recoveryKey string, err error) {
+	key, err := client.GenerateRecoveryKey)(ctx)
 	if err != nil {
-		return result, fmt.Errorf("failed to generate recovery key: %w", err)
+		return "", fmt.Errorf("failed to generate recovery key: %w", err)
 	}
 
 	keySlots := []snapd.KeySlot{{Name: recoveryKeyName}}
 
 	if err := client.AddRecoveryKey(ctx, key.KeyID, keySlots); err != nil {
-		return result, fmt.Errorf("failed to add recovery key: %w", err)
+		return "", fmt.Errorf("failed to add recovery key: %w", err)
 	}
 
-	return CreateKeyResult{
-		RecoveryKey: key.RecoveryKey,
-		KeyID:       key.KeyID,
-	}, nil
+	return key.RecoveryKey, nil
 }
 
 // RegenerateKey replaces an existing recovery key with a new one with the given name. Input should be validated using ValidateRecoveryKeyName first.
-func RegenerateKey(ctx context.Context, client keyCreator, recoveryKeyName string) (result CreateKeyResult, err error) {
+func RegenerateKey(ctx context.Context, client keyCreator, recoveryKeyName string) (recoveryKey string, err error) {
 	key, err := client.GenerateRecoveryKey(ctx)
 	if err != nil {
-		return result, fmt.Errorf("failed to generate recovery key: %w", err)
+		return "", fmt.Errorf("failed to generate recovery key: %w", err)
 	}
 
 	keySlots := []snapd.KeySlot{{Name: recoveryKeyName}}
 
 	if err := client.ReplaceRecoveryKey(ctx, key.KeyID, keySlots); err != nil {
-		return result, fmt.Errorf("failed to replace recovery key: %w", err)
+		return "", fmt.Errorf("failed to replace recovery key: %w", err)
 	}
 
-	return CreateKeyResult{
-		RecoveryKey: key.RecoveryKey,
-		KeyID:       key.KeyID,
-	}, nil
+	return key.RecoveryKey, nil
 }
-
-type keyChecker interface {
-	CheckRecoveryKey(ctx context.Context, recoveryKey string, containerRoles []string) (bool, error)
 }
 
 // CheckKey verifies if a recovery key is valid by checking it against the system.

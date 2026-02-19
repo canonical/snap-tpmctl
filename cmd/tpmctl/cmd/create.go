@@ -36,14 +36,14 @@ func newCreateKeyCmd() *cli.Command {
 			stop := tui.Spin("Generating recovery key...")
 			defer stop()
 
-			result, err := tpm.CreateKey(ctx, recoveryKeyName)
+			recoveryKey, err := tpm.CreateKey(ctx, recoveryKeyName)
 			if err != nil {
 				return err
 			}
 
 			stop()
 
-			fmt.Printf("Recovery Key: %s\n", result.RecoveryKey)
+			fmt.Printf("Recovery Key: %s\n", recoveryKey)
 
 			// Wait for user to confirm by pressing Enter
 			fmt.Print("Save the recovery key somewhere safe. Press Enter to continue...")
