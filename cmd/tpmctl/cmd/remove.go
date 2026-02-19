@@ -21,15 +21,15 @@ func newRemovePassphraseCmd() *cli.Command {
 				return fmt.Errorf("this command requires elevated privileges. Please run with sudo")
 			}
 
-			c := snapd.New()
+			s := tpm.New()
 
 			// Validate auth mode is currently passphrase
-			if err := tpm.ValidateAuthMode(ctx, c, snapd.AuthModePassphrase); err != nil {
+			if err := s.ValidateAuthMode(ctx, snapd.AuthModePassphrase); err != nil {
 				return err
 			}
 
 			if err := tui.WithSpinner("Removing passphrase...", func() error {
-				return tpm.RemovePassphrase(ctx, c)
+				return s.RemovePassphrase(ctx)
 			}); err != nil {
 				return err
 			}
@@ -50,15 +50,15 @@ func newRemovePINCmd() *cli.Command {
 				return fmt.Errorf("this command requires elevated privileges. Please run with sudo")
 			}
 
-			c := snapd.New()
+			s := tpm.New()
 
 			// Validate auth mode is currently PIN
-			if err := tpm.ValidateAuthMode(ctx, c, snapd.AuthModePin); err != nil {
+			if err := s.ValidateAuthMode(ctx, snapd.AuthModePin); err != nil {
 				return err
 			}
 
 			if err := tui.WithSpinner("Removing PIN...", func() error {
-				return tpm.RemovePIN(ctx, c)
+				return s.RemovePIN(ctx)
 			}); err != nil {
 				return err
 			}

@@ -22,10 +22,10 @@ func newAddPassphraseCmd() *cli.Command {
 				return fmt.Errorf("this command requires elevated privileges. Please run with sudo")
 			}
 
-			c := snapd.New()
+			s := tpm.New()
 
 			// Validate auth mode is currently none
-			if err := tpm.ValidateAuthMode(ctx, c, snapd.AuthModeNone); err != nil {
+			if err := s.ValidateAuthMode(ctx, snapd.AuthModeNone); err != nil {
 				return err
 			}
 
@@ -43,12 +43,12 @@ func newAddPassphraseCmd() *cli.Command {
 				return fmt.Errorf("passphrase confirmation does not match")
 			}
 
-			if err := tpm.IsValidPassphrase(ctx, newPassphrase); err != nil {
+			if err := s.IsValidPassphrase(ctx, newPassphrase); err != nil {
 				return err
 			}
 
 			if err := tui.WithSpinner("Adding passphrase...", func() error {
-				return tpm.AddPassphrase(ctx, newPassphrase)
+				return s.AddPassphrase(ctx, newPassphrase)
 			}); err != nil {
 				return err
 			}
@@ -69,10 +69,10 @@ func newAddPINCmd() *cli.Command {
 				return fmt.Errorf("this command requires elevated privileges. Please run with sudo")
 			}
 
-			c := snapd.New()
+			s := tpm.New()
 
 			// Validate auth mode is currently none
-			if err := tpm.ValidateAuthMode(ctx, c, snapd.AuthModeNone); err != nil {
+			if err := s.ValidateAuthMode(ctx,  snapd.AuthModeNone); err != nil {
 				return err
 			}
 
@@ -90,12 +90,12 @@ func newAddPINCmd() *cli.Command {
 				return fmt.Errorf("PIN confirmation does not match")
 			}
 
-			if err := tpm.IsValidPIN(ctx, newPin); err != nil {
+			if err := s.IsValidPIN(ctx, newPin); err != nil {
 				return err
 			}
 
 			if err := tui.WithSpinner("Adding PIN...", func() error {
-				return tpm.AddPIN(ctx, c, newPin)
+				return s.AddPIN(ctx, newPin)
 			}); err != nil {
 				return err
 			}

@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/canonical/snap-tpmctl/internal/snapd"
 	"github.com/canonical/snap-tpmctl/internal/tpm"
 	"github.com/canonical/snap-tpmctl/internal/tui"
 	"github.com/urfave/cli/v3"
@@ -15,7 +14,7 @@ func newReplacePassphraseCmd() *cli.Command {
 		Name:  "replace-passphrase",
 		Usage: "Replace encryption passphrase",
 		Action: func(ctx context.Context, cmd *cli.Command) error {
-			c := snapd.New()
+			s := tpm.New()
 
 			oldPassphrase, err := tui.ReadUserSecret("Enter current passphrase: ")
 			if err != nil {
@@ -36,12 +35,12 @@ func newReplacePassphraseCmd() *cli.Command {
 				return fmt.Errorf("passphrase confirmation does not match")
 			}
 
-			if err := tpm.IsValidPassphrase(ctx, newPassphrase); err != nil {
+			if err := s.IsValidPassphrase(ctx, newPassphrase); err != nil {
 				return err
 			}
 
 			if err := tui.WithSpinner("Replacing passphrase...", func() error {
-				return tpm.ReplacePassphrase(ctx, c, oldPassphrase, newPassphrase)
+				return s.ReplacePassphrase(ctx, oldPassphrase, newPassphrase)
 			}); err != nil {
 				return err
 			}
@@ -56,7 +55,7 @@ func newReplacePinCmd() *cli.Command {
 		Name:  "replace-pin",
 		Usage: "Replace encryption PIN",
 		Action: func(ctx context.Context, cmd *cli.Command) error {
-			c := snapd.New()
+			s := tpm.New()
 
 			oldPin, err := tui.ReadUserSecret("Enter current PIN: ")
 			if err != nil {
@@ -77,12 +76,12 @@ func newReplacePinCmd() *cli.Command {
 				return fmt.Errorf("PIN confirmation does not match")
 			}
 
-			if err := tpm.IsValidPIN(ctx, newPin); err != nil {
+			if err := s.IsValidPIN(ctx, newPin); err != nil {
 				return err
 			}
 
 			if err := tui.WithSpinner("Replacing PIN...", func() error {
-				return tpm.ReplacePIN(ctx, oldPin, newPin)
+				return s.ReplacePIN(ctx, oldPin, newPin)
 			}); err != nil {
 				return err
 			}

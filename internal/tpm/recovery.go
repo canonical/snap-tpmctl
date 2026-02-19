@@ -5,31 +5,19 @@ import (
 	"fmt"
 
 	"github.com/canonical/snap-tpmctl/internal/snapd"
+	"github.com/snapcore/secboot"
 )
 
-// keyCreator defines the interface for snapd operations needed for key management.
-type keyCreator interface {
-	GenerateRecoveryKey(ctx context.Context) (snapd.GenerateRecoveryKeyResult, error)
-	AddRecoveryKey(ctx context.Context, keyID string, slots []snapd.KeySlot) error
-	ReplaceRecoveryKey(ctx context.Context, keyID string, slots []snapd.KeySlot) error
-}
-
-// CreateKeyResult contains the result of creating a recovery key.
-type CreateKeyResult struct {
-	RecoveryKey string
-	KeyID       string
-}
-
 // CreateKey creates a new recovery key with the given name. Input should be validated using ValidateRecoveryKeyNameUnique first.
-func CreateKey(ctx context.Context, client keyCreator, recoveryKeyName string) (recoveryKey string, err error) {
-	key, err := client.GenerateRecoveryKey)(ctx)
+func (s SnapTPM) CreateKey(ctx context.Context, recoveryKeyName string) (recoveryKey string, err error) {
+	key, err := s.snapdClient.GenerateRecoveryKey)(ctx)
 	if err != nil {
 		return "", fmt.Errorf("failed to generate recovery key: %w", err)
 	}
 
 	keySlots := []snapd.KeySlot{{Name: recoveryKeyName}}
 
-	if err := client.AddRecoveryKey(ctx, key.KeyID, keySlots); err != nil {
+	if err := s.snapdClient.AddRecoveryKey(ctx, key.KeyID, keySlots); err != nil {
 		return "", fmt.Errorf("failed to add recovery key: %w", err)
 	}
 
@@ -37,28 +25,37 @@ func CreateKey(ctx context.Context, client keyCreator, recoveryKeyName string) (
 }
 
 // RegenerateKey replaces an existing recovery key with a new one with the given name. Input should be validated using ValidateRecoveryKeyName first.
-func RegenerateKey(ctx context.Context, client keyCreator, recoveryKeyName string) (recoveryKey string, err error) {
-	key, err := client.GenerateRecoveryKey(ctx)
+func (s SnapTPM) RegenerateKey(ctx context.Context, recoveryKeyName string) (recoveryKey string, err error) {
+	key, err := s.snapdClient.GenerateRecoveryKey(ctx)
 	if err != nil {
 		return "", fmt.Errorf("failed to generate recovery key: %w", err)
 	}
 
 	keySlots := []snapd.KeySlot{{Name: recoveryKeyName}}
 
-	if err := client.ReplaceRecoveryKey(ctx, key.KeyID, keySlots); err != nil {
+	if err := s.snapdClient.ReplaceRecoveryKey(ctx, key.KeyID, keySlots); err != nil {
 		return "", fmt.Errorf("failed to replace recovery key: %w", err)
 	}
 
 	return key.RecoveryKey, nil
 }
-}
 
 // CheckKey verifies if a recovery key is valid by checking it against the system.
-func CheckKey(ctx context.Context, client keyChecker, recoveryKey string) (bool, error) {
-	ok, err := client.CheckRecoveryKey(ctx, recoveryKey, nil)
+func (s SnapTPM) CheckKey(ctx context.Context, recoveryKey string) (bool, error) {
+	ok, err := s.snapdClient.CheckRecoveryKey(ctx, recoveryKey, nil)
 	if err != nil {
 		return false, fmt.Errorf("failed to check recovery key: %w", err)
 	}
 
 	return ok, nil
+}
+
+// GetLuksKey validates and converts the recovery key to a binary key format by parsing and formatting it.
+func GetLuksKey(recoveryKey string) (secboot.DiskUnlockKey, error) {
+	binKey, err := secboot.ParseRecoveryKey(recoveryKey)
+	if err != nil {
+		return nil, err
+	}
+
+	return binKey[:], nil
 }

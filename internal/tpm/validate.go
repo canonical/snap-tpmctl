@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"os"
 	"regexp"
 	"slices"
 	"strings"
@@ -13,13 +12,6 @@ import (
 	"github.com/canonical/snap-tpmctl/internal/snapd"
 	"github.com/snapcore/snapd/client"
 )
-
-// authValidator defines the interface for snapd operations needed for validation.
-type authValidator interface {
-	CheckPassphrase(ctx context.Context, passphrase string) error
-	CheckPIN(ctx context.Context, pin string) error
-	ListVolumeInfo(ctx context.Context) (snapd.SystemVolumesResult, error)
-}
 
 // resultValue represents the value field in validation error responses from snapd.
 type resultValue struct {
@@ -85,7 +77,7 @@ func (s SnapTPM) IsValidPassphrase(ctx context.Context, passphrase string) error
 		return fmt.Errorf("passphrase cannot be empty, try again")
 	}
 
-	if err := client.CheckPassphrase(ctx, passphrase); err != nil {
+	if err := s.snapdClient.CheckPassphrase(ctx, passphrase); err != nil {
 		return handleValidationError(err, "passphrase")
 	}
 
@@ -105,7 +97,7 @@ func (s SnapTPM) IsValidPIN(ctx context.Context, pin string) error {
 		}
 	}
 
-	if err := client.CheckPIN(ctx, pin); err != nil {
+	if err := s.snapdClient.CheckPIN(ctx, pin); err != nil {
 		return handleValidationError(err, "PIN")
 	}
 
@@ -113,8 +105,8 @@ func (s SnapTPM) IsValidPIN(ctx context.Context, pin string) error {
 }
 
 // ValidateAuthMode checks if the current authentication mode matches the expected mode.
-func ValidateAuthMode(ctx context.Context, client authValidator, expectedAuthMode snapd.AuthMode) error {
-	result, err := client.ListVolumeInfo(ctx)
+func (s SnapTPM) ValidateAuthMode(ctx context.Context, expectedAuthMode snapd.AuthMode) error {
+	result, err := s.snapdClient.ListVolumeInfo(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to enumerate key slots: %w", err)
 	}
@@ -145,29 +137,14 @@ func ValidateAuthMode(ctx context.Context, client authValidator, expectedAuthMod
 	return nil
 }
 
-// ValidateRecoveryKeyName validates that a recovery key name is valid.
-func ValidateRecoveryKeyName(ctx context.Context, client authValidator, recoveryKeyName string) error {
-	// Recovery key name cannot be empty.
-	if recoveryKeyName == "" {
-		return fmt.Errorf("recovery key name cannot be empty")
-	}
-
-	// Recovery key name cannot start with 'snap' or 'default'.
-	if strings.HasPrefix(recoveryKeyName, "snap") || strings.HasPrefix(recoveryKeyName, "default") {
-		return fmt.Errorf("recovery key name cannot start with 'snap' or 'default'")
-	}
-
-	return nil
-}
-
 // ValidateRecoveryKeyNameUnique validates that a recovery key name is valid and not in use.
-func ValidateRecoveryKeyNameUnique(ctx context.Context, client authValidator, recoveryKeyName string) error {
-	if err := ValidateRecoveryKeyName(ctx, client, recoveryKeyName); err != nil {
+func (s SnapTPM) ValidateRecoveryKeyNameUnique(ctx context.Context, recoveryKeyName string) error {
+	if err := ValidateRecoveryKeyName(ctx, recoveryKeyName); err != nil {
 		return err
 	}
 
 	// Recovery key name cannot already be in use.
-	result, err := client.ListVolumeInfo(ctx)
+	result, err := s.snapdClient.ListVolumeInfo(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to enumerate key slots: %w", err)
 	}
@@ -198,18 +175,16 @@ func ValidateRecoveryKey(key string) error {
 	return nil
 }
 
-// ValidateDevicePath validates that a device path exists in the system.
-func ValidateDevicePath(devicePath string) error {
-	if devicePath == "" {
-		return fmt.Errorf("device path cannot be empty")
+// ValidateRecoveryKeyName validates that a recovery key name is valid.
+func ValidateRecoveryKeyName(ctx context.Context, recoveryKeyName string) error {
+	// Recovery key name cannot be empty.
+	if recoveryKeyName == "" {
+		return fmt.Errorf("recovery key name cannot be empty")
 	}
 
-	// Check if the device actually exists
-	if _, err := os.Stat(devicePath); err != nil {
-		if os.IsNotExist(err) {
-			return fmt.Errorf("device %q does not exist", devicePath)
-		}
-		return fmt.Errorf("failed to check device %q: %w", devicePath, err)
+	// Recovery key name cannot start with 'snap' or 'default'.
+	if strings.HasPrefix(recoveryKeyName, "snap") || strings.HasPrefix(recoveryKeyName, "default") {
+		return fmt.Errorf("recovery key name cannot start with 'snap' or 'default'")
 	}
 
 	return nil

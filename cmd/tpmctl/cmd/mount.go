@@ -4,11 +4,28 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/canonical/snap-tpmctl/internal/tpm"
 	"github.com/canonical/snap-tpmctl/internal/tui"
+	"github.com/snapcore/secboot"
 	"github.com/urfave/cli/v3"
 )
+
+type authRequestor struct{}
+
+func (r *authRequestor) RequestUserCredential(ctx context.Context, name, path string, authTypes secboot.UserAuthType) (string, error) {
+	if authTypes != secboot.UserAuthTypeRecoveryKey {
+		return "", fmt.Errorf("authentication type not supported")
+	}
+
+	key, err := tui.ReadUserSecret("Enter recovery key: ")
+	if err != nil {
+		return "", err
+	}
+
+	return key, nil
+}
 
 func newMountVolumeCmd() *cli.Command {
 	var device, dir string
@@ -39,7 +56,7 @@ func newMountVolumeCmd() *cli.Command {
 				return err
 			}
 
-			if err := tpm.MountVolume(device, p); err != nil {
+			if err := tpm.MountVolume(device, p, &authRequestor{}); err != nil {
 				return err
 			}
 
