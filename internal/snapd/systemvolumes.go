@@ -20,6 +20,7 @@ type SystemVolumesStructureInfo = snapdClient.SystemVolumesStructureInfo
 // passphrase, or PIN-backed slots.
 type KeySlotInfo = snapdClient.KeyslotInfo
 
+// IsRecoveryKey returns true if the keyslot is a recovery key.
 func IsRecoveryKey(slot KeySlotInfo) bool {
 	return slot.Type == snapdClient.KeyslotTypeRecovery
 }
