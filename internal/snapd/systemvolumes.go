@@ -8,8 +8,16 @@ import (
 	snapdClient "github.com/snapcore/snapd/client"
 )
 
+// SystemVolumesResult is the response for /v2/system-volumes and includes the
+// list of volumes plus their structures and keyslots.
 type SystemVolumesResult = snapdClient.SystemVolumesResult
+
+// SystemVolumesStructureInfo describes a single structure within a system
+// volume (name, device, fs, and size info).
 type SystemVolumesStructureInfo = snapdClient.SystemVolumesStructureInfo
+
+// KeySlotInfo contains auth mode/type data used to distinguish recovery key,
+// passphrase, or PIN-backed slots.
 type KeySlotInfo = snapdClient.KeyslotInfo
 
 func IsRecoveryKey(slot KeySlotInfo) bool {
