@@ -50,16 +50,16 @@ func TestReplacePIN(t *testing.T) {
 	t.Parallel()
 
 	tests := map[string]struct {
-		oldPin string
-		newPin string
+		oldPIN string
+		newPIN string
 
 		replacePINError bool
 
 		wantErr bool
 	}{
-		"Success": {oldPin: "123456", newPin: "654321"},
+		"Success": {oldPIN: "123456", newPIN: "654321"},
 
-		"Error when snapd down": {oldPin: "123456", newPin: "654321", replacePINError: true, wantErr: true},
+		"Error when snapd down": {oldPIN: "123456", newPIN: "654321", replacePINError: true, wantErr: true},
 	}
 
 	for name, tc := range tests {
@@ -72,7 +72,7 @@ func TestReplacePIN(t *testing.T) {
 				ReplacePINError: tc.replacePINError,
 			})
 
-			err := tpm.ReplacePIN(ctx, mockClient, tc.oldPin, tc.newPin)
+			err := tpm.ReplacePIN(ctx, mockClient, tc.oldPIN, tc.newPIN)
 
 			if tc.wantErr {
 				is.True(err != nil) // Expected an error but got nil

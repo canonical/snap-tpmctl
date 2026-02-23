@@ -39,7 +39,7 @@ func (s SnapTPM) RemovePassphrase(ctx context.Context) error {
 
 // AddPIN adds PIN authentication to the platform key.
 func (s SnapTPM) AddPIN(ctx context.Context, pin string) error {
-	err := s.snapdClient.ReplacePlatformKey(ctx, snapd.AuthModePin, pin)
+	err := s.snapdClient.ReplacePlatformKey(ctx, snapd.AuthModePIN, pin)
 	if err != nil {
 		return fmt.Errorf("failed to add PIN: %w", err)
 	}
@@ -48,8 +48,8 @@ func (s SnapTPM) AddPIN(ctx context.Context, pin string) error {
 }
 
 // ReplacePIN replaces the PIN using the provided client.
-func (s SnapTPM) ReplacePIN(ctx context.Context, oldPin, newPin string) error {
-	err := s.snapdClient.ReplacePIN(ctx, oldPin, newPin, nil)
+func (s SnapTPM) ReplacePIN(ctx context.Context, oldPIN, newPIN string) error {
+	err := s.snapdClient.ReplacePIN(ctx, oldPIN, newPIN, nil)
 	if err != nil {
 		return fmt.Errorf("failed to change PIN: %w", err)
 	}

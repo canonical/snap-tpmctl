@@ -279,7 +279,7 @@ func TestValidateAuthMode(t *testing.T) {
 			expectedAuthMode: snapd.AuthModePassphrase,
 		},
 		"Validates PIN authentication in use": {
-			expectedAuthMode: snapd.AuthModePin,
+			expectedAuthMode: snapd.AuthModePIN,
 		},
 		"Validates no authentication in use": {
 			expectedAuthMode: snapd.AuthModeNone,
@@ -290,7 +290,7 @@ func TestValidateAuthMode(t *testing.T) {
 			wantErr:          true,
 		},
 		"Error when auth mode mismatch": {
-			expectedAuthMode: snapd.AuthModePin,
+			expectedAuthMode: snapd.AuthModePIN,
 			mockAuthMode:     "passphrase",
 			wantErr:          true,
 		},

@@ -53,7 +53,7 @@ func newRemovePINCmd() *cli.Command {
 			s := tpm.New()
 
 			// Validate auth mode is currently PIN
-			if err := s.ValidateAuthMode(ctx, snapd.AuthModePin); err != nil {
+			if err := s.ValidateAuthMode(ctx, snapd.AuthModePIN); err != nil {
 				return err
 			}
 

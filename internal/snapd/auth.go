@@ -4,23 +4,26 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-)
 
-// TODO: move struct to exported version of them if available in snapd.
+	snapdClient "github.com/snapcore/snapd/client"
+	"github.com/snapcore/snapd/gadget/device"
+)
 
 // ReplacePassphrase replaces a passphrase to the specified keyslots.
 // This is an async operation that waits for completion.
-func (c *Client) ReplacePassphrase(ctx context.Context, oldPassphrase string, newPassphrase string, keySlots []KeySlot) error {
+func (c *Client) ReplacePassphrase(ctx context.Context, oldPassphrase string, newPassphrase string, keySlots []Keyslot) error {
 	body := struct {
-		Action        string    `json:"action"`
-		KeySlots      []KeySlot `json:"keyslots"`
-		NewPassphrase string    `json:"new-passphrase"`
-		OldPassphrase string    `json:"old-passphrase"`
+		Action   string    `json:"action"`
+		KeySlots []Keyslot `json:"keyslots"`
+
+		snapdClient.ChangePassphraseOptions
 	}{
-		Action:        "change-passphrase",
-		NewPassphrase: newPassphrase,
-		OldPassphrase: oldPassphrase,
-		KeySlots:      keySlots,
+		Action:   "change-passphrase",
+		KeySlots: keySlots,
+		ChangePassphraseOptions: snapdClient.ChangePassphraseOptions{
+			NewPassphrase: newPassphrase,
+			OldPassphrase: oldPassphrase,
+		},
 	}
 
 	if err := c.doAsyncRequest(ctx, http.MethodPost, "/v2/system-volumes", nil, nil, body); err != nil {
@@ -51,10 +54,10 @@ func (c *Client) CheckPassphrase(ctx context.Context, passphrase string) error {
 func (c *Client) CheckPIN(ctx context.Context, pin string) error {
 	body := struct {
 		Action string `json:"action"`
-		Pin    string `json:"pin"`
+		PIN    string `json:"pin"`
 	}{
 		Action: "check-pin",
-		Pin:    pin,
+		PIN:    pin,
 	}
 
 	if _, err := c.doSyncRequest(ctx, http.MethodPost, "/v2/system-volumes", nil, nil, body); err != nil {
@@ -66,17 +69,19 @@ func (c *Client) CheckPIN(ctx context.Context, pin string) error {
 
 // ReplacePIN replaces a PIN to the specified keyslots.
 // This is an async operation that waits for completion.
-func (c *Client) ReplacePIN(ctx context.Context, oldPin string, newPin string, keySlots []KeySlot) error {
+func (c *Client) ReplacePIN(ctx context.Context, oldPIN string, newPIN string, keySlots []Keyslot) error {
 	body := struct {
 		Action   string    `json:"action"`
-		KeySlots []KeySlot `json:"keyslots"`
-		NewPin   string    `json:"new-pin"`
-		OldPin   string    `json:"old-pin"`
+		KeySlots []Keyslot `json:"keyslots"`
+
+		snapdClient.ChangePINOptions
 	}{
 		Action:   "change-pin",
-		NewPin:   newPin,
-		OldPin:   oldPin,
 		KeySlots: keySlots,
+		ChangePINOptions: snapdClient.ChangePINOptions{
+			NewPIN: newPIN,
+			OldPIN: oldPIN,
+		},
 	}
 
 	if err := c.doAsyncRequest(ctx, http.MethodPost, "/v2/system-volumes", nil, nil, body); err != nil {
@@ -87,13 +92,13 @@ func (c *Client) ReplacePIN(ctx context.Context, oldPin string, newPin string, k
 }
 
 // AuthMode represents the authentication mode for platform keys.
-type AuthMode string
+type AuthMode = device.AuthMode
 
 // Supported authentication modes for platform keys.
 const (
-	AuthModePin        AuthMode = "pin"
-	AuthModePassphrase AuthMode = "passphrase"
-	AuthModeNone       AuthMode = "none"
+	AuthModePIN        = device.AuthModePIN
+	AuthModePassphrase = device.AuthModePassphrase
+	AuthModeNone       = device.AuthModeNone
 )
 
 // ReplacePlatformKey replaces the platform key with the specified authentication.
@@ -104,22 +109,23 @@ func (c *Client) ReplacePlatformKey(ctx context.Context, authMode AuthMode, secr
 
 	var passphrase, pin string
 	switch authMode {
-	case AuthModePin:
+	case AuthModePIN:
 		pin = secret
 	case AuthModePassphrase:
 		passphrase = secret
 	}
 
 	body := struct {
-		Action     string   `json:"action"`
-		AuthMode   AuthMode `json:"auth-mode"`
-		Passphrase string   `json:"passphrase"`
-		Pin        string   `json:"pin"`
+		Action string `json:"action"`
+
+		snapdClient.PlatformKeyOptions
 	}{
-		Action:     "replace-platform-key",
-		AuthMode:   authMode,
-		Pin:        pin,
-		Passphrase: passphrase,
+		Action: "replace-platform-key",
+		PlatformKeyOptions: snapdClient.PlatformKeyOptions{
+			AuthMode:   authMode,
+			PIN:        pin,
+			Passphrase: passphrase,
+		},
 	}
 
 	if err := c.doAsyncRequest(ctx, http.MethodPost, "/v2/system-volumes", nil, nil, body); err != nil {
