@@ -151,7 +151,7 @@ func devicePathExists(p string) error {
 		if os.IsNotExist(err) {
 			return fmt.Errorf("device %q does not exist", p)
 		}
-		return fmt.Errorf("failed to check device %q: %w", p, err)
+		return fmt.Errorf("failed to check device %q: %v", p, err)
 	}
 
 	return nil

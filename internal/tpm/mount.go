@@ -28,7 +28,6 @@ func MountVolume(device, target string, authRequestor secboot.AuthRequestor) err
 	mapperPath := filepath.Join("/dev/mapper/", volumeName)
 
 	if err := os.MkdirAll(target, 0750); err != nil {
-		// TODO: change all %w to %v
 		return fmt.Errorf("unable to create directory: %v", err)
 	}
 
@@ -47,7 +46,7 @@ func MountVolume(device, target string, authRequestor secboot.AuthRequestor) err
 	}
 
 	if err := syscall.Mount(mapperPath, target, "ext4", syscall.MS_RELATIME, "rw"); err != nil {
-		return fmt.Errorf("unable to mount volume: %w", err)
+		return fmt.Errorf("unable to mount volume: %v", err)
 	}
 
 	return nil
@@ -65,16 +64,16 @@ func UnmountVolume(target string) error {
 	}
 
 	if err := syscall.Unmount(target, 0); err != nil {
-		return fmt.Errorf("unable to unmount volume: %w", err)
+		return fmt.Errorf("unable to unmount volume: %v", err)
 	}
 
 	if err := os.RemoveAll(target); err != nil {
-		return fmt.Errorf("unable to remove mount point: %w", err)
+		return fmt.Errorf("unable to remove mount point: %v", err)
 	}
 
 	volumeName := filepath.Base(device)
 	if err := secboot.DeactivateVolume(volumeName); err != nil {
-		return fmt.Errorf("unable to deactivate volume: %w", err)
+		return fmt.Errorf("unable to deactivate volume: %v", err)
 	}
 
 	return nil

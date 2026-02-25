@@ -25,7 +25,7 @@ type resultValue struct {
 func handleValidationError(err error, authMode string) error {
 	snapdErr, ok := errors.AsType[*snapd.Error](err)
 	if !ok {
-		return fmt.Errorf("failed to check %s: %w", authMode, err)
+		return fmt.Errorf("failed to check %s: %v", authMode, err)
 	}
 
 	switch snapdErr.Kind {
@@ -108,7 +108,7 @@ func (s SnapTPM) IsValidPIN(ctx context.Context, pin string) error {
 func (s SnapTPM) ValidateAuthMode(ctx context.Context, expectedAuthMode snapd.AuthMode) error {
 	result, err := s.snapdClient.ListVolumeInfo(ctx)
 	if err != nil {
-		return fmt.Errorf("failed to enumerate key slots: %w", err)
+		return fmt.Errorf("failed to enumerate key slots: %v", err)
 	}
 
 	systemData, ok := result.ByContainerRole["system-data"]
@@ -146,7 +146,7 @@ func (s SnapTPM) ValidateRecoveryKeyNameUnique(ctx context.Context, recoveryKeyN
 	// Recovery key name cannot already be in use.
 	result, err := s.snapdClient.ListVolumeInfo(ctx)
 	if err != nil {
-		return fmt.Errorf("failed to enumerate key slots: %w", err)
+		return fmt.Errorf("failed to enumerate key slots: %v", err)
 	}
 
 	for _, volumeInfo := range result.ByContainerRole {

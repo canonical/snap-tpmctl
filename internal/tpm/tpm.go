@@ -21,7 +21,7 @@ func New() SnapTPM {
 func (s SnapTPM) FdeStatus(ctx context.Context) (string, error) {
 	status, err := s.snapdClient.FdeStatus(ctx)
 	if err != nil {
-		return "", fmt.Errorf("failed to retrieve the FDE status: %w", err)
+		return "", fmt.Errorf("failed to retrieve the FDE status: %v", err)
 	}
 
 	return status, nil

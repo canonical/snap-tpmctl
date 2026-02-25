@@ -54,7 +54,7 @@ func ReadUserSecret(form string) (string, error) {
 	fmt.Fprintln(stdout)
 
 	if err != nil {
-		return "", fmt.Errorf("failed to read input: %w", err)
+		return "", fmt.Errorf("failed to read input: %v", err)
 	}
 
 	return string(input), nil
