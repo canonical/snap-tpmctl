@@ -14,7 +14,7 @@ func init() {
 	}
 }
 
-// WithSocketPath configures the snapd socket path for the client.
+// WithBaseURL configures the snapd socket path for the client.
 //
-//go:linkname WithSocketPath github.com/canonical/snap-tpmctl/internal/snapd.withSocketPath
-func WithSocketPath(p string) snapd.Option
+//go:linkname WithBaseURL github.com/canonical/snap-tpmctl/internal/snapd.withBaseURL
+func WithBaseURL(p string) snapd.Option

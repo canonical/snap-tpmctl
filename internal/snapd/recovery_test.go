@@ -2,11 +2,9 @@ package snapd_test
 
 import (
 	"context"
-	"path/filepath"
 	"testing"
 
 	"github.com/canonical/snap-tpmctl/internal/snapd"
-	snapdtestutils "github.com/canonical/snap-tpmctl/internal/snapd/testutils"
 	"github.com/matryer/is"
 )
 
@@ -27,9 +25,9 @@ func TestCheckRecoveryKey(t *testing.T) {
 			t.Parallel()
 			is := is.New(t)
 
-			socket := filepath.Join(t.TempDir(), "snapd.socket")
+			
 
-			c := snapd.New(snapdtestutils.WithSocketPath(socket))
+			c := snapd.New()
 
 			// TODO: create the mock
 			return
