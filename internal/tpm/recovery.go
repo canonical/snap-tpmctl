@@ -12,13 +12,13 @@ import (
 func (s SnapTPM) CreateKey(ctx context.Context, recoveryKeyName string) (recoveryKey string, err error) {
 	key, err := s.snapdClient.GenerateRecoveryKey(ctx)
 	if err != nil {
-		return "", fmt.Errorf("failed to generate recovery key: %w", err)
+		return "", fmt.Errorf("failed to generate recovery key: %v", err)
 	}
 
 	keySlots := []snapd.Keyslot{{Name: recoveryKeyName}}
 
 	if err := s.snapdClient.AddRecoveryKey(ctx, key.KeyID, keySlots); err != nil {
-		return "", fmt.Errorf("failed to add recovery key: %w", err)
+		return "", fmt.Errorf("failed to add recovery key: %v", err)
 	}
 
 	return key.RecoveryKey, nil
@@ -28,13 +28,13 @@ func (s SnapTPM) CreateKey(ctx context.Context, recoveryKeyName string) (recover
 func (s SnapTPM) RegenerateKey(ctx context.Context, recoveryKeyName string) (recoveryKey string, err error) {
 	key, err := s.snapdClient.GenerateRecoveryKey(ctx)
 	if err != nil {
-		return "", fmt.Errorf("failed to generate recovery key: %w", err)
+		return "", fmt.Errorf("failed to generate recovery key: %v", err)
 	}
 
 	keySlots := []snapd.Keyslot{{Name: recoveryKeyName}}
 
 	if err := s.snapdClient.ReplaceRecoveryKey(ctx, key.KeyID, keySlots); err != nil {
-		return "", fmt.Errorf("failed to replace recovery key: %w", err)
+		return "", fmt.Errorf("failed to replace recovery key: %v", err)
 	}
 
 	return key.RecoveryKey, nil
@@ -44,7 +44,7 @@ func (s SnapTPM) RegenerateKey(ctx context.Context, recoveryKeyName string) (rec
 func (s SnapTPM) CheckKey(ctx context.Context, recoveryKey string) (bool, error) {
 	ok, err := s.snapdClient.CheckRecoveryKey(ctx, recoveryKey, nil)
 	if err != nil {
-		return false, fmt.Errorf("failed to check recovery key: %w", err)
+		return false, fmt.Errorf("failed to check recovery key: %v", err)
 	}
 
 	return ok, nil
