@@ -64,22 +64,22 @@ func TestAllLogLevels(t *testing.T) {
 		"debug": {
 			fn: log.Debug,
 
-			want: "DEBUG msg with args: 42\n",
+			want: "DEBUG: msg with args: 42\n",
 		},
 		"info": {
 			fn: log.Info,
 
-			want: "INFO msg with args: 42\n",
+			want: "INFO: msg with args: 42\n",
 		},
 		"warning": {
 			fn: log.Warn,
 
-			want: "WARN msg with args: 42\n",
+			want: "WARN: msg with args: 42\n",
 		},
 		"error": {
 			fn: log.Error,
 
-			want: "ERROR msg with args: 42\n",
+			want: "ERROR: msg with args: 42\n",
 		},
 	}
 
