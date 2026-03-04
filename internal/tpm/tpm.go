@@ -9,12 +9,28 @@ import (
 	"github.com/canonical/snap-tpmctl/internal/snapd"
 )
 
+// SnapTPM provides methods to interact with TPM/FDE features via snapd.
 type SnapTPM struct {
 	snapdClient *snapd.Client
 }
 
-func New() SnapTPM {
-	return SnapTPM{snapdClient: snapd.New()}
+type options struct {
+	snapdClient *snapd.Client
+}
+
+// Option is a functional option for configuring the SnapTPM.
+type Option func(*options)
+
+// New creates a new SnapTPM instance with the provided options.
+func New(args ...Option) SnapTPM {
+	o := options{
+		snapdClient: snapd.New(),
+	}
+	for _, f := range args {
+		f(&o)
+	}
+
+	return SnapTPM{snapdClient: o.snapdClient}
 }
 
 // FdeStatus retrieves the Full Disk Encryption status from snapd.

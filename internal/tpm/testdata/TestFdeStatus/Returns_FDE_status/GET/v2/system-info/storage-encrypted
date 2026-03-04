@@ -1,0 +1,8 @@
+{
+    "result": {
+        "status": "enabled"
+    },
+    "status": "OK",
+    "status-code": 200,
+    "type": "sync"
+}
