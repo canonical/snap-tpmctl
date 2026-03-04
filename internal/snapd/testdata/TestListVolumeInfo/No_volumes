@@ -1,0 +1,10 @@
+{
+  "result": {
+    "by-container-role": {}
+  },
+  "status": "OK",
+  "status-code": 200,
+  "type": "sync",
+  "warning-count": 2,
+  "warning-timestamp": "2026-02-12T11:34:28.35616551Z"
+}

@@ -1,8 +1,8 @@
 package snapd
 
-// withSocketPath configures the snapd socket path for the client.
-func withSocketPath(p string) Option {
+// withBaseURL configures the snapd server to connect to.
+func withBaseURL(p string) Option {
 	return func(o *options) {
-		o.socket = p
+		o.baseURL = p
 	}
 }

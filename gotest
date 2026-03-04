@@ -1,0 +1,32 @@
+#!/bin/bash
+
+set -eu
+
+find_go_mod() {
+    cwd="$(pwd)"
+
+    while :; do
+        if [ -e "$cwd/go.mod" ]; then
+            echo $cwd
+            return
+        elif [ "$cwd" = "/" ]; then
+            echo "E: go.mod not found in parent path. Aborting!"
+            exit 1
+        else
+            cwd="$(dirname "$cwd")"
+        fi
+    done
+}
+
+projectroot="$(find_go_mod)"
+cov_dir="${projectroot}/coverage"
+mkdir -p "${cov_dir}"
+
+# start http server on 6061 if none
+if ! $(nc -z localhost 6061); then
+    nohup python3 -m http.server --directory "${cov_dir}" 6061 1>/dev/null 2>&1 &
+fi
+
+go test $@ -coverprofile="${cov_dir}/coverage.out" -coverpkg=./...
+go tool cover -html="${cov_dir}/coverage.out" -o "${cov_dir}/index.html"
+echo "Coverage report available at http://localhost:6061/index.html"

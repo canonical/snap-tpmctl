@@ -1,0 +1,8 @@
+{
+  "result": {
+    "message": "system volume action requires recovery-key to be provided"
+  },
+  "status": "Bad Request",
+  "status-code": 400,
+  "type": "error"
+}

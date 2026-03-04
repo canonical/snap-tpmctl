@@ -2,13 +2,76 @@ package snapd_test
 
 import (
 	"context"
-	"path/filepath"
 	"testing"
 
 	"github.com/canonical/snap-tpmctl/internal/snapd"
 	snapdtestutils "github.com/canonical/snap-tpmctl/internal/snapd/testutils"
+	"github.com/canonical/snap-tpmctl/internal/testutils/golden"
 	"github.com/matryer/is"
 )
+
+func TestGenerateRecoveryKey(t *testing.T) {
+	t.Parallel()
+
+	tests := map[string]struct {
+		wantErr bool
+	}{
+		"Returns_recovery_key_result": {},
+
+		"Error_on_invalid_result":           {wantErr: true},
+		"Error_on_snapd_call_returning_400": {wantErr: true},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+			is := is.New(t)
+			c := snapdtestutils.NewMockSnapdServer(t, "/v2/system-volumes")
+
+			got, err := c.GenerateRecoveryKey(context.Background())
+			if tc.wantErr {
+				is.True(err != nil)
+				return
+			}
+			is.NoErr(err)
+
+			golden.CheckOrUpdateYAML(t, got)
+		})
+	}
+}
+
+func TestAddRecoveryKey(t *testing.T) {
+	t.Parallel()
+
+	tests := map[string]struct {
+		keyID           string
+		recoveryKeyName string
+
+		wantErr bool
+	}{
+		// "Returns_accepted": {keyID: "OVJe6EHITg", recoveryKeyName: "test"},
+
+		"Error_on_invalid_key_id":            {keyID: "invalid-key-id", recoveryKeyName: "test", wantErr: true},
+		"Error_on_invalid_recovery_key_name": {keyID: "OVJe6EHITg", recoveryKeyName: "default", wantErr: true},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+			is := is.New(t)
+			c := snapdtestutils.NewMockSnapdServer(t, "/v2/system-volumes")
+
+			keySlots := []snapd.KeySlot{{Name: tc.recoveryKeyName}}
+
+			err := c.AddRecoveryKey(context.Background(), tc.keyID, keySlots)
+			if tc.wantErr {
+				is.True(err != nil)
+				return
+			}
+			is.NoErr(err)
+		})
+	}
+}
 
 func TestCheckRecoveryKey(t *testing.T) {
 	t.Parallel()
@@ -19,28 +82,28 @@ func TestCheckRecoveryKey(t *testing.T) {
 		want    bool
 		wantErr bool
 	}{
-		"valid recovery key": {recoveryKey: "12345678-1234-5678-1234-567812345678", want: true},
+		"Recovery_key_matches":                 {recoveryKey: "12345678-1234-5678-1234-567812345678", want: true},
+		"Recovery_key_does_not_match":          {recoveryKey: "99999999-1234-5678-1234-567812345678", want: false},
+		"Return_false_on_invalid_recovery_key": {recoveryKey: "invalid-format", want: false},
+
+		"Error_on_invalid_input": {recoveryKey: "", wantErr: true},
 	}
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 			is := is.New(t)
+			c := snapdtestutils.NewMockSnapdServer(t, "/v2/system-volumes")
 
-			socket := filepath.Join(t.TempDir(), "snapd.socket")
-
-			c := snapd.New(snapdtestutils.WithSocketPath(socket))
-
-			// TODO: create the mock
-			return
-
-			got, err := c.CheckRecoveryKey(context.Background(), tc.recoveryKey, nil)
+			// Container roles are passed as is to snapd. Not handled in that test.
+			valid, err := c.CheckRecoveryKey(context.Background(), tc.recoveryKey, nil)
 			if tc.wantErr {
-				is.True(err != nil) // Expected an error but got nil
+				is.True(err != nil)
+				return
 			}
-			is.NoErr(err) // Unexpected error
+			is.NoErr(err)
 
-			is.Equal(tc.want, got) // Got %v, want %v
+			is.Equal(valid, tc.want)
 		})
 	}
 }

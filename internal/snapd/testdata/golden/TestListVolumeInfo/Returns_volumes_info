@@ -1,0 +1,22 @@
+bycontainerrole:
+    container-with-keyslots:
+        name: ubuntu-data
+        volumename: pc
+        encrypted: true
+        keyslots:
+            default:
+                type: platform
+                authmode: passphrase
+                platformname: tpm2
+                roles:
+                    - run+recover
+            default-recovery:
+                type: recovery
+                authmode: ""
+                platformname: ""
+                roles: []
+    container1:
+        name: mbr
+        volumename: pc
+        encrypted: false
+        keyslots: {}
