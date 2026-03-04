@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/canonical/snap-tpmctl/internal/snapd"
+	snapdtestutils "github.com/canonical/snap-tpmctl/internal/snapd/testutils"
 	"github.com/matryer/is"
 )
 
@@ -17,28 +17,28 @@ func TestCheckRecoveryKey(t *testing.T) {
 		want    bool
 		wantErr bool
 	}{
-		"valid recovery key": {recoveryKey: "12345678-1234-5678-1234-567812345678", want: true},
+		"Recovery_key_matches":                 {recoveryKey: "12345678-1234-5678-1234-567812345678", want: true},
+		"Recovery_key_does_not_match":          {recoveryKey: "99999999-1234-5678-1234-567812345678", want: false},
+		"Return_false_on_invalid_recovery_key": {recoveryKey: "invalid-format", want: false},
+
+		"Error_on_invalid_input": {recoveryKey: "", wantErr: true},
 	}
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 			is := is.New(t)
+			c := snapdtestutils.NewMockSnapdServer(t, "/v2/system-volumes")
 
-			
-
-			c := snapd.New()
-
-			// TODO: create the mock
-			return
-
-			got, err := c.CheckRecoveryKey(context.Background(), tc.recoveryKey, nil)
+			// Container roles are passed as is to snapd. Not handled in that test.
+			valid, err := c.CheckRecoveryKey(context.Background(), tc.recoveryKey, nil)
 			if tc.wantErr {
-				is.True(err != nil) // Expected an error but got nil
+				is.True(err != nil)
+				return
 			}
-			is.NoErr(err) // Unexpected error
+			is.NoErr(err)
 
-			is.Equal(tc.want, got) // Got %v, want %v
+			is.Equal(valid, tc.want)
 		})
 	}
 }

@@ -2,14 +2,9 @@ package snapd_test
 
 import (
 	"context"
-	"net/http"
-	"net/http/httptest"
-	"os"
 	"testing"
 
-	"github.com/canonical/snap-tpmctl/internal/snapd"
 	snapdtestutils "github.com/canonical/snap-tpmctl/internal/snapd/testutils"
-	"github.com/canonical/snap-tpmctl/internal/testutils"
 	"github.com/canonical/snap-tpmctl/internal/testutils/golden"
 	"github.com/matryer/is"
 )
@@ -34,8 +29,9 @@ func TestListVolumeInfo(t *testing.T) {
 		wantErr bool
 	}{
 		"Returns_volumes_info": {},
-		"No_volume_info": {},
-		
+		"No_volumes":           {},
+
+		"Error_on_invalid_result":           {wantErr: true},
 		"Error_on_snapd_call_returning_400": {wantErr: true},
 	}
 
@@ -43,23 +39,7 @@ func TestListVolumeInfo(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 			is := is.New(t)
-
-			resp, err := os.ReadFile(testutils.TestPath(t))
-			is.NoErr(err) // Setup: read the test reponse from test file asset
-
-			ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				if r.URL.Path != "/v2/system-volumes" {
-					http.NotFound(w, r)
-					return
-				}
-				_, err := w.Write (resp)
-				is.NoErr(err) // Server: could not write response to client
-			}))
-			defer ts.Close()
-
-
-			c := snapd.New(snapdtestutils.WithBaseURL(ts.URL))
-
+			c := snapdtestutils.NewMockSnapdServer(t, "/v2/system-volumes")
 
 			got, err := c.ListVolumeInfo(context.Background())
 			if tc.wantErr {
@@ -71,5 +51,4 @@ func TestListVolumeInfo(t *testing.T) {
 			golden.CheckOrUpdateYAML(t, got)
 		})
 	}
-
 }

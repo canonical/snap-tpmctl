@@ -1,8 +1,34 @@
 {
   "result": {
-    "message": "this action is not supported on this system"
+    "by-container-role": {
+      "container1": {
+        "encrypted": false,
+        "name": "mbr",
+        "volume-name": "pc"
+      },
+      "container-with-keyslots": {
+        "encrypted": true,
+        "keyslots": {
+          "default": {
+            "auth-mode": "passphrase",
+            "platform-name": "tpm2",
+            "roles": [
+              "run+recover"
+            ],
+            "type": "platform"
+          },
+          "default-recovery": {
+            "type": "recovery"
+          }
+        },
+        "name": "ubuntu-data",
+        "volume-name": "pc"
+      }
+    }
   },
-  "status": "Bad Request",
-  "status-code": 400,
-  "type": "error"
+  "status": "OK",
+  "status-code": 200,
+  "type": "sync",
+  "warning-count": 2,
+  "warning-timestamp": "2026-02-12T11:34:28.35616551Z"
 }

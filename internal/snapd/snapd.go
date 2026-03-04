@@ -58,7 +58,7 @@ func New(args ...Option) *Client {
 		snapd: snapdClient.New(&snapdClient.Config{
 			DisableAuth: true,
 			Interactive: true,
-			BaseURL:      o.baseURL,
+			BaseURL:     o.baseURL,
 			UserAgent:   defaultUserAgent,
 		}),
 	}
