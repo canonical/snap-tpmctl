@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/canonical/snap-tpmctl/internal/snapd"
 	snapdtestutils "github.com/canonical/snap-tpmctl/internal/snapd/testutils"
 	"github.com/canonical/snap-tpmctl/internal/testutils/golden"
 	"github.com/matryer/is"
@@ -35,6 +36,39 @@ func TestGenerateRecoveryKey(t *testing.T) {
 			is.NoErr(err)
 
 			golden.CheckOrUpdateYAML(t, got)
+		})
+	}
+}
+
+func TestAddRecoveryKey(t *testing.T) {
+	t.Parallel()
+
+	tests := map[string]struct {
+		keyID           string
+		recoveryKeyName string
+
+		wantErr bool
+	}{
+		// "Returns_accepted": {keyID: "OVJe6EHITg", recoveryKeyName: "test"},
+
+		"Error_on_invalid_key_id":            {keyID: "invalid-key-id", recoveryKeyName: "test", wantErr: true},
+		"Error_on_invalid_recovery_key_name": {keyID: "OVJe6EHITg", recoveryKeyName: "default", wantErr: true},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+			is := is.New(t)
+			c := snapdtestutils.NewMockSnapdServer(t, "/v2/system-volumes")
+
+			keySlots := []snapd.KeySlot{{Name: tc.recoveryKeyName}}
+
+			err := c.AddRecoveryKey(context.Background(), tc.keyID, keySlots)
+			if tc.wantErr {
+				is.True(err != nil)
+				return
+			}
+			is.NoErr(err)
 		})
 	}
 }
