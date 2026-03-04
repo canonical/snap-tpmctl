@@ -20,7 +20,7 @@ func main() {
 
 func run(ctx context.Context, a app) int {
 	if err := a.Run(ctx); err != nil {
-		log.Error(ctx, "the error is: %v", err)
+		log.Error(ctx, "%v", err)
 		return 1
 	}
 
