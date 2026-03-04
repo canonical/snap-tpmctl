@@ -1,9 +1,9 @@
 {
     "result": {
         "kind": "invalid-recovery-key",
-        "message": "invalid recovery key: recovery key does not work for \"system-data\"",
+        "message": "cannot parse recovery key: incorrectly formatted: strconv.ParseUint: parsing \"inval\": invalid syntax",
         "value": {
-            "reason": "invalid-value"
+            "reason": "invalid-format"
         }
     },
     "status": "Bad Request",

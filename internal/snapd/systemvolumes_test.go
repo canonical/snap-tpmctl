@@ -9,19 +9,6 @@ import (
 	"github.com/matryer/is"
 )
 
-/*
-
-{
-  "result": {
-    "message": "this action is not supported on this system"
-  },
-  "status": "Bad Request",
-  "status-code": 400,
-  "type": "error"
-}
-
-*/
-
 func TestListVolumeInfo(t *testing.T) {
 	t.Parallel()
 
@@ -39,9 +26,11 @@ func TestListVolumeInfo(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 			is := is.New(t)
-			c := snapdtestutils.NewMockSnapdServer(t, "/v2/system-volumes")
+			ctx := context.Background()
 
-			got, err := c.ListVolumeInfo(context.Background())
+			c := snapdtestutils.NewMockSnapdServer(t, ctx)
+
+			got, err := c.ListVolumeInfo(ctx)
 			if tc.wantErr {
 				is.True(err != nil)
 				return

@@ -2,8 +2,10 @@ package snapd_test
 
 import (
 	"context"
+	"log/slog"
 	"testing"
 
+	"github.com/canonical/snap-tpmctl/internal/log"
 	"github.com/canonical/snap-tpmctl/internal/snapd"
 	snapdtestutils "github.com/canonical/snap-tpmctl/internal/snapd/testutils"
 	"github.com/canonical/snap-tpmctl/internal/testutils/golden"
@@ -26,9 +28,11 @@ func TestGenerateRecoveryKey(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 			is := is.New(t)
-			c := snapdtestutils.NewMockSnapdServer(t, "/v2/system-volumes")
+			ctx := log.WithLoggerInContext(context.Background(), t.Output())
 
-			got, err := c.GenerateRecoveryKey(context.Background())
+			c := snapdtestutils.NewMockSnapdServer(t, ctx)
+
+			got, err := c.GenerateRecoveryKey(ctx)
 			if tc.wantErr {
 				is.True(err != nil)
 				return
@@ -49,7 +53,7 @@ func TestAddRecoveryKey(t *testing.T) {
 
 		wantErr bool
 	}{
-		// "Returns_accepted": {keyID: "OVJe6EHITg", recoveryKeyName: "test"},
+		"Returns_accepted": {keyID: "OVJe6EHITg", recoveryKeyName: "test"},
 
 		"Error_on_invalid_key_id":            {keyID: "invalid-key-id", recoveryKeyName: "test", wantErr: true},
 		"Error_on_invalid_recovery_key_name": {keyID: "OVJe6EHITg", recoveryKeyName: "default", wantErr: true},
@@ -59,11 +63,15 @@ func TestAddRecoveryKey(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 			is := is.New(t)
-			c := snapdtestutils.NewMockSnapdServer(t, "/v2/system-volumes")
 
-			keySlots := []snapd.KeySlot{{Name: tc.recoveryKeyName}}
+			// TODO: generalize that
+			ctx := log.WithLoggerInContext(context.Background(), t.Output())
+			log.SetLoggerLevelInContext(ctx, slog.LevelDebug)
 
-			err := c.AddRecoveryKey(context.Background(), tc.keyID, keySlots)
+			c := snapdtestutils.NewMockSnapdServer(t, ctx)
+
+			keySlots := []snapd.Keyslot{{Name: tc.recoveryKeyName}}
+			err := c.AddRecoveryKey(ctx, tc.keyID, keySlots)
 			if tc.wantErr {
 				is.True(err != nil)
 				return
@@ -93,10 +101,13 @@ func TestCheckRecoveryKey(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 			is := is.New(t)
-			c := snapdtestutils.NewMockSnapdServer(t, "/v2/system-volumes")
+
+			ctx := log.WithLoggerInContext(context.Background(), t.Output())
+
+			c := snapdtestutils.NewMockSnapdServer(t, ctx)
 
 			// Container roles are passed as is to snapd. Not handled in that test.
-			valid, err := c.CheckRecoveryKey(context.Background(), tc.recoveryKey, nil)
+			valid, err := c.CheckRecoveryKey(ctx, tc.recoveryKey, nil)
 			if tc.wantErr {
 				is.True(err != nil)
 				return

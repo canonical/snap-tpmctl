@@ -13,6 +13,7 @@ import (
 	"time"
 	_ "unsafe" // Required for go:linkname directives
 
+	"github.com/canonical/snap-tpmctl/internal/log"
 	snapdClient "github.com/snapcore/snapd/client"
 )
 
@@ -30,11 +31,13 @@ type Error struct {
 
 // newErrorFromSnapdError attempts to converts a snapdClient.Error to an internal snapd.Error with JSON-marshaled Value.
 // If the provided error is not a snapdClient.Error or if marshaling the Value fails, it returns the original error.
-func newErrorFromSnapdError(err error) error {
+func newErrorFromSnapdError(ctx context.Context, err error) error {
 	snapdErr, ok := errors.AsType[*snapdClient.Error](err)
 	if !ok {
 		return err
 	}
+
+	log.Debug(ctx, "Received an error from snapd: %q", snapdErr.Value)
 
 	value, e := json.Marshal(snapdErr.Value)
 	if e != nil {
@@ -117,17 +120,21 @@ type response struct {
 // doSyncRequest performs a synchronous request to snapd and returns the response.
 //
 //nolint:unparam // path parameter kept for future extensibility
-func (c *Client) doSyncRequest(_ context.Context, method, path string, query url.Values, headers map[string]string, body any) (*response, error) {
+func (c *Client) doSyncRequest(ctx context.Context, method, path string, query url.Values, headers map[string]string, body any) (*response, error) {
 	var b bytes.Buffer
 	if err := json.NewEncoder(&b).Encode(&body); err != nil {
 		return nil, err
 	}
 
+	log.Debug(ctx, "Sending %v %v to snapd %q", method, path, b.String())
+
 	var result json.RawMessage
 	_, err := doSync(c.snapd, method, path, query, addGenericHeaders(headers), &b, &result)
-	if err := newErrorFromSnapdError(err); err != nil {
+	if err := newErrorFromSnapdError(ctx, err); err != nil {
 		return nil, err
 	}
+
+	log.Debug(ctx, "Received result from snapd: %q", result)
 
 	return &response{Result: result}, nil
 }
@@ -139,8 +146,10 @@ func (c *Client) doAsyncRequest(ctx context.Context, method, path string, query 
 		return err
 	}
 
+	log.Debug(ctx, "Sending asynchronously %v %v to snapd %q", method, path, b.String())
+
 	changeID, err := doAsync(c.snapd, method, path, query, addGenericHeaders(headers), &b)
-	if err := newErrorFromSnapdError(err); err != nil {
+	if err := newErrorFromSnapdError(ctx, err); err != nil {
 		return err
 	}
 
