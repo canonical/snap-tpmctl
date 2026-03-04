@@ -1,0 +1,8 @@
+{
+  "result": {
+    "message": "this action is not supported on this system"
+  },
+  "status": "Bad Request",
+  "status-code": 400,
+  "type": "error"
+}
