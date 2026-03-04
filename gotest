@@ -28,5 +28,6 @@ if ! $(nc -z localhost 6061); then
 fi
 
 go test $@ -coverprofile="${cov_dir}/coverage.out" -coverpkg=./...
-go tool cover -html="${cov_dir}/coverage.out" -o "${cov_dir}/index.html"
+grep -vE testutils "${cov_dir}/coverage.out" > "${cov_dir}/coverage.out.filtered"
+go tool cover -html="${cov_dir}/coverage.out.filtered" -o "${cov_dir}/index.html"
 echo "Coverage report available at http://localhost:6061/index.html"
