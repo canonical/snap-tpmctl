@@ -1,10 +1,6 @@
 {
     "result": {
-        "kind": "invalid-recovery-key",
-        "message": "invalid recovery key: not found",
-        "value": {
-            "reason": "not-found"
-        }
+        "message": "cannot replace recovery key: invalid key slot reference (container-role: \"system-data\", name: \"default\"): only system key slot names can start with \"default\""
     },
     "status": "Bad Request",
     "status-code": 400,
