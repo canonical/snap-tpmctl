@@ -81,6 +81,43 @@ func TestAddRecoveryKey(t *testing.T) {
 	}
 }
 
+func TestReplaceRecoveryKey(t *testing.T) {
+	t.Parallel()
+
+	tests := map[string]struct {
+		keyID           string
+		recoveryKeyName string
+
+		wantErr bool
+	}{
+		"Returns_accepted": {keyID: "OVJe6EHITg", recoveryKeyName: "test"},
+
+		"Error_on_invalid_key_id":            {keyID: "invalid-key-id", recoveryKeyName: "test", wantErr: true},
+		"Error_on_invalid_recovery_key_name": {keyID: "OVJe6EHITg", recoveryKeyName: "default", wantErr: true},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+			is := is.New(t)
+
+			// TODO: generalize that
+			ctx := log.WithLoggerInContext(context.Background(), t.Output())
+			log.SetLoggerLevelInContext(ctx, slog.LevelDebug)
+
+			c := snapdtestutils.NewMockSnapdServer(t, ctx)
+
+			keySlots := []snapd.Keyslot{{Name: tc.recoveryKeyName}}
+			err := c.ReplaceRecoveryKey(ctx, tc.keyID, keySlots)
+			if tc.wantErr {
+				is.True(err != nil)
+				return
+			}
+			is.NoErr(err)
+		})
+	}
+}
+
 func TestCheckRecoveryKey(t *testing.T) {
 	t.Parallel()
 
