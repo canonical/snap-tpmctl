@@ -1,0 +1,62 @@
+{
+    "result": {
+        "id": "12",
+        "kind": "fde-replace-platform-key",
+        "ready": true,
+        "ready-time": "2026-03-09T15:52:58.260466117+01:00",
+        "spawn-time": "2026-03-09T15:52:54.257276613+01:00",
+        "status": "Done",
+        "summary": "Replace platform key",
+        "tasks": [
+            {
+                "data": {
+                    "affected-snaps": [
+                        "pc",
+                        "pc-kernel",
+                        "core24"
+                    ]
+                },
+                "id": "419",
+                "kind": "fde-add-platform-keys",
+                "progress": {
+                    "done": 1,
+                    "label": "",
+                    "total": 1
+                },
+                "ready-time": "2026-03-09T15:52:57.648817618+01:00",
+                "spawn-time": "2026-03-09T15:52:54.257208827+01:00",
+                "status": "Done",
+                "summary": "Add temporary pin key slots"
+            },
+            {
+                "id": "420",
+                "kind": "fde-remove-keys",
+                "progress": {
+                    "done": 1,
+                    "label": "",
+                    "total": 1
+                },
+                "ready-time": "2026-03-09T15:52:57.98874273+01:00",
+                "spawn-time": "2026-03-09T15:52:54.257231934+01:00",
+                "status": "Done",
+                "summary": "Remove old pin key slots"
+            },
+            {
+                "id": "421",
+                "kind": "fde-rename-keys",
+                "progress": {
+                    "done": 1,
+                    "label": "",
+                    "total": 1
+                },
+                "ready-time": "2026-03-09T15:52:58.260453868+01:00",
+                "spawn-time": "2026-03-09T15:52:54.257236013+01:00",
+                "status": "Done",
+                "summary": "Rename temporary pin key slots"
+            }
+        ]
+    },
+    "status": "OK",
+    "status-code": 200,
+    "type": "sync"
+}
