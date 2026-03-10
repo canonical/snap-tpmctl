@@ -36,7 +36,7 @@ func TestSetLoggerLevelInContext(t *testing.T) {
 	is := is.New(t)
 
 	var got bytes.Buffer
-	ctx := log.WithLoggerInContext(context.Background(), &got)
+	ctx := log.WithLoggerInContext(t.Context(), &got)
 	logger := log.LoggerFromContext(ctx)
 
 	logger.Log(context.Background(), slog.LevelInfo, "info message")
@@ -90,7 +90,7 @@ func TestAllLogLevels(t *testing.T) {
 
 			var logs bytes.Buffer
 			out := io.MultiWriter(&logs, t.Output())
-			ctx := log.WithLoggerInContext(context.Background(), out)
+			ctx := log.WithLoggerInContext(t.Context(), out)
 			log.SetLoggerLevelInContext(ctx, slog.LevelDebug)
 
 			tc.fn(ctx, "msg with args: %d", 42)

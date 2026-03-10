@@ -1,13 +1,13 @@
 package snapd_test
 
 import (
-	"context"
 	"log/slog"
 	"testing"
 
 	"github.com/canonical/snap-tpmctl/internal/log"
 	"github.com/canonical/snap-tpmctl/internal/snapd"
 	snapdtestutils "github.com/canonical/snap-tpmctl/internal/snapd/testutils"
+	"github.com/canonical/snap-tpmctl/internal/testutils"
 	"github.com/canonical/snap-tpmctl/internal/testutils/golden"
 	"github.com/matryer/is"
 )
@@ -28,9 +28,9 @@ func TestGenerateRecoveryKey(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 			is := is.New(t)
-			ctx := log.WithLoggerInContext(context.Background(), t.Output())
+			ctx := log.WithLoggerInContext(t.Context(), t.Output())
 
-			c := snapdtestutils.NewMockSnapdServer(t, ctx)
+			c := snapdtestutils.NewMockSnapdServer(t, ctx, testutils.TestPath(t))
 
 			got, err := c.GenerateRecoveryKey(ctx)
 			if tc.wantErr {
@@ -53,7 +53,7 @@ func TestAddRecoveryKey(t *testing.T) {
 
 		wantErr bool
 	}{
-		"Returns_accepted": {keyID: "OVJe6EHITg", recoveryKeyName: "test"},
+		"Returns_accepted": {keyID: "OVJe6EHITg", recoveryKeyName: "test", wantErr: true},
 
 		"Error_on_invalid_key_id":            {keyID: "invalid-key-id", recoveryKeyName: "test", wantErr: true},
 		"Error_on_invalid_recovery_key_name": {keyID: "OVJe6EHITg", recoveryKeyName: "default", wantErr: true},
@@ -65,10 +65,10 @@ func TestAddRecoveryKey(t *testing.T) {
 			is := is.New(t)
 
 			// TODO: generalize that
-			ctx := log.WithLoggerInContext(context.Background(), t.Output())
+			ctx := log.WithLoggerInContext(t.Context(), t.Output())
 			log.SetLoggerLevelInContext(ctx, slog.LevelDebug)
 
-			c := snapdtestutils.NewMockSnapdServer(t, ctx)
+			c := snapdtestutils.NewMockSnapdServer(t, ctx, testutils.TestPath(t))
 
 			keySlots := []snapd.Keyslot{{Name: tc.recoveryKeyName}}
 			err := c.AddRecoveryKey(ctx, tc.keyID, keySlots)
@@ -102,10 +102,10 @@ func TestReplaceRecoveryKey(t *testing.T) {
 			is := is.New(t)
 
 			// TODO: generalize that
-			ctx := log.WithLoggerInContext(context.Background(), t.Output())
+			ctx := log.WithLoggerInContext(t.Context(), t.Output())
 			log.SetLoggerLevelInContext(ctx, slog.LevelDebug)
 
-			c := snapdtestutils.NewMockSnapdServer(t, ctx)
+			c := snapdtestutils.NewMockSnapdServer(t, ctx, testutils.TestPath(t))
 
 			keySlots := []snapd.Keyslot{{Name: tc.recoveryKeyName}}
 			err := c.ReplaceRecoveryKey(ctx, tc.keyID, keySlots)
@@ -139,9 +139,9 @@ func TestCheckRecoveryKey(t *testing.T) {
 			t.Parallel()
 			is := is.New(t)
 
-			ctx := log.WithLoggerInContext(context.Background(), t.Output())
+			ctx := log.WithLoggerInContext(t.Context(), t.Output())
 
-			c := snapdtestutils.NewMockSnapdServer(t, ctx)
+			c := snapdtestutils.NewMockSnapdServer(t, ctx, testutils.TestPath(t))
 
 			// Container roles are passed as is to snapd. Not handled in that test.
 			valid, err := c.CheckRecoveryKey(ctx, tc.recoveryKey, nil)

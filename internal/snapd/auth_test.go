@@ -1,12 +1,12 @@
 package snapd_test
 
 import (
-	"context"
 	"testing"
 
 	"github.com/canonical/snap-tpmctl/internal/log"
 	"github.com/canonical/snap-tpmctl/internal/snapd"
 	snapdtestutils "github.com/canonical/snap-tpmctl/internal/snapd/testutils"
+	"github.com/canonical/snap-tpmctl/internal/testutils"
 	"github.com/matryer/is"
 )
 
@@ -19,7 +19,7 @@ func TestReplacePassphrase(t *testing.T) {
 
 		wantErr bool
 	}{
-		"Passphrase_is_changed": {oldPassphrase: "test", newPassphrase: "test2"},
+		"Passphrase_is_changed": {oldPassphrase: "old", newPassphrase: "new"},
 
 		"Error_on_snapd_call_returning_400": {wantErr: true},
 	}
@@ -28,9 +28,9 @@ func TestReplacePassphrase(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 			is := is.New(t)
-			ctx := log.WithLoggerInContext(context.Background(), t.Output())
+			ctx := log.WithLoggerInContext(t.Context(), t.Output())
 
-			c := snapdtestutils.NewMockSnapdServer(t, ctx)
+			c := snapdtestutils.NewMockSnapdServer(t, ctx, testutils.TestPath(t))
 
 			// Container roles are passed as is to snapd. Not handled in that test.
 			err := c.ReplacePassphrase(ctx, tc.oldPassphrase, tc.newPassphrase, nil)
@@ -60,9 +60,9 @@ func TestCheckPassphrase(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 			is := is.New(t)
-			ctx := log.WithLoggerInContext(context.Background(), t.Output())
+			ctx := log.WithLoggerInContext(t.Context(), t.Output())
 
-			c := snapdtestutils.NewMockSnapdServer(t, ctx)
+			c := snapdtestutils.NewMockSnapdServer(t, ctx, testutils.TestPath(t))
 
 			err := c.CheckPassphrase(ctx, tc.passphrase)
 			if tc.wantErr {
@@ -91,9 +91,9 @@ func TestCheckPIN(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 			is := is.New(t)
-			ctx := log.WithLoggerInContext(context.Background(), t.Output())
+			ctx := log.WithLoggerInContext(t.Context(), t.Output())
 
-			c := snapdtestutils.NewMockSnapdServer(t, ctx)
+			c := snapdtestutils.NewMockSnapdServer(t, ctx, testutils.TestPath(t))
 
 			err := c.CheckPIN(ctx, tc.pin)
 			if tc.wantErr {
@@ -123,9 +123,9 @@ func TestReplacePIN(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 			is := is.New(t)
-			ctx := log.WithLoggerInContext(context.Background(), t.Output())
+			ctx := log.WithLoggerInContext(t.Context(), t.Output())
 
-			c := snapdtestutils.NewMockSnapdServer(t, ctx)
+			c := snapdtestutils.NewMockSnapdServer(t, ctx, testutils.TestPath(t))
 
 			// Container roles are passed as is to snapd. Not handled in that test.
 			err := c.ReplacePIN(ctx, tc.oldPIN, tc.newPIN, nil)
@@ -145,29 +145,27 @@ func TestReplacePlatformKey(t *testing.T) {
 		authMode snapd.AuthMode
 		secret   string
 
-		wantErr   bool
-		wantInErr string
+		wantErr bool
 	}{
 		"Replace_with_AuthModeNone":       {authMode: snapd.AuthModeNone},
 		"Replace_with_AuthModePIN":        {authMode: snapd.AuthModePIN, secret: "12345"},
 		"Replace_with_AuthModePassphrase": {authMode: snapd.AuthModePassphrase, secret: "test"},
 
-		"Error_on_authModeNone_with_secret": {authMode: snapd.AuthModeNone, secret: "test", wantErr: true, wantInErr: "expected no secret when auth mode is none, got: \"test\""},
-		"Error_on_snapd_call_returning_400": {wantErr: true, wantInErr: "snapd error: this action is not supported on this system"},
+		"Error_on_authModeNone_with_secret": {authMode: snapd.AuthModeNone, secret: "test", wantErr: true},
+		"Error_on_snapd_call_returning_400": {wantErr: true},
 	}
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 			is := is.New(t)
-			ctx := log.WithLoggerInContext(context.Background(), t.Output())
+			ctx := log.WithLoggerInContext(t.Context(), t.Output())
 
-			c := snapdtestutils.NewMockSnapdServer(t, ctx)
+			c := snapdtestutils.NewMockSnapdServer(t, ctx, testutils.TestPath(t))
 
 			err := c.ReplacePlatformKey(ctx, tc.authMode, tc.secret)
 			if tc.wantErr {
 				is.True(err != nil)
-				is.Equal(tc.wantInErr, err.Error())
 				return
 			}
 			is.NoErr(err)

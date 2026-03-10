@@ -1,11 +1,11 @@
 package snapd_test
 
 import (
-	"context"
 	"testing"
 
 	"github.com/canonical/snap-tpmctl/internal/log"
 	snapdtestutils "github.com/canonical/snap-tpmctl/internal/snapd/testutils"
+	"github.com/canonical/snap-tpmctl/internal/testutils"
 	"github.com/matryer/is"
 )
 
@@ -26,9 +26,9 @@ func TestFdeStatus(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 			is := is.New(t)
-			ctx := log.WithLoggerInContext(context.Background(), t.Output())
+			ctx := log.WithLoggerInContext(t.Context(), t.Output())
 
-			c := snapdtestutils.NewMockSnapdServer(t, ctx)
+			c := snapdtestutils.NewMockSnapdServer(t, ctx, testutils.TestPath(t))
 
 			got, err := c.FdeStatus(ctx)
 			if tc.wantErr {
