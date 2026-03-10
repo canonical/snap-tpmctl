@@ -53,7 +53,7 @@ func TestAddRecoveryKey(t *testing.T) {
 
 		wantErr bool
 	}{
-		"Returns_accepted": {keyID: "OVJe6EHITg", recoveryKeyName: "test", wantErr: true},
+		"Returns_accepted": {keyID: "OVJe6EHITg", recoveryKeyName: "test", wantErr: false},
 
 		"Error_on_invalid_key_id":            {keyID: "invalid-key-id", recoveryKeyName: "test", wantErr: true},
 		"Error_on_invalid_recovery_key_name": {keyID: "OVJe6EHITg", recoveryKeyName: "default", wantErr: true},
