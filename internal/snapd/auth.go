@@ -2,7 +2,7 @@ package snapd
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"net/http"
 
 	snapdClient "github.com/snapcore/snapd/client"
@@ -104,7 +104,7 @@ const (
 // ReplacePlatformKey replaces the platform key with the specified authentication.
 func (c *Client) ReplacePlatformKey(ctx context.Context, authMode AuthMode, secret string) error {
 	if authMode == AuthModeNone && secret != "" {
-		return fmt.Errorf("expected no secret when auth mode is none, got: %q", secret)
+		return errors.New("expected no secrets when removing PIN or Passphrase")
 	}
 
 	var passphrase, pin string
