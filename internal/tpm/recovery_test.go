@@ -5,6 +5,7 @@ import (
 
 	"github.com/canonical/snap-tpmctl/internal/log"
 	snapdtestutils "github.com/canonical/snap-tpmctl/internal/snapd/testutils"
+	"github.com/canonical/snap-tpmctl/internal/testutils/golden"
 	"github.com/canonical/snap-tpmctl/internal/tpm"
 	tpmtestutils "github.com/canonical/snap-tpmctl/internal/tpm/testutils"
 	"github.com/matryer/is"
@@ -128,6 +129,37 @@ func TestCheckKey(t *testing.T) {
 			is.Equal(got, true)
 
 			is.True(tpmtestutils.HasBodyContent(is, *c.Requests, tc.recoveryKey))
+		})
+	}
+}
+
+func TestGetLuksKey(t *testing.T) {
+	t.Parallel()
+
+	tests := map[string]struct {
+		recoveryKey string
+
+		wantErr bool
+	}{
+		"Success_getting_luks_key": {recoveryKey: "11272-47509-28031-54818-41671-38673-11053-06376"},
+
+		"Fail_getting_luks_key": {wantErr: true},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+			is := is.New(t)
+			ctx := log.WithLoggerInContext(t.Context(), t.Output())
+
+			got, err := tpm.GetLuksKey(ctx, tc.recoveryKey)
+			if tc.wantErr {
+				is.True(err != nil)
+				return
+			}
+			is.NoErr(err)
+
+			golden.CheckOrUpdate(t, string(got))
 		})
 	}
 }

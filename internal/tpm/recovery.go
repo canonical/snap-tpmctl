@@ -51,10 +51,10 @@ func (s SnapTPM) CheckKey(ctx context.Context, recoveryKey string) (bool, error)
 }
 
 // GetLuksKey validates and converts the recovery key to a binary key format by parsing and formatting it.
-func GetLuksKey(recoveryKey string) (secboot.DiskUnlockKey, error) {
+func GetLuksKey(ctx context.Context, recoveryKey string) (secboot.DiskUnlockKey, error) {
 	binKey, err := secboot.ParseRecoveryKey(recoveryKey)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to get LUKS key: %v", err)
 	}
 
 	return binKey[:], nil
