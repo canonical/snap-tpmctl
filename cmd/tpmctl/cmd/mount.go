@@ -101,24 +101,25 @@ func newGetLuksKeyFromRecoveryKeyCmd() *cli.Command {
 		Name:    "get-luks-key",
 		Usage:   "Get LUKS key from recovery key",
 		Suggest: true,
-		Flags: []cli.Flag{
-			&cli.BoolFlag{
-				Name:        "hex",
-				Usage:       "Output key in hexadecimal format",
-				Destination: &hex,
+		MutuallyExclusiveFlags: []cli.MutuallyExclusiveFlags{
+			{
+				Flags: [][]cli.Flag{
+					{
+						&cli.BoolFlag{
+							Name:        "hex",
+							Usage:       "Output key in hexadecimal format",
+							Destination: &hex,
+						},
+					},
+					{
+						&cli.BoolFlag{
+							Name:        "escaped",
+							Usage:       "Output key in escaped string format",
+							Destination: &escaped,
+						},
+					},
+				},
 			},
-			&cli.BoolFlag{
-				Name:        "escaped",
-				Usage:       "Output key in escaped string format",
-				Destination: &escaped,
-			},
-		},
-		Before: func(ctx context.Context, cmd *cli.Command) (context.Context, error) {
-			if hex && escaped {
-				return ctx, fmt.Errorf("only one between 'hex' and 'escaped' flag can be used")
-			}
-
-			return ctx, nil
 		},
 		Action: func(ctx context.Context, cmd *cli.Command) error {
 			recoveryKey, err := tui.ReadUserSecret("Enter recovery key: ")
