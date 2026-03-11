@@ -13,6 +13,7 @@ import (
 	"time"
 	_ "unsafe" // Required for go:linkname directives
 
+	"github.com/canonical/snap-tpmctl/internal/log"
 	snapdClient "github.com/snapcore/snapd/client"
 )
 
@@ -28,6 +29,27 @@ type Error struct {
 	Value   json.RawMessage
 }
 
+// newErrorFromSnapdError attempts to converts a snapdClient.Error to an internal snapd.Error with JSON-marshaled Value.
+// If the provided error is not a snapdClient.Error or if marshaling the Value fails, it returns the original error.
+func newErrorFromSnapdError(ctx context.Context, err error) error {
+	snapdErr, ok := errors.AsType[*snapdClient.Error](err)
+	if !ok {
+		return err
+	}
+
+	log.Debug(ctx, "Received an error from snapd: %q", snapdErr.Value)
+
+	value, e := json.Marshal(snapdErr.Value)
+	if e != nil {
+		return err
+	}
+	return &Error{
+		Kind:    snapdErr.Kind,
+		Message: snapdErr.Message,
+		Value:   value,
+	}
+}
+
 func (e *Error) Error() string {
 	if e.Kind != "" {
 		return fmt.Sprintf("snapd error: %s (%s)", e.Message, e.Kind)
@@ -41,7 +63,7 @@ type Client struct {
 }
 
 type options struct {
-	socket string
+	baseURL string
 }
 
 // Option is a function that configures a Client.
@@ -49,9 +71,7 @@ type Option func(*options)
 
 // New creates a new snapd client.
 func New(args ...Option) *Client {
-	o := options{
-		socket: defaultSocketPath,
-	}
+	o := options{}
 	for _, f := range args {
 		f(&o)
 	}
@@ -60,7 +80,7 @@ func New(args ...Option) *Client {
 		snapd: snapdClient.New(&snapdClient.Config{
 			DisableAuth: true,
 			Interactive: true,
-			Socket:      o.socket,
+			BaseURL:     o.baseURL,
 			UserAgent:   defaultUserAgent,
 		}),
 	}
@@ -100,30 +120,21 @@ type response struct {
 // doSyncRequest performs a synchronous request to snapd and returns the response.
 //
 //nolint:unparam // path parameter kept for future extensibility
-func (c *Client) doSyncRequest(_ context.Context, method, path string, query url.Values, headers map[string]string, body any) (*response, error) {
+func (c *Client) doSyncRequest(ctx context.Context, method, path string, query url.Values, headers map[string]string, body any) (*response, error) {
 	var b bytes.Buffer
 	if err := json.NewEncoder(&b).Encode(&body); err != nil {
 		return nil, err
 	}
 
+	log.Debug(ctx, "Sending %v %v to snapd %q", method, path, b.String())
+
 	var result json.RawMessage
 	_, err := doSync(c.snapd, method, path, query, addGenericHeaders(headers), &b, &result)
-	var snapdErr *snapdClient.Error
-	if errors.As(err, &snapdErr) {
-		value, err := json.Marshal(snapdErr.Value)
-		if err != nil {
-			return nil, err
-		}
-
-		return nil, &Error{
-			Kind:    snapdErr.Kind,
-			Message: snapdErr.Message,
-			Value:   value,
-		}
-	}
-	if err != nil {
+	if err := newErrorFromSnapdError(ctx, err); err != nil {
 		return nil, err
 	}
+
+	log.Debug(ctx, "Received result from snapd: %q", result)
 
 	return &response{Result: result}, nil
 }
@@ -135,21 +146,10 @@ func (c *Client) doAsyncRequest(ctx context.Context, method, path string, query 
 		return err
 	}
 
-	changeID, err := doAsync(c.snapd, method, path, query, addGenericHeaders(headers), &b)
-	var snapdErr *snapdClient.Error
-	if errors.As(err, &snapdErr) {
-		value, err := json.Marshal(snapdErr.Value)
-		if err != nil {
-			return err
-		}
+	log.Debug(ctx, "Sending asynchronously %v %v to snapd %q", method, path, b.String())
 
-		return &Error{
-			Kind:    snapdErr.Kind,
-			Message: snapdErr.Message,
-			Value:   value,
-		}
-	}
-	if err != nil {
+	changeID, err := doAsync(c.snapd, method, path, query, addGenericHeaders(headers), &b)
+	if err := newErrorFromSnapdError(ctx, err); err != nil {
 		return err
 	}
 

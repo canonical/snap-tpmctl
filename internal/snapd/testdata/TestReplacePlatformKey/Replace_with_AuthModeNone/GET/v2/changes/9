@@ -1,0 +1,62 @@
+{
+  "result": {
+    "id": "9",
+    "kind": "fde-replace-platform-key",
+    "ready": true,
+    "ready-time": "2026-03-09T15:30:15.7937936+01:00",
+    "spawn-time": "2026-03-09T15:30:14.238646388+01:00",
+    "status": "Done",
+    "summary": "Replace platform key",
+    "tasks": [
+      {
+        "data": {
+          "affected-snaps": [
+            "pc",
+            "pc-kernel",
+            "core24"
+          ]
+        },
+        "id": "407",
+        "kind": "fde-add-platform-keys",
+        "progress": {
+          "done": 1,
+          "label": "",
+          "total": 1
+        },
+        "ready-time": "2026-03-09T15:30:15.20048567+01:00",
+        "spawn-time": "2026-03-09T15:30:14.238611582+01:00",
+        "status": "Done",
+        "summary": "Add temporary platform key slots"
+      },
+      {
+        "id": "408",
+        "kind": "fde-remove-keys",
+        "progress": {
+          "done": 1,
+          "label": "",
+          "total": 1
+        },
+        "ready-time": "2026-03-09T15:30:15.515248282+01:00",
+        "spawn-time": "2026-03-09T15:30:14.238632803+01:00",
+        "status": "Done",
+        "summary": "Remove old platform key slots"
+      },
+      {
+        "id": "409",
+        "kind": "fde-rename-keys",
+        "progress": {
+          "done": 1,
+          "label": "",
+          "total": 1
+        },
+        "ready-time": "2026-03-09T15:30:15.793779582+01:00",
+        "spawn-time": "2026-03-09T15:30:14.238636156+01:00",
+        "status": "Done",
+        "summary": "Rename temporary platform key slots"
+      }
+    ]
+  },
+  "status": "OK",
+  "status-code": 200,
+  "type": "sync"
+}

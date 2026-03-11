@@ -5,8 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"os"
-	"path/filepath"
 	"regexp"
 	"slices"
 	"strings"
@@ -14,13 +12,6 @@ import (
 	"github.com/canonical/snap-tpmctl/internal/snapd"
 	"github.com/snapcore/snapd/client"
 )
-
-// authValidator defines the interface for snapd operations needed for validation.
-type authValidator interface {
-	CheckPassphrase(ctx context.Context, passphrase string) error
-	CheckPIN(ctx context.Context, pin string) error
-	ListVolumeInfo(ctx context.Context) (snapd.SystemVolumesResult, error)
-}
 
 // resultValue represents the value field in validation error responses from snapd.
 type resultValue struct {
@@ -32,9 +23,9 @@ type resultValue struct {
 
 // handleValidationError processes snapd validation errors and returns appropriate error messages.
 func handleValidationError(err error, authMode string) error {
-	var snapdErr *snapd.Error
-	if !errors.As(err, &snapdErr) {
-		return fmt.Errorf("failed to check %s: %w", authMode, err)
+	snapdErr, ok := errors.AsType[*snapd.Error](err)
+	if !ok {
+		return fmt.Errorf("failed to check %s: %v", authMode, err)
 	}
 
 	switch snapdErr.Kind {
@@ -70,26 +61,32 @@ func handleValidationError(err error, authMode string) error {
 	}
 }
 
-// IsValidPassphrase validates that the passphrase and confirmation match and are not empty.
-func IsValidPassphrase(ctx context.Context, client authValidator, passphrase, confirm string) error {
-	if passphrase == "" || confirm == "" {
+// IsValidPassphrase checks the entropy of the passphrase.
+/* TODO:
+ What is returned by snapd on invalid passphrase/PIN?
+-> ask for forgivness, not permission
+
+If it makes sense: drop all the validation here.
+
+If the error message is "suboptimal", then, check in AddPassphrase/AddPIN… directly the validity of the passphrase and
+turns those into private functions.
+
+*/
+func (s SnapTPM) IsValidPassphrase(ctx context.Context, passphrase string) error {
+	if passphrase == "" {
 		return fmt.Errorf("passphrase cannot be empty, try again")
 	}
 
-	if passphrase != confirm {
-		return fmt.Errorf("passphrases do not match, try again")
-	}
-
-	if err := client.CheckPassphrase(ctx, passphrase); err != nil {
+	if err := s.snapdClient.CheckPassphrase(ctx, passphrase); err != nil {
 		return handleValidationError(err, "passphrase")
 	}
 
 	return nil
 }
 
-// IsValidPIN validates that the PIN and confirmation match and are not empty.
-func IsValidPIN(ctx context.Context, client authValidator, pin, confirm string) error {
-	if pin == "" || confirm == "" {
+// IsValidPIN checks that the PIN is only made of digits
+func (s SnapTPM) IsValidPIN(ctx context.Context, pin string) error {
+	if pin == "" {
 		return fmt.Errorf("PIN cannot be empty, try again")
 	}
 
@@ -100,11 +97,7 @@ func IsValidPIN(ctx context.Context, client authValidator, pin, confirm string) 
 		}
 	}
 
-	if pin != confirm {
-		return fmt.Errorf("PINs do not match, try again")
-	}
-
-	if err := client.CheckPIN(ctx, pin); err != nil {
+	if err := s.snapdClient.CheckPIN(ctx, pin); err != nil {
 		return handleValidationError(err, "PIN")
 	}
 
@@ -112,10 +105,10 @@ func IsValidPIN(ctx context.Context, client authValidator, pin, confirm string) 
 }
 
 // ValidateAuthMode checks if the current authentication mode matches the expected mode.
-func ValidateAuthMode(ctx context.Context, client authValidator, expectedAuthMode snapd.AuthMode) error {
-	result, err := client.ListVolumeInfo(ctx)
+func (s SnapTPM) ValidateAuthMode(ctx context.Context, expectedAuthMode snapd.AuthMode) error {
+	result, err := s.snapdClient.ListVolumeInfo(ctx)
 	if err != nil {
-		return fmt.Errorf("failed to enumerate key slots: %w", err)
+		return fmt.Errorf("failed to enumerate key slots: %v", err)
 	}
 
 	systemData, ok := result.ByContainerRole["system-data"]
@@ -123,17 +116,17 @@ func ValidateAuthMode(ctx context.Context, client authValidator, expectedAuthMod
 		return fmt.Errorf("system-data container role not found")
 	}
 
-	defaultKeyslot, ok := systemData.KeySlots["default"]
+	defaultKeyslot, ok := systemData.Keyslots["default"]
 	if !ok {
 		return fmt.Errorf("default key slot not found in system-data")
 	}
 
-	defaultFallbackKeyslot, ok := systemData.KeySlots["default-fallback"]
+	defaultFallbackKeyslot, ok := systemData.Keyslots["default-fallback"]
 	if !ok {
 		return fmt.Errorf("default-fallback key slot not found in system-data")
 	}
 
-	if defaultKeyslot.AuthMode != string(expectedAuthMode) || defaultFallbackKeyslot.AuthMode != string(expectedAuthMode) {
+	if defaultKeyslot.AuthMode != expectedAuthMode || defaultFallbackKeyslot.AuthMode != expectedAuthMode {
 		return fmt.Errorf("authentication mode mismatch: expected %s, got default=%s, default-fallback=%s",
 			expectedAuthMode,
 			defaultKeyslot.AuthMode,
@@ -144,35 +137,20 @@ func ValidateAuthMode(ctx context.Context, client authValidator, expectedAuthMod
 	return nil
 }
 
-// ValidateRecoveryKeyName validates that a recovery key name is valid.
-func ValidateRecoveryKeyName(ctx context.Context, client authValidator, recoveryKeyName string) error {
-	// Recovery key name cannot be empty.
-	if recoveryKeyName == "" {
-		return fmt.Errorf("recovery key name cannot be empty")
-	}
-
-	// Recovery key name cannot start with 'snap' or 'default'.
-	if strings.HasPrefix(recoveryKeyName, "snap") || strings.HasPrefix(recoveryKeyName, "default") {
-		return fmt.Errorf("recovery key name cannot start with 'snap' or 'default'")
-	}
-
-	return nil
-}
-
 // ValidateRecoveryKeyNameUnique validates that a recovery key name is valid and not in use.
-func ValidateRecoveryKeyNameUnique(ctx context.Context, client authValidator, recoveryKeyName string) error {
-	if err := ValidateRecoveryKeyName(ctx, client, recoveryKeyName); err != nil {
+func (s SnapTPM) ValidateRecoveryKeyNameUnique(ctx context.Context, recoveryKeyName string) error {
+	if err := ValidateRecoveryKeyName(ctx, recoveryKeyName); err != nil {
 		return err
 	}
 
 	// Recovery key name cannot already be in use.
-	result, err := client.ListVolumeInfo(ctx)
+	result, err := s.snapdClient.ListVolumeInfo(ctx)
 	if err != nil {
-		return fmt.Errorf("failed to enumerate key slots: %w", err)
+		return fmt.Errorf("failed to enumerate key slots: %v", err)
 	}
 
 	for _, volumeInfo := range result.ByContainerRole {
-		for slotName := range volumeInfo.KeySlots {
+		for slotName := range volumeInfo.Keyslots {
 			if slotName == recoveryKeyName {
 				return fmt.Errorf("recovery key name %q is already in use", recoveryKeyName)
 			}
@@ -197,37 +175,17 @@ func ValidateRecoveryKey(key string) error {
 	return nil
 }
 
-// ValidateDevicePath validates that a device path exists in the system.
-func ValidateDevicePath(devicePath string) error {
-	if devicePath == "" {
-		return fmt.Errorf("device path cannot be empty")
+// ValidateRecoveryKeyName validates that a recovery key name is valid.
+func ValidateRecoveryKeyName(ctx context.Context, recoveryKeyName string) error {
+	// Recovery key name cannot be empty.
+	if recoveryKeyName == "" {
+		return fmt.Errorf("recovery key name cannot be empty")
 	}
 
-	// Check if the device actually exists
-	if _, err := os.Stat(devicePath); err != nil {
-		if os.IsNotExist(err) {
-			return fmt.Errorf("device %q does not exist", devicePath)
-		}
-		return fmt.Errorf("failed to check device %q: %w", devicePath, err)
+	// Recovery key name cannot start with 'snap' or 'default'.
+	if strings.HasPrefix(recoveryKeyName, "snap") || strings.HasPrefix(recoveryKeyName, "default") {
+		return fmt.Errorf("recovery key name cannot start with 'snap' or 'default'")
 	}
 
 	return nil
-}
-
-// MakeDirectoryPathAbsolute resolves to an absolute path.
-func MakeDirectoryPathAbsolute(dir string) (string, error) {
-	if dir == "" {
-		return "", fmt.Errorf("directory path cannot be empty")
-	}
-
-	if filepath.IsAbs(dir) {
-		return dir, nil
-	}
-
-	// Relative path: resolve against current working directory
-	r, err := os.Getwd()
-	if err != nil {
-		return "", fmt.Errorf("could not resolve current directory. Please use an absolute path")
-	}
-	return filepath.Join(r, dir), nil
 }

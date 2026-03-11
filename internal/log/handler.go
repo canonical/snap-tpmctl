@@ -32,7 +32,7 @@ func (h *simpleHandler) Enabled(ctx context.Context, l slog.Level) bool {
 
 // Handle formats the record to include the level and then the message.
 func (h *simpleHandler) Handle(ctx context.Context, r slog.Record) error {
-	_, err := fmt.Fprintf(h.w, "%s %s\n", r.Level.String(), r.Message)
+	_, err := fmt.Fprintf(h.w, "%s: %s\n", r.Level.String(), r.Message)
 	return err
 }
 

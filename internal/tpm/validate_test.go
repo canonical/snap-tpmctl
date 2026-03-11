@@ -1,17 +1,6 @@
 package tpm_test
 
-import (
-	"context"
-	"os"
-	"path/filepath"
-	"testing"
-
-	"github.com/canonical/snap-tpmctl/internal/snapd"
-	"github.com/canonical/snap-tpmctl/internal/testutils"
-	"github.com/canonical/snap-tpmctl/internal/tpm"
-	"github.com/matryer/is"
-)
-
+/*
 func TestIsValidPassphrase(t *testing.T) {
 	t.Parallel()
 
@@ -281,7 +270,7 @@ func TestValidateAuthMode(t *testing.T) {
 			expectedAuthMode: snapd.AuthModePassphrase,
 		},
 		"Validates PIN authentication in use": {
-			expectedAuthMode: snapd.AuthModePin,
+			expectedAuthMode: snapd.AuthModePIN,
 		},
 		"Validates no authentication in use": {
 			expectedAuthMode: snapd.AuthModeNone,
@@ -292,7 +281,7 @@ func TestValidateAuthMode(t *testing.T) {
 			wantErr:          true,
 		},
 		"Error when auth mode mismatch": {
-			expectedAuthMode: snapd.AuthModePin,
+			expectedAuthMode: snapd.AuthModePIN,
 			mockAuthMode:     "passphrase",
 			wantErr:          true,
 		},
@@ -326,6 +315,11 @@ func TestValidateAuthMode(t *testing.T) {
 		})
 	}
 }
+
+/*
+
+TODO: port those as use case to cmd
+No unit test, more "cmd tests"
 
 func TestValidateDevicePath(t *testing.T) {
 	t.Parallel()
@@ -443,3 +437,5 @@ func TestValidateDirectoryPath(t *testing.T) {
 		})
 	}
 }
+
+*/

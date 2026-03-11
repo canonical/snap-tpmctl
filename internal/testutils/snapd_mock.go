@@ -42,7 +42,7 @@ type MockConfig struct {
 
 	// AuthMode configuration for EnumerateKeySlots
 	// If not set, defaults to "passphrase"
-	AuthMode string
+	AuthMode snapd.AuthMode
 
 	// Custom FDE status value (defaults to "enabled")
 	FdeStatusValue string
@@ -79,12 +79,12 @@ func NewMockSnapdClient(cfg MockConfig) *MockSnapdClient {
 			RecoveryKey: "12345-67890-12345-67890-12345-67890-12345-67890",
 		},
 		systemVolumes: &snapd.SystemVolumesResult{
-			ByContainerRole: map[string]snapd.VolumeInfo{
+			ByContainerRole: map[string]snapd.SystemVolumesStructureInfo{
 				"system-data": {
 					Name:       "ubuntu-data",
 					VolumeName: "pc",
 					Encrypted:  true,
-					KeySlots: map[string]snapd.KeySlotInfo{
+					Keyslots: map[string]snapd.KeySlotInfo{
 						"default": {
 							Type:         "platform",
 							AuthMode:     authMode,
@@ -109,7 +109,7 @@ func NewMockSnapdClient(cfg MockConfig) *MockSnapdClient {
 					Name:       "ubuntu-save",
 					VolumeName: "pc",
 					Encrypted:  true,
-					KeySlots: map[string]snapd.KeySlotInfo{
+					Keyslots: map[string]snapd.KeySlotInfo{
 						"default": {
 							Type:         "platform",
 							AuthMode:     "none",
@@ -159,7 +159,7 @@ func (m MockSnapdClient) ListVolumeInfo(ctx context.Context) (snapd.SystemVolume
 }
 
 // AddRecoveryKey simulates adding a recovery key to specified slots.
-func (m MockSnapdClient) AddRecoveryKey(ctx context.Context, keyID string, slots []snapd.KeySlot) error {
+func (m MockSnapdClient) AddRecoveryKey(ctx context.Context, keyID string, slots []snapd.Keyslot) error {
 	if m.config.AddRecoveryKeyError {
 		return errors.New("mocked error for AddRecoveryKey: cannot add recovery key: permission denied")
 	}
@@ -167,7 +167,7 @@ func (m MockSnapdClient) AddRecoveryKey(ctx context.Context, keyID string, slots
 }
 
 // ReplaceRecoveryKey simulates replacing a recovery key to specified slots.
-func (m MockSnapdClient) ReplaceRecoveryKey(ctx context.Context, keyID string, slots []snapd.KeySlot) error {
+func (m MockSnapdClient) ReplaceRecoveryKey(ctx context.Context, keyID string, slots []snapd.Keyslot) error {
 	if m.config.ReplaceRecoveryKeyError {
 		return errors.New("mocked error for ReaplaceRecoveryKey: cannot replace recovery key: permission denied")
 	}
@@ -266,7 +266,7 @@ func (m MockSnapdClient) CheckPIN(ctx context.Context, pin string) error {
 }
 
 // ReplacePassphrase simulates replacing a passphrase.
-func (m MockSnapdClient) ReplacePassphrase(ctx context.Context, oldPassphrase string, newPassphrase string, keySlots []snapd.KeySlot) error {
+func (m MockSnapdClient) ReplacePassphrase(ctx context.Context, oldPassphrase string, newPassphrase string, keySlots []snapd.Keyslot) error {
 	if m.config.ReplacePassphraseError {
 		return errors.New("mocked error for ReplacePassphrase: cannot replace passphrase: permission denied")
 	}
@@ -274,7 +274,7 @@ func (m MockSnapdClient) ReplacePassphrase(ctx context.Context, oldPassphrase st
 }
 
 // ReplacePIN simulates replacing a PIN.
-func (m MockSnapdClient) ReplacePIN(ctx context.Context, oldPin string, newPin string, keySlots []snapd.KeySlot) error {
+func (m MockSnapdClient) ReplacePIN(ctx context.Context, oldPIN string, newPIN string, keySlots []snapd.Keyslot) error {
 	if m.config.ReplacePINError {
 		return errors.New("mocked error for ReplacePIN: cannot replace PIN: permission denied")
 	}

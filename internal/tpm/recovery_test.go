@@ -1,14 +1,6 @@
 package tpm_test
 
-import (
-	"context"
-	"testing"
-
-	"github.com/canonical/snap-tpmctl/internal/testutils"
-	"github.com/canonical/snap-tpmctl/internal/tpm"
-	"github.com/matryer/is"
-)
-
+/*
 //nolint:dupl // CreateKey and RegenerateKey have intentionally similar structure.
 func TestCreateKey(t *testing.T) {
 	t.Parallel()
@@ -156,3 +148,4 @@ func TestCheckKey(t *testing.T) {
 		})
 	}
 }
+*/

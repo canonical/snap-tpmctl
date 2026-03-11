@@ -4,11 +4,28 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/canonical/snap-tpmctl/internal/tpm"
 	"github.com/canonical/snap-tpmctl/internal/tui"
+	"github.com/snapcore/secboot"
 	"github.com/urfave/cli/v3"
 )
+
+type authRequestor struct{}
+
+func (r *authRequestor) RequestUserCredential(ctx context.Context, name, path string, authTypes secboot.UserAuthType) (string, error) {
+	if authTypes != secboot.UserAuthTypeRecoveryKey {
+		return "", fmt.Errorf("authentication type not supported")
+	}
+
+	key, err := tui.ReadUserSecret("Enter recovery key: ")
+	if err != nil {
+		return "", err
+	}
+
+	return key, nil
+}
 
 func newMountVolumeCmd() *cli.Command {
 	var device, dir string
@@ -30,16 +47,16 @@ func newMountVolumeCmd() *cli.Command {
 			},
 		},
 		Action: func(ctx context.Context, cmd *cli.Command) error {
-			if err := tpm.ValidateDevicePath(device); err != nil {
+			if err := devicePathExists(device); err != nil {
 				return err
 			}
 
-			p, err := tpm.MakeDirectoryPathAbsolute(dir)
+			p, err := ensurePathIsAbolute(dir)
 			if err != nil {
 				return err
 			}
 
-			if err := tpm.MountVolume(device, p); err != nil {
+			if err := tpm.MountVolume(device, p, &authRequestor{}); err != nil {
 				return err
 			}
 
@@ -63,7 +80,7 @@ func newUnmountVolumeCmd() *cli.Command {
 			},
 		},
 		Action: func(ctx context.Context, cmd *cli.Command) error {
-			p, err := tpm.MakeDirectoryPathAbsolute(dir)
+			p, err := ensurePathIsAbolute(dir)
 			if err != nil {
 				return err
 			}
@@ -78,7 +95,6 @@ func newUnmountVolumeCmd() *cli.Command {
 }
 
 func newGetLuksKeyFromRecoveryKeyCmd() *cli.Command {
-	var outputFile string
 	var hex, escaped bool
 
 	return &cli.Command{
@@ -86,11 +102,6 @@ func newGetLuksKeyFromRecoveryKeyCmd() *cli.Command {
 		Usage:   "Get LUKS key from recovery key",
 		Suggest: true,
 		Flags: []cli.Flag{
-			&cli.StringFlag{
-				Name:        "file",
-				Usage:       "Write binary key to file with secure permissions (600)",
-				Destination: &outputFile,
-			},
 			&cli.BoolFlag{
 				Name:        "hex",
 				Usage:       "Output key in hexadecimal format",
@@ -101,6 +112,13 @@ func newGetLuksKeyFromRecoveryKeyCmd() *cli.Command {
 				Usage:       "Output key in escaped string format",
 				Destination: &escaped,
 			},
+		},
+		Before: func(ctx context.Context, cmd *cli.Command) (context.Context, error) {
+			if hex && escaped {
+				return ctx, fmt.Errorf("only one between 'hex' and 'escaped' flag can be used")
+			}
+
+			return ctx, nil
 		},
 		Action: func(ctx context.Context, cmd *cli.Command) error {
 			recoveryKey, err := tui.ReadUserSecret("Enter recovery key: ")
@@ -113,25 +131,52 @@ func newGetLuksKeyFromRecoveryKeyCmd() *cli.Command {
 				return err
 			}
 
-			if outputFile != "" {
-				if err := os.WriteFile(outputFile, key, 0600); err != nil {
-					return fmt.Errorf("failed to write key to file: %w", err)
-				}
-				fmt.Printf("Binary key written to: %s\n", outputFile)
-
-				return nil
-			}
-
+			format := "LUKS key (hex): %x\n"
 			switch {
 			case hex:
-				fmt.Printf("%x\n", key)
+				format = "%x\n"
 			case escaped:
-				fmt.Printf("%q\n", key)
-			default:
-				fmt.Printf("LUKS key (hex): %x\n", key)
+				format = "%q\n"
 			}
+
+			fmt.Printf(format, key)
 
 			return nil
 		},
 	}
+}
+
+// devicePathExists validates that a device path exists in the system.
+func devicePathExists(p string) error {
+	if p == "" {
+		return fmt.Errorf("device path cannot be empty")
+	}
+
+	// Check if the device actually exists
+	if _, err := os.Stat(p); err != nil {
+		if os.IsNotExist(err) {
+			return fmt.Errorf("device %q does not exist", p)
+		}
+		return fmt.Errorf("failed to check device %q: %v", p, err)
+	}
+
+	return nil
+}
+
+// ensurePathIsAbolute resolves to an absolute path.
+func ensurePathIsAbolute(p string) (string, error) {
+	if p == "" {
+		return "", fmt.Errorf("directory path cannot be empty")
+	}
+
+	if filepath.IsAbs(p) {
+		return p, nil
+	}
+
+	// Relative path: resolve against current working directory
+	r, err := os.Getwd()
+	if err != nil {
+		return "", fmt.Errorf("could not resolve current directory. Please use an absolute path")
+	}
+	return filepath.Join(r, p), nil
 }

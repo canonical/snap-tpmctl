@@ -1,6 +1,6 @@
 module github.com/canonical/snap-tpmctl/tools
 
-go 1.25.4
+go 1.26.0
 
 require (
 	github.com/AlekSi/gocov-xml v1.2.0

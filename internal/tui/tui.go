@@ -7,6 +7,7 @@ import (
 	"io"
 	"os"
 	"strings"
+	"sync"
 	"text/tabwriter"
 	"time"
 
@@ -53,13 +54,47 @@ func ReadUserSecret(form string) (string, error) {
 	fmt.Fprintln(stdout)
 
 	if err != nil {
-		return "", fmt.Errorf("failed to read input: %w", err)
+		return "", fmt.Errorf("failed to read input: %v", err)
 	}
 
 	return string(input), nil
 }
 
-// WithSpinner executes an error-only function while displaying a spinner in the terminal.
+// Spin provides a simple interface to start and stop a spinner in the terminal.
+func Spin(msg string) (stop func()) {
+	var spinner progress.ANSIMeter
+	done := make(chan struct{})
+	var wg sync.WaitGroup
+	wg.Go(func() {
+		// Timer to trigger changing the spinner char to produce a loading spinner
+		ticker := time.NewTicker(100 * time.Millisecond)
+		defer ticker.Stop()
+
+		// Hide cursor while spinning
+		HideCursor()
+		for {
+			select {
+			case <-done:
+				spinner.Finished()
+				return
+			case <-ticker.C:
+				spinner.Spin(msg)
+			}
+		}
+	})
+
+	return func() {
+		if done == nil {
+			return
+		}
+
+		close(done)
+		wg.Wait()
+		done = nil
+	}
+}
+
+// TODO: Matt to use Spin() instead and removing this.
 func WithSpinner(message string, fn func() error) error {
 	_, err := WithSpinnerResult(message, func() (struct{}, error) {
 		return struct{}{}, fn()

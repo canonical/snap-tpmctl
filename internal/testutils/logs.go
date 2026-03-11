@@ -16,5 +16,5 @@ func TestLoggerWithBuffer(t *testing.T) (context.Context, *bytes.Buffer) {
 
 	var logs bytes.Buffer
 	w := io.MultiWriter(&logs, t.Output())
-	return log.WithLoggerInContext(context.Background(), w), &logs
+	return log.WithLoggerInContext(t.Context(), w), &logs
 }

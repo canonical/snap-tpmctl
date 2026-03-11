@@ -1,0 +1,59 @@
+{
+  "result": {
+    "id": "11",
+    "kind": "fde-replace-platform-key",
+    "ready": false,
+    "spawn-time": "2026-03-09T15:41:50.840683509+01:00",
+    "status": "Do",
+    "summary": "Replace platform key",
+    "tasks": [
+      {
+        "data": {
+          "affected-snaps": [
+            "pc",
+            "pc-kernel",
+            "core24"
+          ]
+        },
+        "id": "413",
+        "kind": "fde-add-platform-keys",
+        "progress": {
+          "done": 1,
+          "label": "",
+          "total": 1
+        },
+        "ready-time": "2026-03-09T15:42:10.62624463+01:00",
+        "spawn-time": "2026-03-09T15:41:50.840623766+01:00",
+        "status": "Done",
+        "summary": "Add temporary passphrase key slots"
+      },
+      {
+        "id": "414",
+        "kind": "fde-remove-keys",
+        "progress": {
+          "done": 0,
+          "label": "",
+          "total": 1
+        },
+        "spawn-time": "2026-03-09T15:41:50.840655194+01:00",
+        "status": "Do",
+        "summary": "Remove old passphrase key slots"
+      },
+      {
+        "id": "415",
+        "kind": "fde-rename-keys",
+        "progress": {
+          "done": 0,
+          "label": "",
+          "total": 1
+        },
+        "spawn-time": "2026-03-09T15:41:50.840659614+01:00",
+        "status": "Do",
+        "summary": "Rename temporary passphrase key slots"
+      }
+    ]
+  },
+  "status": "OK",
+  "status-code": 200,
+  "type": "sync"
+}

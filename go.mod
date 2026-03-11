@@ -1,13 +1,15 @@
 module github.com/canonical/snap-tpmctl
 
-go 1.25.5
+go 1.26.0
 
 require (
+	github.com/google/go-cmp v0.7.0
 	github.com/matryer/is v1.4.1
 	github.com/snapcore/secboot v0.0.0-20260126133925-99e0bbda867d
 	github.com/snapcore/snapd v0.0.0-20260128063429-c3be32030ec4
 	github.com/urfave/cli/v3 v3.6.2
 	golang.org/x/term v0.39.0
+	gopkg.in/yaml.v3 v3.0.1
 )
 
 require (

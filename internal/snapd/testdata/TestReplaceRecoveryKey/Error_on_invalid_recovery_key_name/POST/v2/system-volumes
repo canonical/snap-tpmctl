@@ -1,0 +1,8 @@
+{
+    "result": {
+        "message": "cannot replace recovery key: invalid key slot reference (container-role: \"system-data\", name: \"default\"): only system key slot names can start with \"default\""
+    },
+    "status": "Bad Request",
+    "status-code": 400,
+    "type": "error"
+}

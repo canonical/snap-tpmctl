@@ -9,10 +9,10 @@ import (
 	"github.com/snapcore/snapd/client"
 )
 
-// KeySlot describes a recovery keyslot target.
+// Keyslot describes a recovery keyslot target.
 // If ContainerRole is omitted, the keyslot will be implicitly expanded
 // into two target keyslots for both "system-data" and "system-save".
-type KeySlot struct {
+type Keyslot struct {
 	ContainerRole string `json:"container-role,omitempty"`
 	Name          string `json:"name"`
 }
@@ -45,11 +45,11 @@ func (c *Client) GenerateRecoveryKey(ctx context.Context) (result GenerateRecove
 
 // AddRecoveryKey adds a recovery key to the specified keyslots.
 // This is an async operation that waits for completion.
-func (c *Client) AddRecoveryKey(ctx context.Context, keyID string, keySlots []KeySlot) error {
+func (c *Client) AddRecoveryKey(ctx context.Context, keyID string, keySlots []Keyslot) error {
 	body := struct {
 		Action   string    `json:"action"`
 		KeyID    string    `json:"key-id"`
-		KeySlots []KeySlot `json:"keyslots"`
+		KeySlots []Keyslot `json:"keyslots"`
 	}{
 		Action:   "add-recovery-key",
 		KeyID:    keyID,
@@ -65,11 +65,11 @@ func (c *Client) AddRecoveryKey(ctx context.Context, keyID string, keySlots []Ke
 
 // ReplaceRecoveryKey replaces a recovery key to the specified keyslots.
 // This is an async operation that waits for completion.
-func (c *Client) ReplaceRecoveryKey(ctx context.Context, keyID string, keySlots []KeySlot) error {
+func (c *Client) ReplaceRecoveryKey(ctx context.Context, keyID string, keySlots []Keyslot) error {
 	body := struct {
 		Action   string    `json:"action"`
 		KeyID    string    `json:"key-id"`
-		KeySlots []KeySlot `json:"keyslots"`
+		KeySlots []Keyslot `json:"keyslots"`
 	}{
 		Action:   "replace-recovery-key",
 		KeyID:    keyID,
@@ -96,9 +96,8 @@ func (c *Client) CheckRecoveryKey(ctx context.Context, recoveryKey string, conta
 	}
 
 	_, err := c.doSyncRequest(ctx, http.MethodPost, "/v2/system-volumes", nil, nil, body)
-	var e *Error
 	// The recovery key is a valid candidate, but not a current correct recovery key.
-	if errors.As(err, &e) && e.Kind == client.ErrorKindInvalidRecoveryKey {
+	if e, ok := errors.AsType[*Error](err); ok && e.Kind == client.ErrorKindInvalidRecoveryKey {
 		return false, nil
 	}
 	if err != nil {

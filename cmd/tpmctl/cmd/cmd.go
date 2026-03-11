@@ -8,12 +8,6 @@ import (
 	"github.com/urfave/cli/v3"
 )
 
-/*
-  TODO: investigate this
-  2025/11/20 11:45:59 ERROR flag needs an argument: --file
-  11:46:54 ERROR invalid value "asdf" for argument key-id: strconv.ParseInt: parsing "asdf": invalid syntax
-*/
-
 // App is the main application structure.
 type App struct {
 	args []string
@@ -54,11 +48,11 @@ func newRootCmd() cli.Command {
 			newGetLuksKeyFromRecoveryKeyCmd(),
 			newListAllCmd(),
 			newListPassphraseCmd(),
-			newListPinCmd(),
+			newListPINCmd(),
 			newListRecoveryKeyCmd(),
 			newMountVolumeCmd(),
 			newReplacePassphraseCmd(),
-			newReplacePinCmd(),
+			newReplacePINCmd(),
 			newRegenerateKeyCmd(),
 			newRemovePINCmd(),
 			newRemovePassphraseCmd(),

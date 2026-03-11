@@ -5,7 +5,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/canonical/snap-tpmctl/internal/snapd"
 	"github.com/canonical/snap-tpmctl/internal/tpm"
 	"github.com/canonical/snap-tpmctl/internal/tui"
 	"github.com/urfave/cli/v3"
@@ -17,7 +16,7 @@ func newCheckCmd() *cli.Command {
 		Usage:   "Check recovery key",
 		Suggest: true,
 		Action: func(ctx context.Context, cmd *cli.Command) error {
-			c := snapd.New()
+			s := tpm.New()
 
 			key, err := tui.ReadUserSecret("Enter recovery key: ")
 			if err != nil {
@@ -29,13 +28,12 @@ func newCheckCmd() *cli.Command {
 			}
 
 			ok, err := tui.WithSpinnerResult("Checking recovery key...", func() (bool, error) {
-				return tpm.CheckKey(ctx, c, key)
+				return s.CheckKey(ctx, key)
 			})
 			if err != nil {
 				return err
 			}
 
-			// TODO: print better messages
 			msg := "Recovery key does not work"
 			if ok {
 				msg = "Recovery key works"

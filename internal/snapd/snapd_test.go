@@ -16,4 +16,3 @@ func TestNew(t *testing.T) {
 	s := snapd.New()
 	is.True(s != nil) // New returned an object
 }
-
