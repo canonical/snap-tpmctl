@@ -28,7 +28,7 @@ func TestFdeStatus(t *testing.T) {
 			t.Parallel()
 			is := is.New(t)
 
-			ctx := context.Background()
+			ctx := testutils.ContextLoggerWithDebug(t)
 			mockClient := testutils.NewMockSnapdClient(tc.cfg)
 
 			res, err := tpm.FdeStatus(ctx, mockClient)

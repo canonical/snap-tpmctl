@@ -1,12 +1,11 @@
 package snapd_test
 
 import (
-	"log/slog"
 	"testing"
 
-	"github.com/canonical/snap-tpmctl/internal/log"
 	"github.com/canonical/snap-tpmctl/internal/snapd"
 	snapdtestutils "github.com/canonical/snap-tpmctl/internal/snapd/testutils"
+	"github.com/canonical/snap-tpmctl/internal/testutils"
 	"github.com/canonical/snap-tpmctl/internal/testutils/golden"
 	"github.com/matryer/is"
 )
@@ -27,7 +26,7 @@ func TestGenerateRecoveryKey(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 			is := is.New(t)
-			ctx := log.WithLoggerInContext(t.Context(), t.Output())
+			ctx := testutils.ContextLoggerWithDebug(t)
 
 			c := snapdtestutils.NewMockSnapdServer(t, ctx)
 
@@ -62,10 +61,7 @@ func TestAddRecoveryKey(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 			is := is.New(t)
-
-			// TODO: generalize that
-			ctx := log.WithLoggerInContext(t.Context(), t.Output())
-			log.SetLoggerLevelInContext(ctx, slog.LevelDebug)
+			ctx := testutils.ContextLoggerWithDebug(t)
 
 			c := snapdtestutils.NewMockSnapdServer(t, ctx)
 
@@ -99,10 +95,7 @@ func TestReplaceRecoveryKey(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 			is := is.New(t)
-
-			// TODO: generalize that
-			ctx := log.WithLoggerInContext(t.Context(), t.Output())
-			log.SetLoggerLevelInContext(ctx, slog.LevelDebug)
+			ctx := testutils.ContextLoggerWithDebug(t)
 
 			c := snapdtestutils.NewMockSnapdServer(t, ctx)
 
@@ -137,8 +130,7 @@ func TestCheckRecoveryKey(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 			is := is.New(t)
-
-			ctx := log.WithLoggerInContext(t.Context(), t.Output())
+			ctx := testutils.ContextLoggerWithDebug(t)
 
 			c := snapdtestutils.NewMockSnapdServer(t, ctx)
 

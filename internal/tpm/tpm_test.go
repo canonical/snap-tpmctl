@@ -1,11 +1,10 @@
 package tpm_test
 
 import (
-	"log/slog"
 	"testing"
 
-	"github.com/canonical/snap-tpmctl/internal/log"
 	snapdtestutils "github.com/canonical/snap-tpmctl/internal/snapd/testutils"
+	"github.com/canonical/snap-tpmctl/internal/testutils"
 	"github.com/canonical/snap-tpmctl/internal/tpm"
 	tpmtestutils "github.com/canonical/snap-tpmctl/internal/tpm/testutils"
 	"github.com/matryer/is"
@@ -27,9 +26,7 @@ func TestFdeStatus(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 			is := is.New(t)
-
-			ctx := log.WithLoggerInContext(t.Context(), t.Output())
-			log.SetLoggerLevelInContext(ctx, slog.LevelDebug)
+			ctx := testutils.ContextLoggerWithDebug(t)
 
 			path := tpmtestutils.GetTestPath(t, tc.wantErr, "FdeStatus")
 
