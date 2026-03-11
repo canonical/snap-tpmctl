@@ -5,6 +5,7 @@ import (
 	"io"
 	"os"
 	"strings"
+	"sync"
 	"testing"
 	"testing/synctest"
 	"time"
@@ -19,9 +20,35 @@ import (
 //go:linkname spinnerStdout github.com/snapcore/snapd/progress.stdout
 var spinnerStdout io.Writer
 
+type syncBuffer struct {
+	mu  sync.Mutex
+	buf strings.Builder
+}
+
+func (b *syncBuffer) Write(p []byte) (int, error) {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+
+	return b.buf.Write(p)
+}
+
+func (b *syncBuffer) String() string {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+
+	return b.buf.String()
+}
+
+func (b *syncBuffer) Reset() {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+
+	b.buf.Reset()
+}
+
 func TestSpin(t *testing.T) {
 	// Capture spinner output to a buffer.
-	var instantBuf, globalBuf strings.Builder
+	var instantBuf, globalBuf syncBuffer
 
 	w := io.MultiWriter(&instantBuf, &globalBuf)
 
