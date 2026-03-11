@@ -2,12 +2,61 @@ package tui_test
 
 import (
 	"errors"
+	"io"
+	"os"
+	"strings"
 	"testing"
+	"testing/synctest"
 	"time"
 
+	_ "unsafe"
+
+	"github.com/canonical/snap-tpmctl/internal/testutils/golden"
 	"github.com/canonical/snap-tpmctl/internal/tui"
 	"github.com/matryer/is"
 )
+
+//go:linkname spinnerStdout github.com/snapcore/snapd/progress.stdout
+var spinnerStdout io.Writer
+
+func TestSpin(t *testing.T) {
+	// Capture spinner output to a buffer.
+	var instantBuf, globalBuf strings.Builder
+
+	w := io.MultiWriter(&instantBuf, &globalBuf)
+
+	spinnerStdout = w
+	defer func() { spinnerStdout = os.Stdout }()
+
+	synctest.Test(t, func(t *testing.T) {
+		is := is.New(t)
+
+		msg := "Some message..."
+
+		stop := tui.Spin(msg)
+		defer stop()
+		synctest.Wait()
+
+		is.Equal(instantBuf.String(), "")
+
+		time.Sleep(time.Nanosecond)
+
+		for _, sep := range []string{"/", "-", "\\", "|"} {
+			time.Sleep(100 * time.Millisecond)
+			synctest.Wait()
+
+			is.True(strings.Contains(instantBuf.String(), msg)) // message is present
+			is.True(strings.Contains(instantBuf.String(), sep)) // separator progressed
+
+			instantBuf.Reset()
+		}
+
+		stop()
+		synctest.Wait()
+
+		golden.CheckOrUpdate(t, globalBuf.String())
+	})
+}
 
 func createTestFunc(t *testing.T, wantErr bool) func() error {
 	t.Helper()
