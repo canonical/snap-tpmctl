@@ -1,104 +1,95 @@
 package tpm_test
 
-/*
-//nolint:dupl // CreateKey and RegenerateKey have intentionally similar structure.
+import (
+	"testing"
+
+	"github.com/canonical/snap-tpmctl/internal/log"
+	snapdtestutils "github.com/canonical/snap-tpmctl/internal/snapd/testutils"
+	"github.com/canonical/snap-tpmctl/internal/tpm"
+	tpmtestutils "github.com/canonical/snap-tpmctl/internal/tpm/testutils"
+	"github.com/matryer/is"
+)
+
 func TestCreateKey(t *testing.T) {
 	t.Parallel()
 
 	tests := map[string]struct {
 		recoveryKeyName string
+		recoveryKey     string
 
-		generateKeyFails bool
-		addKeyFails      bool
-
-		wantErr bool
+		wantGenErr bool
+		wantAddErr bool
+		wantErr    bool
 	}{
-		"Success": {
-			recoveryKeyName: "my-key",
-		},
-		"Error when generate key fails": {
-			recoveryKeyName:  "my-key",
-			generateKeyFails: true,
-			wantErr:          true,
-		},
-		"Error when add key fails": {
-			recoveryKeyName: "my-key",
-			addKeyFails:     true,
-			wantErr:         true,
-		},
+		"Success_creating_recovery_key": {recoveryKeyName: "test", recoveryKey: "11272-47509-28031-54818-41671-38673-11053-06376"},
+
+		"Fail_generating_recovery_key": {wantGenErr: true, wantErr: true},
+		"Fail_adding_recovery_key":     {wantAddErr: true, wantErr: true},
 	}
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 			is := is.New(t)
+			ctx := log.WithLoggerInContext(t.Context(), t.Output())
 
-			ctx := testutils.ContextLoggerWithDebug(t)
-			mockClient := testutils.NewMockSnapdClient(testutils.MockConfig{
-				GenerateKeyError:    tc.generateKeyFails,
-				AddRecoveryKeyError: tc.addKeyFails,
-			})
+			pathGen := tpmtestutils.GetTestPath(t, tc.wantGenErr, "GenerateRecoveryKey")
+			pathAdd := tpmtestutils.GetTestPath(t, tc.wantAddErr, "AddRecoveryKey")
 
-			res, err := tpm.CreateKey(ctx, mockClient, tc.recoveryKeyName)
+			c := snapdtestutils.NewMockSnapdServer(t, ctx, pathGen, pathAdd)
+			s := tpm.New(tpmtestutils.WithSnapdClient(c.Client))
 
+			got, err := s.CreateKey(ctx, tc.recoveryKeyName)
 			if tc.wantErr {
 				is.True(err != nil)
 				return
 			}
 			is.NoErr(err)
-			is.Equal("test-key-id-12345", res.KeyID)
-			is.Equal("12345-67890-12345-67890-12345-67890-12345-67890", res.RecoveryKey)
+			is.Equal(got, tc.recoveryKey)
+
+			is.True(tpmtestutils.HasBodyContent(is, *c.Requests, tc.recoveryKeyName))
 		})
 	}
 }
 
-//nolint:dupl // CreateKey and RegenerateKey have intentionally similar structure.
 func TestRegenerateKey(t *testing.T) {
 	t.Parallel()
 
 	tests := map[string]struct {
 		recoveryKeyName string
+		recoveryKey     string
 
-		generateKeyFails bool
-		replaceKeyFails  bool
-
-		wantErr bool
+		wantGenErr bool
+		wantAddErr bool
+		wantErr    bool
 	}{
-		"Success": {
-			recoveryKeyName: "my-key",
-		},
-		"Error when generate key fails": {
-			recoveryKeyName:  "my-key",
-			generateKeyFails: true,
-			wantErr:          true,
-		},
-		"Error when replace key fails": {
-			recoveryKeyName: "my-key",
-			replaceKeyFails: true,
-			wantErr:         true,
-		},
+		"Success_regenerating_recovery_key": {recoveryKeyName: "test", recoveryKey: "11272-47509-28031-54818-41671-38673-11053-06376"},
+
+		"Fail_generating_recovery_key": {wantGenErr: true, wantErr: true},
+		"Fail_adding_recovery_key":     {wantAddErr: true, wantErr: true},
 	}
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 			is := is.New(t)
+			ctx := log.WithLoggerInContext(t.Context(), t.Output())
 
-			ctx := testutils.ContextLoggerWithDebug(t)
-			mockClient := testutils.NewMockSnapdClient(testutils.MockConfig{
-				GenerateKeyError:        tc.generateKeyFails,
-				ReplaceRecoveryKeyError: tc.replaceKeyFails,
-			})
+			pathGen := tpmtestutils.GetTestPath(t, tc.wantGenErr, "GenerateRecoveryKey")
+			pathAdd := tpmtestutils.GetTestPath(t, tc.wantAddErr, "ReplaceRecoveryKey")
 
-			res, err := tpm.RegenerateKey(ctx, mockClient, tc.recoveryKeyName)
+			c := snapdtestutils.NewMockSnapdServer(t, ctx, pathGen, pathAdd)
+			s := tpm.New(tpmtestutils.WithSnapdClient(c.Client))
 
+			got, err := s.RegenerateKey(ctx, tc.recoveryKeyName)
 			if tc.wantErr {
 				is.True(err != nil)
 				return
 			}
 			is.NoErr(err)
-			is.Equal("test-key-id-12345", res.KeyID)
-			is.Equal("12345-67890-12345-67890-12345-67890-12345-67890", res.RecoveryKey)
+			is.Equal(got, tc.recoveryKey)
+
+			is.True(tpmtestutils.HasBodyContent(is, *c.Requests, tc.recoveryKeyName))
 		})
 	}
 }
@@ -107,45 +98,37 @@ func TestCheckKey(t *testing.T) {
 	t.Parallel()
 
 	tests := map[string]struct {
-		checkError       bool
-		recoveryKeyValid bool
-		wantValid        bool
-		wantErr          bool
+		recoveryKey string
+
+		wantErr bool
 	}{
-		"Success": {
-			recoveryKeyValid: true,
-			wantValid:        true,
-		},
-		"Invalid recovery key": {
-			recoveryKeyValid: false,
-			wantErr:          true,
-		},
-		"Check error": {
-			checkError: true,
-			wantErr:    true,
-		},
+		"Success_creating_recovery_key": {recoveryKey: "11272-47509-28031-54818-41671-38673-11053-06376"},
+
+		"Fail_generating_recovery_key": {wantErr: true},
+		"Fail_adding_recovery_key":     {wantErr: true},
 	}
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 			is := is.New(t)
+			ctx := log.WithLoggerInContext(t.Context(), t.Output())
 
-			ctx := testutils.ContextLoggerWithDebug(t)
-			mockClient := testutils.NewMockSnapdClient(testutils.MockConfig{
-				CheckRecoveryKeyError: tc.checkError,
-				RecoveryKeyValid:      tc.recoveryKeyValid,
-			})
+			path := tpmtestutils.GetTestPath(t, tc.wantErr, "CheckRecoveryKey")
 
-			valid, err := tpm.CheckKey(ctx, mockClient, "test-key")
+			c := snapdtestutils.NewMockSnapdServer(t, ctx, path)
+			s := tpm.New(tpmtestutils.WithSnapdClient(c.Client))
 
+			got, err := s.CheckKey(ctx, tc.recoveryKey)
 			if tc.wantErr {
 				is.True(err != nil)
+				is.Equal(got, false)
 				return
 			}
 			is.NoErr(err)
-			is.Equal(tc.wantValid, valid)
+			is.Equal(got, true)
+
+			is.True(tpmtestutils.HasBodyContent(is, *c.Requests, tc.recoveryKey))
 		})
 	}
 }
-*/
