@@ -9,11 +9,13 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"slices"
 	"testing"
 	_ "unsafe" // Required for go:linkname directives
 
 	"github.com/canonical/snap-tpmctl/internal/log"
 	"github.com/canonical/snap-tpmctl/internal/snapd"
+	"github.com/canonical/snap-tpmctl/internal/testutils"
 	"github.com/canonical/snap-tpmctl/internal/testutils/testsdetection"
 	"github.com/matryer/is"
 )
@@ -40,9 +42,16 @@ type MockSnapdServer struct {
 }
 
 // NewMockSnapdServer creates a new snapd client with a mock server that responds with the contents of the test file asset.
-func NewMockSnapdServer(t *testing.T, ctx context.Context, root string) *MockSnapdServer {
+// The test file asset is searched in the provided roots in order, and the last match is used as the response.
+// If no match is found, a 404 response is returned.
+func NewMockSnapdServer(t *testing.T, ctx context.Context, roots ...string) *MockSnapdServer {
 	t.Helper()
 	is := is.New(t)
+
+	if roots == nil {
+		roots = []string{testutils.TestPath(t)}
+	}
+	slices.Reverse(roots)
 
 	recordedRequests := new([]RecordedRequest)
 
@@ -58,10 +67,18 @@ func NewMockSnapdServer(t *testing.T, ctx context.Context, root string) *MockSna
 			Body:   string(b),
 		})
 
-		resp, err := os.ReadFile(filepath.Join(root, r.Method, r.URL.Path))
-		is.NoErr(err) // Setup: read the test response from test file asset
+		// Search for response from the last root and look for the test response file in each root until found.
+		var resp []byte
+		for _, p := range roots {
+			resp, err = os.ReadFile(filepath.Join(p, r.Method, r.URL.Path))
+			if os.IsNotExist(err) {
+				continue
+			}
+			is.NoErr(err) // Setup: read the test response from test file asset
+			break
+		}
 
-		if os.IsNotExist(err) {
+		if resp == nil {
 			log.Debug(ctx, "Test response file not found for request: %v %v", r.Method, r.URL.Path)
 			http.NotFound(w, r)
 			return

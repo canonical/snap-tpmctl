@@ -5,7 +5,6 @@ import (
 
 	"github.com/canonical/snap-tpmctl/internal/log"
 	snapdtestutils "github.com/canonical/snap-tpmctl/internal/snapd/testutils"
-	"github.com/canonical/snap-tpmctl/internal/testutils"
 	"github.com/canonical/snap-tpmctl/internal/testutils/golden"
 	"github.com/matryer/is"
 )
@@ -29,7 +28,7 @@ func TestListVolumeInfo(t *testing.T) {
 			is := is.New(t)
 			ctx := log.WithLoggerInContext(t.Context(), t.Output())
 
-			c := snapdtestutils.NewMockSnapdServer(t, ctx, testutils.TestPath(t))
+			c := snapdtestutils.NewMockSnapdServer(t, ctx)
 
 			got, err := c.ListVolumeInfo(ctx)
 			if tc.wantErr {

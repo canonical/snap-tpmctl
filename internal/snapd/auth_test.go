@@ -6,7 +6,6 @@ import (
 	"github.com/canonical/snap-tpmctl/internal/log"
 	"github.com/canonical/snap-tpmctl/internal/snapd"
 	snapdtestutils "github.com/canonical/snap-tpmctl/internal/snapd/testutils"
-	"github.com/canonical/snap-tpmctl/internal/testutils"
 	"github.com/matryer/is"
 )
 
@@ -30,7 +29,7 @@ func TestReplacePassphrase(t *testing.T) {
 			is := is.New(t)
 			ctx := log.WithLoggerInContext(t.Context(), t.Output())
 
-			c := snapdtestutils.NewMockSnapdServer(t, ctx, testutils.TestPath(t))
+			c := snapdtestutils.NewMockSnapdServer(t, ctx)
 
 			// Container roles are passed as is to snapd. Not handled in that test.
 			err := c.ReplacePassphrase(ctx, tc.oldPassphrase, tc.newPassphrase, nil)
@@ -62,7 +61,7 @@ func TestCheckPassphrase(t *testing.T) {
 			is := is.New(t)
 			ctx := log.WithLoggerInContext(t.Context(), t.Output())
 
-			c := snapdtestutils.NewMockSnapdServer(t, ctx, testutils.TestPath(t))
+			c := snapdtestutils.NewMockSnapdServer(t, ctx)
 
 			err := c.CheckPassphrase(ctx, tc.passphrase)
 			if tc.wantErr {
@@ -93,7 +92,7 @@ func TestCheckPIN(t *testing.T) {
 			is := is.New(t)
 			ctx := log.WithLoggerInContext(t.Context(), t.Output())
 
-			c := snapdtestutils.NewMockSnapdServer(t, ctx, testutils.TestPath(t))
+			c := snapdtestutils.NewMockSnapdServer(t, ctx)
 
 			err := c.CheckPIN(ctx, tc.pin)
 			if tc.wantErr {
@@ -125,7 +124,7 @@ func TestReplacePIN(t *testing.T) {
 			is := is.New(t)
 			ctx := log.WithLoggerInContext(t.Context(), t.Output())
 
-			c := snapdtestutils.NewMockSnapdServer(t, ctx, testutils.TestPath(t))
+			c := snapdtestutils.NewMockSnapdServer(t, ctx)
 
 			// Container roles are passed as is to snapd. Not handled in that test.
 			err := c.ReplacePIN(ctx, tc.oldPIN, tc.newPIN, nil)
@@ -161,7 +160,7 @@ func TestReplacePlatformKey(t *testing.T) {
 			is := is.New(t)
 			ctx := log.WithLoggerInContext(t.Context(), t.Output())
 
-			c := snapdtestutils.NewMockSnapdServer(t, ctx, testutils.TestPath(t))
+			c := snapdtestutils.NewMockSnapdServer(t, ctx)
 
 			err := c.ReplacePlatformKey(ctx, tc.authMode, tc.secret)
 			if tc.wantErr {
