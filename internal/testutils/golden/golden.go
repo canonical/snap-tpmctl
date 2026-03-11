@@ -64,6 +64,31 @@ func CheckOrUpdateYAML[T any](t *testing.T, got T) {
 	}
 }
 
+// CheckOrUpdate compares the provided string with the content of the golden file. If the update environment
+// variable is set, the golden file is updated with the provided string.
+func CheckOrUpdate(t *testing.T, got string) {
+	t.Helper()
+
+	is := is.New(t)
+	goldenFile := goldenPath(t)
+
+	data := []byte(got)
+
+	if update {
+		updateGoldenFile(t, goldenFile, data)
+	}
+
+	t.Logf("Comparing with %q", goldenFile)
+	want, err := os.ReadFile(goldenFile)
+	is.NoErr(err) // Golden: cannot read golden file
+
+	diff := cmp.Diff(string(want), got)
+	if diff != "" {
+		t.Logf("Difference between golden file and actual output (-want +got):\n%s", diff)
+		t.Fatal()
+	}
+}
+
 // updateGoldenFile updates the golden file at the specified path with the provided data.
 func updateGoldenFile(t *testing.T, path string, data []byte) {
 	t.Helper()
