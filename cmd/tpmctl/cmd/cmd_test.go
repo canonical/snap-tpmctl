@@ -13,7 +13,6 @@ import (
 func TestRun(t *testing.T) {
 	t.Parallel()
 	is := is.New(t)
-
 	ctx, logs := testutils.TestLoggerWithBuffer(t)
 
 	app := cmd.New([]string{"--help"})

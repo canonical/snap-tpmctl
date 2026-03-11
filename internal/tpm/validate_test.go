@@ -31,8 +31,8 @@ func TestIsValidPassphrase(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 			is := is.New(t)
+			ctx := testutils.ContextLoggerWithDebug(t)
 
-			ctx := context.Background()
 			mockClient := testutils.NewMockSnapdClient(testutils.MockConfig{
 				CheckPassphraseError:   tc.checkPassphraseError,
 				PassphraseLowEntropy:   tc.passphraseLowEntropy,
@@ -93,8 +93,8 @@ func TestIsValidPIN(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 			is := is.New(t)
+			ctx := testutils.ContextLoggerWithDebug(t)
 
-			ctx := context.Background()
 			mockClient := testutils.NewMockSnapdClient(testutils.MockConfig{
 				CheckPINError:  tc.checkPINError,
 				PINLowEntropy:  tc.pinLowEntropy,
@@ -239,8 +239,7 @@ func TestValidateRecoveryKeyNameUnique(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 			is := is.New(t)
-
-			ctx := context.Background()
+			ctx := testutils.ContextLoggerWithDebug(t)
 
 			mockClient := testutils.NewMockSnapdClient(testutils.MockConfig{
 				EnumerateError: tc.enumerateFails,
@@ -291,8 +290,7 @@ func TestValidateAuthMode(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 			is := is.New(t)
-
-			ctx := context.Background()
+			ctx := testutils.ContextLoggerWithDebug(t)
 
 			// Default mock auth mode to expected if not specified
 			mockAuthMode := tc.mockAuthMode

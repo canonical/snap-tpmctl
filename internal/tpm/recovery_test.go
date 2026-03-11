@@ -33,7 +33,7 @@ func TestCreateKey(t *testing.T) {
 			t.Parallel()
 			is := is.New(t)
 
-			ctx := context.Background()
+			ctx := testutils.ContextLoggerWithDebug(t)
 			mockClient := testutils.NewMockSnapdClient(testutils.MockConfig{
 				GenerateKeyError:    tc.generateKeyFails,
 				AddRecoveryKeyError: tc.addKeyFails,
@@ -84,7 +84,7 @@ func TestRegenerateKey(t *testing.T) {
 			t.Parallel()
 			is := is.New(t)
 
-			ctx := context.Background()
+			ctx := testutils.ContextLoggerWithDebug(t)
 			mockClient := testutils.NewMockSnapdClient(testutils.MockConfig{
 				GenerateKeyError:        tc.generateKeyFails,
 				ReplaceRecoveryKeyError: tc.replaceKeyFails,
@@ -131,7 +131,7 @@ func TestCheckKey(t *testing.T) {
 			t.Parallel()
 			is := is.New(t)
 
-			ctx := context.Background()
+			ctx := testutils.ContextLoggerWithDebug(t)
 			mockClient := testutils.NewMockSnapdClient(testutils.MockConfig{
 				CheckRecoveryKeyError: tc.checkError,
 				RecoveryKeyValid:      tc.recoveryKeyValid,

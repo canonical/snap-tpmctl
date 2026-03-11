@@ -329,7 +329,7 @@ func TestReplacePIN(t *testing.T) {
 			t.Parallel()
 			is := is.New(t)
 
-			ctx := context.Background()
+			ctx := testutils.ContextLoggerWithDebug(t)
 			mockClient := testutils.NewMockSnapdClient(testutils.MockConfig{
 				ReplacePINError: tc.replacePINError,
 			})
@@ -363,7 +363,7 @@ func TestAddPIN(t *testing.T) {
 			t.Parallel()
 			is := is.New(t)
 
-			ctx := context.Background()
+			ctx := testutils.ContextLoggerWithDebug(t)
 			mockClient := testutils.NewMockSnapdClient(testutils.MockConfig{
 				ReplacePlatformKeyError: tc.replacePlatformKeyError,
 			})
@@ -398,7 +398,7 @@ func TestRemovePIN(t *testing.T) {
 			t.Parallel()
 			is := is.New(t)
 
-			ctx := context.Background()
+			ctx := testutils.ContextLoggerWithDebug(t)
 			mockClient := testutils.NewMockSnapdClient(testutils.MockConfig{
 				ReplacePlatformKeyError: tc.replacePlatformKeyError,
 			})
@@ -433,7 +433,7 @@ func TestAddPassphrase(t *testing.T) {
 			t.Parallel()
 			is := is.New(t)
 
-			ctx := context.Background()
+			ctx := testutils.ContextLoggerWithDebug(t)
 			mockClient := testutils.NewMockSnapdClient(testutils.MockConfig{
 				ReplacePlatformKeyError: tc.replacePlatformKeyError,
 			})
@@ -468,7 +468,7 @@ func TestRemovePassphrase(t *testing.T) {
 			t.Parallel()
 			is := is.New(t)
 
-			ctx := context.Background()
+			ctx := testutils.ContextLoggerWithDebug(t)
 			mockClient := testutils.NewMockSnapdClient(testutils.MockConfig{
 				ReplacePlatformKeyError: tc.replacePlatformKeyError,
 			})

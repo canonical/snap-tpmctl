@@ -33,7 +33,6 @@ func TestRun(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 			is := is.NewRelaxed(t)
-
 			ctx, logs := testutils.TestLoggerWithBuffer(t)
 
 			got := run(ctx, tc.app)

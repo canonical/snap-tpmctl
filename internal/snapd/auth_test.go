@@ -3,9 +3,9 @@ package snapd_test
 import (
 	"testing"
 
-	"github.com/canonical/snap-tpmctl/internal/log"
 	"github.com/canonical/snap-tpmctl/internal/snapd"
 	snapdtestutils "github.com/canonical/snap-tpmctl/internal/snapd/testutils"
+	"github.com/canonical/snap-tpmctl/internal/testutils"
 	"github.com/matryer/is"
 )
 
@@ -27,7 +27,7 @@ func TestReplacePassphrase(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 			is := is.New(t)
-			ctx := log.WithLoggerInContext(t.Context(), t.Output())
+			ctx := testutils.ContextLoggerWithDebug(t)
 
 			c := snapdtestutils.NewMockSnapdServer(t, ctx)
 
@@ -59,7 +59,7 @@ func TestCheckPassphrase(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 			is := is.New(t)
-			ctx := log.WithLoggerInContext(t.Context(), t.Output())
+			ctx := testutils.ContextLoggerWithDebug(t)
 
 			c := snapdtestutils.NewMockSnapdServer(t, ctx)
 
@@ -90,7 +90,7 @@ func TestCheckPIN(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 			is := is.New(t)
-			ctx := log.WithLoggerInContext(t.Context(), t.Output())
+			ctx := testutils.ContextLoggerWithDebug(t)
 
 			c := snapdtestutils.NewMockSnapdServer(t, ctx)
 
@@ -122,7 +122,7 @@ func TestReplacePIN(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 			is := is.New(t)
-			ctx := log.WithLoggerInContext(t.Context(), t.Output())
+			ctx := testutils.ContextLoggerWithDebug(t)
 
 			c := snapdtestutils.NewMockSnapdServer(t, ctx)
 
@@ -158,7 +158,7 @@ func TestReplacePlatformKey(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 			is := is.New(t)
-			ctx := log.WithLoggerInContext(t.Context(), t.Output())
+			ctx := testutils.ContextLoggerWithDebug(t)
 
 			c := snapdtestutils.NewMockSnapdServer(t, ctx)
 
