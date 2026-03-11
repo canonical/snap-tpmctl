@@ -1,7 +1,6 @@
 package tpm_test
 
 import (
-	"strings"
 	"testing"
 
 	"github.com/canonical/snap-tpmctl/internal/log"
@@ -42,15 +41,7 @@ func TestAddPassphrase(t *testing.T) {
 			}
 			is.NoErr(err)
 
-			var found bool
-			for _, r := range *c.Requests {
-				// check at least one request contains the expected passphrase
-				if strings.Contains(r.Body, tc.passphrase) {
-					found = true
-					break
-				}
-			}
-			is.True(found)
+			is.True(tpmtestutils.HasBodyContent(is, *c.Requests, tc.passphrase))
 		})
 	}
 
@@ -87,15 +78,7 @@ func TestReplacePassphrase(t *testing.T) {
 			}
 			is.NoErr(err)
 
-			var found bool
-			for _, r := range *c.Requests {
-				// check at least one request contains the expected passphrases
-				if strings.Contains(r.Body, tc.old) && strings.Contains(r.Body, tc.new) {
-					found = true
-					break
-				}
-			}
-			is.True(found)
+			is.True(tpmtestutils.HasBodyContent(is, *c.Requests, tc.old, tc.new))
 		})
 	}
 }
@@ -128,15 +111,7 @@ func TestRemovePassphrase(t *testing.T) {
 			}
 			is.NoErr(err)
 
-			var found bool
-			for _, r := range *c.Requests {
-				// check at least one request contains the expected mode
-				if strings.Contains(r.Body, string(snapd.AuthModeNone)) {
-					found = true
-					break
-				}
-			}
-			is.True(found)
+			is.True(tpmtestutils.HasBodyContent(is, *c.Requests, string(snapd.AuthModeNone)))
 		})
 	}
 
@@ -172,15 +147,7 @@ func TestAddPIN(t *testing.T) {
 			}
 			is.NoErr(err)
 
-			var found bool
-			for _, r := range *c.Requests {
-				// check at least one request contains the expected pin
-				if strings.Contains(r.Body, tc.pin) {
-					found = true
-					break
-				}
-			}
-			is.True(found)
+			is.True(tpmtestutils.HasBodyContent(is, *c.Requests, tc.pin))
 		})
 	}
 }
@@ -216,15 +183,7 @@ func TestReplacePIN(t *testing.T) {
 			}
 			is.NoErr(err)
 
-			var found bool
-			for _, r := range *c.Requests {
-				// check at least one request contains the expected pins
-				if strings.Contains(r.Body, tc.old) && strings.Contains(r.Body, tc.new) {
-					found = true
-					break
-				}
-			}
-			is.True(found)
+			is.True(tpmtestutils.HasBodyContent(is, *c.Requests, tc.old, tc.new))
 		})
 	}
 }
@@ -257,15 +216,7 @@ func TestRemovePIN(t *testing.T) {
 			}
 			is.NoErr(err)
 
-			var found bool
-			for _, r := range *c.Requests {
-				// check at least one request contains the expected mode
-				if strings.Contains(r.Body, string(snapd.AuthModeNone)) {
-					found = true
-					break
-				}
-			}
-			is.True(found)
+			is.True(tpmtestutils.HasBodyContent(is, *c.Requests, string(snapd.AuthModeNone)))
 		})
 	}
 }
