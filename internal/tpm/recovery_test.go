@@ -102,10 +102,9 @@ func TestCheckKey(t *testing.T) {
 
 		wantErr bool
 	}{
-		"Success_creating_recovery_key": {recoveryKey: "11272-47509-28031-54818-41671-38673-11053-06376"},
+		"Success_checking_recovery_key": {recoveryKey: "11272-47509-28031-54818-41671-38673-11053-06376"},
 
-		"Fail_generating_recovery_key": {wantErr: true},
-		"Fail_adding_recovery_key":     {wantErr: true},
+		"Fail_checking_recovery_key": {wantErr: true},
 	}
 
 	for name, tc := range tests {
