@@ -21,6 +21,11 @@ func init() {
 //go:linkname WithSnapdClient github.com/canonical/snap-tpmctl/internal/tpm.withSnapdClient
 func WithSnapdClient(snapdClient *snapd.Client) tpm.Option
 
+// WithMounter is an option that configures the TPM to use the provided system mounter.
+//
+//go:linkname WithMounter github.com/canonical/snap-tpmctl/internal/tpm.withMounter
+func WithMounter(m *tpm.Mounter) tpm.MountOption
+
 // HasBodyContent checks that at least one request contains all the expected body content.
 func HasBodyContent(is *is.I, requests []snapdtestutils.RecordedRequest, content ...string) bool {
 	is.Helper()
