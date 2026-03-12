@@ -23,6 +23,11 @@ func init() {
 //go:linkname WithSnapdClient github.com/canonical/snap-tpmctl/internal/tpm.withSnapdClient
 func WithSnapdClient(snapdClient *snapd.Client) tpm.Option
 
+// WithMounter is an option that configures the TPM to use the provided system mounter.
+//
+//go:linkname WithMounter github.com/canonical/snap-tpmctl/internal/tpm.withMounter
+func WithMounter(m *tpm.Mounter) tpm.MountOption
+
 // GetTestPath returns the test path based on the service.
 func GetTestPath(t *testing.T, wantErr bool, service string) string {
 	t.Helper()

@@ -13,3 +13,11 @@ func withSnapdClient(snapdClient *snapd.Client) Option {
 		opts.snapdClient = snapdClient
 	}
 }
+
+// withMounter allows you to specify a custom system mounter for testing purposes.
+func withMounter(m Mounter) MountOption {
+	testsdetection.MustBeTesting()
+	return func(mo *mOptions) {
+		mo.mounter = m
+	}
+}

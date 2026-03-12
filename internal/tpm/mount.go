@@ -2,27 +2,15 @@ package tpm
 
 import (
 	"bufio"
+	"context"
 	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
-	"syscall"
-	_ "unsafe" // Needed for go:linkname.
-
-	"github.com/snapcore/secboot"
 )
 
-// We are executing through a snap, thus we need to link to the actual package location.
-//
-//go:linkname systemdCryptsetupPath github.com/snapcore/secboot/internal/luks2.systemdCryptsetupPath
-var systemdCryptsetupPath string
-
 // MountVolume activates the specified encrypted volume using the provided device path.
-func MountVolume(device, target string, authRequestor secboot.AuthRequestor) error {
-	if snapPath := os.Getenv("SNAP"); snapPath != "" {
-		systemdCryptsetupPath = filepath.Join(snapPath, "usr/bin/systemd-cryptsetup")
-	}
-
+func (m Mount) MountVolume(ctx context.Context, device, target string) error {
 	volumeName := luksVolumeName(device)
 	mapperPath := filepath.Join("/dev/mapper/", volumeName)
 
@@ -32,19 +20,12 @@ func MountVolume(device, target string, authRequestor secboot.AuthRequestor) err
 
 	// Check if volume is already active
 	if _, err := os.Stat(mapperPath); os.IsNotExist(err) {
-		if err := secboot.ActivateVolumeWithRecoveryKey(
-			volumeName,
-			device,
-			authRequestor,
-			&secboot.ActivateVolumeOptions{
-				RecoveryKeyTries: 3,
-			},
-		); err != nil {
+		if err := m.ActivateVolume(volumeName, device); err != nil {
 			return fmt.Errorf("unable to activate volume: %v", err)
 		}
 	}
 
-	if err := syscall.Mount(mapperPath, target, "ext4", syscall.MS_RELATIME, "rw"); err != nil {
+	if err := m.mounter.Mount(mapperPath, target); err != nil {
 		return fmt.Errorf("unable to mount volume: %v", err)
 	}
 
@@ -52,17 +33,13 @@ func MountVolume(device, target string, authRequestor secboot.AuthRequestor) err
 }
 
 // UnmountVolume deactivates the specified volume.
-func UnmountVolume(target string) error {
-	if snapPath := os.Getenv("SNAP"); snapPath != "" {
-		systemdCryptsetupPath = filepath.Join(snapPath, "usr/bin/systemd-cryptsetup")
-	}
-
+func (m Mount) UnmountVolume(ctx context.Context, target string) error {
 	device, err := getDeviceFromMount(target)
 	if err != nil {
 		return fmt.Errorf("unable to determine device path: %v", err)
 	}
 
-	if err := syscall.Unmount(target, 0); err != nil {
+	if err := m.mounter.Unmount(target); err != nil {
 		return fmt.Errorf("unable to unmount volume: %v", err)
 	}
 
@@ -71,7 +48,7 @@ func UnmountVolume(target string) error {
 	}
 
 	volumeName := filepath.Base(device)
-	if err := secboot.DeactivateVolume(volumeName); err != nil {
+	if err := m.DeactivateVolume(volumeName); err != nil {
 		return fmt.Errorf("unable to deactivate volume: %v", err)
 	}
 
