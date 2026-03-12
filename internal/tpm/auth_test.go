@@ -1,12 +1,11 @@
 package tpm_test
 
 import (
-	"strings"
 	"testing"
 
-	"github.com/canonical/snap-tpmctl/internal/log"
 	"github.com/canonical/snap-tpmctl/internal/snapd"
 	snapdtestutils "github.com/canonical/snap-tpmctl/internal/snapd/testutils"
+	"github.com/canonical/snap-tpmctl/internal/testutils"
 	"github.com/canonical/snap-tpmctl/internal/tpm"
 	tpmtestutils "github.com/canonical/snap-tpmctl/internal/tpm/testutils"
 	"github.com/matryer/is"
@@ -29,7 +28,7 @@ func TestAddPassphrase(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 			is := is.New(t)
-			ctx := log.WithLoggerInContext(t.Context(), t.Output())
+			ctx := testutils.ContextLoggerWithDebug(t)
 			path := tpmtestutils.GetTestPath(t, tc.wantErr, "ReplacePlatformKey")
 
 			c := snapdtestutils.NewMockSnapdServer(t, ctx, path)
@@ -42,15 +41,7 @@ func TestAddPassphrase(t *testing.T) {
 			}
 			is.NoErr(err)
 
-			var found bool
-			for _, r := range *c.Requests {
-				// check at least one request contains the expected passphrase
-				if strings.Contains(r.Body, tc.passphrase) {
-					found = true
-					break
-				}
-			}
-			is.True(found)
+			is.True(tpmtestutils.HasBodyContent(is, *c.Requests, tc.passphrase))
 		})
 	}
 
@@ -74,7 +65,7 @@ func TestReplacePassphrase(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 			is := is.New(t)
-			ctx := log.WithLoggerInContext(t.Context(), t.Output())
+			ctx := testutils.ContextLoggerWithDebug(t)
 			path := tpmtestutils.GetTestPath(t, tc.wantErr, "ReplacePassphrase")
 
 			c := snapdtestutils.NewMockSnapdServer(t, ctx, path)
@@ -87,15 +78,7 @@ func TestReplacePassphrase(t *testing.T) {
 			}
 			is.NoErr(err)
 
-			var found bool
-			for _, r := range *c.Requests {
-				// check at least one request contains the expected passphrases
-				if strings.Contains(r.Body, tc.old) && strings.Contains(r.Body, tc.new) {
-					found = true
-					break
-				}
-			}
-			is.True(found)
+			is.True(tpmtestutils.HasBodyContent(is, *c.Requests, tc.old, tc.new))
 		})
 	}
 }
@@ -115,7 +98,7 @@ func TestRemovePassphrase(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 			is := is.New(t)
-			ctx := log.WithLoggerInContext(t.Context(), t.Output())
+			ctx := testutils.ContextLoggerWithDebug(t)
 			path := tpmtestutils.GetTestPath(t, tc.wantErr, "ReplacePlatformKey")
 
 			c := snapdtestutils.NewMockSnapdServer(t, ctx, path)
@@ -128,15 +111,7 @@ func TestRemovePassphrase(t *testing.T) {
 			}
 			is.NoErr(err)
 
-			var found bool
-			for _, r := range *c.Requests {
-				// check at least one request contains the expected mode
-				if strings.Contains(r.Body, string(snapd.AuthModeNone)) {
-					found = true
-					break
-				}
-			}
-			is.True(found)
+			is.True(tpmtestutils.HasBodyContent(is, *c.Requests, string(snapd.AuthModeNone)))
 		})
 	}
 
@@ -159,7 +134,7 @@ func TestAddPIN(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 			is := is.New(t)
-			ctx := log.WithLoggerInContext(t.Context(), t.Output())
+			ctx := testutils.ContextLoggerWithDebug(t)
 			path := tpmtestutils.GetTestPath(t, tc.wantErr, "ReplacePlatformKey")
 
 			c := snapdtestutils.NewMockSnapdServer(t, ctx, path)
@@ -172,15 +147,7 @@ func TestAddPIN(t *testing.T) {
 			}
 			is.NoErr(err)
 
-			var found bool
-			for _, r := range *c.Requests {
-				// check at least one request contains the expected pin
-				if strings.Contains(r.Body, tc.pin) {
-					found = true
-					break
-				}
-			}
-			is.True(found)
+			is.True(tpmtestutils.HasBodyContent(is, *c.Requests, tc.pin))
 		})
 	}
 }
@@ -203,7 +170,7 @@ func TestReplacePIN(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 			is := is.New(t)
-			ctx := log.WithLoggerInContext(t.Context(), t.Output())
+			ctx := testutils.ContextLoggerWithDebug(t)
 			path := tpmtestutils.GetTestPath(t, tc.wantErr, "ReplacePIN")
 
 			c := snapdtestutils.NewMockSnapdServer(t, ctx, path)
@@ -216,15 +183,7 @@ func TestReplacePIN(t *testing.T) {
 			}
 			is.NoErr(err)
 
-			var found bool
-			for _, r := range *c.Requests {
-				// check at least one request contains the expected pins
-				if strings.Contains(r.Body, tc.old) && strings.Contains(r.Body, tc.new) {
-					found = true
-					break
-				}
-			}
-			is.True(found)
+			is.True(tpmtestutils.HasBodyContent(is, *c.Requests, tc.old, tc.new))
 		})
 	}
 }
@@ -244,7 +203,7 @@ func TestRemovePIN(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 			is := is.New(t)
-			ctx := log.WithLoggerInContext(t.Context(), t.Output())
+			ctx := testutils.ContextLoggerWithDebug(t)
 			path := tpmtestutils.GetTestPath(t, tc.wantErr, "ReplacePlatformKey")
 
 			c := snapdtestutils.NewMockSnapdServer(t, ctx, path)
@@ -257,230 +216,7 @@ func TestRemovePIN(t *testing.T) {
 			}
 			is.NoErr(err)
 
-			var found bool
-			for _, r := range *c.Requests {
-				// check at least one request contains the expected mode
-				if strings.Contains(r.Body, string(snapd.AuthModeNone)) {
-					found = true
-					break
-				}
-			}
-			is.True(found)
+			is.True(tpmtestutils.HasBodyContent(is, *c.Requests, string(snapd.AuthModeNone)))
 		})
 	}
 }
-
-/*
-func TestReplacePassphrase(t *testing.T) {
-	t.Parallel()
-
-	tests := map[string]struct {
-		oldPassphrase string
-		newPassphrase string
-
-		replacePassphraseError bool
-
-		wantErr bool
-	}{
-		"Success": {oldPassphrase: "old-passphrase", newPassphrase: "new-passphrase"},
-
-		"Error when snapd down": {oldPassphrase: "old-passphrase", newPassphrase: "new-passphrase", replacePassphraseError: true, wantErr: true},
-	}
-
-	for name, tc := range tests {
-		t.Run(name, func(t *testing.T) {
-			t.Parallel()
-			is := is.New(t)
-
-			ctx := context.Background()
-			mockClient := testutils.NewMockSnapdClient(testutils.MockConfig{
-				ReplacePassphraseError: tc.replacePassphraseError,
-			})
-
-			err := tpm.ReplacePassphrase(ctx, mockClient, tc.oldPassphrase, tc.newPassphrase)
-
-			if tc.wantErr {
-				is.True(err != nil) // Expected an error but got nil
-				return
-			}
-			is.NoErr(err) // Unexpected error
-		})
-	}
-}
-
-func TestReplacePIN(t *testing.T) {
-	t.Parallel()
-
-	tests := map[string]struct {
-		oldPIN string
-		newPIN string
-
-		replacePINError bool
-
-		wantErr bool
-	}{
-		"Success": {oldPIN: "123456", newPIN: "654321"},
-
-		"Error when snapd down": {oldPIN: "123456", newPIN: "654321", replacePINError: true, wantErr: true},
-	}
-
-	for name, tc := range tests {
-		t.Run(name, func(t *testing.T) {
-			t.Parallel()
-			is := is.New(t)
-
-			ctx := testutils.ContextLoggerWithDebug(t)
-			mockClient := testutils.NewMockSnapdClient(testutils.MockConfig{
-				ReplacePINError: tc.replacePINError,
-			})
-
-			err := tpm.ReplacePIN(ctx, mockClient, tc.oldPIN, tc.newPIN)
-
-			if tc.wantErr {
-				is.True(err != nil) // Expected an error but got nil
-				return
-			}
-			is.NoErr(err) // Unexpected error
-		})
-	}
-}
-
-func TestAddPIN(t *testing.T) {
-	t.Parallel()
-
-	tests := map[string]struct {
-		replacePlatformKeyError bool
-
-		wantErr bool
-	}{
-		"Adds PIN authentication": {},
-
-		"Error when snapd down": {replacePlatformKeyError: true, wantErr: true},
-	}
-
-	for name, tc := range tests {
-		t.Run(name, func(t *testing.T) {
-			t.Parallel()
-			is := is.New(t)
-
-			ctx := testutils.ContextLoggerWithDebug(t)
-			mockClient := testutils.NewMockSnapdClient(testutils.MockConfig{
-				ReplacePlatformKeyError: tc.replacePlatformKeyError,
-			})
-
-			err := tpm.AddPIN(ctx, mockClient, "123456")
-
-			if tc.wantErr {
-				is.True(err != nil) // Expected an error but got nil
-				return
-			}
-			is.NoErr(err) // Unexpected error
-		})
-	}
-}
-
-func TestRemovePIN(t *testing.T) {
-	t.Parallel()
-
-	tests := map[string]struct {
-		replacePlatformKeyError bool
-		replacePlatformKeyNotOK bool
-
-		wantErr bool
-	}{
-		"Removes PIN authentication": {},
-
-		"Error when snapd down": {replacePlatformKeyError: true, wantErr: true},
-	}
-
-	for name, tc := range tests {
-		t.Run(name, func(t *testing.T) {
-			t.Parallel()
-			is := is.New(t)
-
-			ctx := testutils.ContextLoggerWithDebug(t)
-			mockClient := testutils.NewMockSnapdClient(testutils.MockConfig{
-				ReplacePlatformKeyError: tc.replacePlatformKeyError,
-			})
-
-			err := tpm.RemovePIN(ctx, mockClient)
-
-			if tc.wantErr {
-				is.True(err != nil) // Expected an error but got nil
-				return
-			}
-			is.NoErr(err) // Unexpected error
-		})
-	}
-}
-
-func TestAddPassphrase(t *testing.T) {
-	t.Parallel()
-
-	tests := map[string]struct {
-		replacePlatformKeyError bool
-		replacePlatformKeyNotOK bool
-
-		wantErr bool
-	}{
-		"Adds passphrase authentication": {},
-
-		"Error when snapd down": {replacePlatformKeyError: true, wantErr: true},
-	}
-
-	for name, tc := range tests {
-		t.Run(name, func(t *testing.T) {
-			t.Parallel()
-			is := is.New(t)
-
-			ctx := testutils.ContextLoggerWithDebug(t)
-			mockClient := testutils.NewMockSnapdClient(testutils.MockConfig{
-				ReplacePlatformKeyError: tc.replacePlatformKeyError,
-			})
-
-			err := tpm.AddPassphrase(ctx, mockClient, "my-secure-passphrase")
-
-			if tc.wantErr {
-				is.True(err != nil) // Expected an error but got nil
-				return
-			}
-			is.NoErr(err) // Unexpected error
-		})
-	}
-}
-
-func TestRemovePassphrase(t *testing.T) {
-	t.Parallel()
-
-	tests := map[string]struct {
-		replacePlatformKeyError bool
-		replacePlatformKeyNotOK bool
-
-		wantErr bool
-	}{
-		"Removes passphrase authentication": {},
-
-		"Error when snapd down": {replacePlatformKeyError: true, wantErr: true},
-	}
-
-	for name, tc := range tests {
-		t.Run(name, func(t *testing.T) {
-			t.Parallel()
-			is := is.New(t)
-
-			ctx := testutils.ContextLoggerWithDebug(t)
-			mockClient := testutils.NewMockSnapdClient(testutils.MockConfig{
-				ReplacePlatformKeyError: tc.replacePlatformKeyError,
-			})
-
-			err := tpm.RemovePassphrase(ctx, mockClient)
-
-			if tc.wantErr {
-				is.True(err != nil) // Expected an error but got nil
-				return
-			}
-			is.NoErr(err) // Unexpected error
-		})
-	}
-}
-*/

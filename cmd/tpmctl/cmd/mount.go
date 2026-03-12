@@ -127,7 +127,7 @@ func newGetLuksKeyFromRecoveryKeyCmd() *cli.Command {
 				return err
 			}
 
-			key, err := tpm.GetLuksKey(recoveryKey)
+			key, err := tpm.GetLuksKey(ctx, recoveryKey)
 			if err != nil {
 				return err
 			}

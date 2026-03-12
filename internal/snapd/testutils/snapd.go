@@ -42,7 +42,7 @@ type MockSnapdServer struct {
 }
 
 // NewMockSnapdServer creates a new snapd client with a mock server that responds with the contents of the test file asset.
-// The test file asset is searched in the provided roots in order, and the last match is used as the response.
+// The test file asset is searched in the provided roots in order, the first match is used as the response and than marked as done.
 // If no match is found, a 404 response is returned.
 func NewMockSnapdServer(t *testing.T, ctx context.Context, roots ...string) *MockSnapdServer {
 	t.Helper()
@@ -51,8 +51,8 @@ func NewMockSnapdServer(t *testing.T, ctx context.Context, roots ...string) *Moc
 	if roots == nil {
 		roots = []string{testutils.TestPath(t)}
 	}
-	slices.Reverse(roots)
 
+	var done []string
 	recordedRequests := new([]RecordedRequest)
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -70,11 +70,19 @@ func NewMockSnapdServer(t *testing.T, ctx context.Context, roots ...string) *Moc
 		// Search for response from the last root and look for the test response file in each root until found.
 		var resp []byte
 		for _, p := range roots {
-			resp, err = os.ReadFile(filepath.Join(p, r.Method, r.URL.Path))
+			request := filepath.Join(p, r.Method, r.URL.Path)
+
+			if slices.Contains(done, request) {
+				continue
+			}
+
+			resp, err = os.ReadFile(request)
 			if os.IsNotExist(err) {
 				continue
 			}
 			is.NoErr(err) // Setup: read the test response from test file asset
+
+			done = append(done, request)
 			break
 		}
 

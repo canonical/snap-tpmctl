@@ -2,12 +2,16 @@ package tpmtestutils
 
 import (
 	"path/filepath"
+	"slices"
+	"strings"
 	"testing"
 	_ "unsafe" // Required for go:linkname directives
 
 	"github.com/canonical/snap-tpmctl/internal/snapd"
+	snapdtestutils "github.com/canonical/snap-tpmctl/internal/snapd/testutils"
 	"github.com/canonical/snap-tpmctl/internal/testutils/testsdetection"
 	"github.com/canonical/snap-tpmctl/internal/tpm"
+	"github.com/matryer/is"
 )
 
 func init() {
@@ -29,4 +33,22 @@ func GetTestPath(t *testing.T, wantErr bool, service string) string {
 	}
 
 	return path
+}
+
+// HasBodyContent checks that at least one request contains all the expected body content
+func HasBodyContent(is *is.I, requests []snapdtestutils.RecordedRequest, content ...string) bool {
+	is.Helper()
+
+	if content == nil {
+		is.Fail()
+	}
+
+	return slices.ContainsFunc(requests, func(r snapdtestutils.RecordedRequest) bool {
+		for _, c := range content {
+			if !strings.Contains(r.Body, c) {
+				return false
+			}
+		}
+		return true
+	})
 }
