@@ -3,8 +3,8 @@ package tpm_test
 import (
 	"testing"
 
-	"github.com/canonical/snap-tpmctl/internal/log"
 	snapdtestutils "github.com/canonical/snap-tpmctl/internal/snapd/testutils"
+	"github.com/canonical/snap-tpmctl/internal/testutils"
 	"github.com/canonical/snap-tpmctl/internal/testutils/golden"
 	"github.com/canonical/snap-tpmctl/internal/tpm"
 	tpmtestutils "github.com/canonical/snap-tpmctl/internal/tpm/testutils"
@@ -32,7 +32,7 @@ func TestCreateKey(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 			is := is.New(t)
-			ctx := log.WithLoggerInContext(t.Context(), t.Output())
+			ctx := testutils.ContextLoggerWithDebug(t)
 
 			pathGen := tpmtestutils.GetTestPath(t, tc.wantGenErr, "GenerateRecoveryKey")
 			pathAdd := tpmtestutils.GetTestPath(t, tc.wantAddErr, "AddRecoveryKey")
@@ -74,7 +74,7 @@ func TestRegenerateKey(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 			is := is.New(t)
-			ctx := log.WithLoggerInContext(t.Context(), t.Output())
+			ctx := testutils.ContextLoggerWithDebug(t)
 
 			pathGen := tpmtestutils.GetTestPath(t, tc.wantGenErr, "GenerateRecoveryKey")
 			pathAdd := tpmtestutils.GetTestPath(t, tc.wantAddErr, "ReplaceRecoveryKey")
@@ -112,7 +112,7 @@ func TestCheckKey(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 			is := is.New(t)
-			ctx := log.WithLoggerInContext(t.Context(), t.Output())
+			ctx := testutils.ContextLoggerWithDebug(t)
 
 			path := tpmtestutils.GetTestPath(t, tc.wantErr, "CheckRecoveryKey")
 
@@ -150,7 +150,7 @@ func TestGetLuksKey(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 			is := is.New(t)
-			ctx := log.WithLoggerInContext(t.Context(), t.Output())
+			ctx := testutils.ContextLoggerWithDebug(t)
 
 			got, err := tpm.GetLuksKey(ctx, tc.recoveryKey)
 			if tc.wantErr {
