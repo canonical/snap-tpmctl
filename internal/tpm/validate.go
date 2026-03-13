@@ -84,7 +84,7 @@ func (s SnapTPM) IsValidPassphrase(ctx context.Context, passphrase string) error
 	return nil
 }
 
-// IsValidPIN checks that the PIN is only made of digits
+// IsValidPIN checks that the PIN is only made of digits.
 func (s SnapTPM) IsValidPIN(ctx context.Context, pin string) error {
 	if pin == "" {
 		return fmt.Errorf("PIN cannot be empty, try again")

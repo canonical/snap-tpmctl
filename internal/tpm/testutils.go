@@ -1,3 +1,4 @@
+//nolint:unused // helper functions used only in tests
 package tpm
 
 import (

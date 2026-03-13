@@ -16,7 +16,7 @@ func TestFamilyPath(t *testing.T) string {
 	return filepath.Join("testdata", topLevelTest)
 }
 
-// TestPath returns the path based on the current test name
+// TestPath returns the path based on the current test name.
 func TestPath(t *testing.T) string {
 	t.Helper()
 

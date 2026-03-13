@@ -11,6 +11,7 @@ import (
 	"github.com/matryer/is"
 )
 
+//nolint:dupl // TestAddPassphrase and TestAddPIN have similar behaviour
 func TestAddPassphrase(t *testing.T) {
 	t.Parallel()
 
@@ -44,7 +45,6 @@ func TestAddPassphrase(t *testing.T) {
 			is.True(tpmtestutils.HasBodyContent(is, *c.Requests, tc.passphrase))
 		})
 	}
-
 }
 
 func TestReplacePassphrase(t *testing.T) {
@@ -114,9 +114,9 @@ func TestRemovePassphrase(t *testing.T) {
 			is.True(tpmtestutils.HasBodyContent(is, *c.Requests, string(snapd.AuthModeNone)))
 		})
 	}
-
 }
 
+//nolint:dupl // TestAddPassphrase and TestAddPIN have similar behaviour
 func TestAddPIN(t *testing.T) {
 	t.Parallel()
 

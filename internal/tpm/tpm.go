@@ -30,7 +30,7 @@ func New(args ...Option) SnapTPM {
 		f(&o)
 	}
 
-	return SnapTPM{snapdClient: o.snapdClient}
+	return SnapTPM(o)
 }
 
 // FdeStatus retrieves the Full Disk Encryption status from snapd.

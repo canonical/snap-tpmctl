@@ -7,7 +7,6 @@ import (
 	"path/filepath"
 	"strings"
 	"syscall"
-
 	_ "unsafe" // Needed for go:linkname.
 
 	"github.com/snapcore/secboot"

@@ -1,4 +1,6 @@
 // Package snapdtestutils exports testing functionalities used by other packages.
+//
+//nolint:gosec,revive // this package is used only in tests
 package snapdtestutils
 
 import (

@@ -11,6 +11,7 @@ import (
 	"github.com/matryer/is"
 )
 
+//nolint:dupl // TestCreateKey and TestRegenerateKey have similar behaviour
 func TestCreateKey(t *testing.T) {
 	t.Parallel()
 
@@ -53,6 +54,7 @@ func TestCreateKey(t *testing.T) {
 	}
 }
 
+//nolint:dupl // TestCreateKey and TestRegenerateKey have similar behaviour
 func TestRegenerateKey(t *testing.T) {
 	t.Parallel()
 

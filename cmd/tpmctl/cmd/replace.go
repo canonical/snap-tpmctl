@@ -9,6 +9,7 @@ import (
 	"github.com/urfave/cli/v3"
 )
 
+//nolint:dupl // newReplacePassphraseCmd and newReplacePINCmd have similar behaviour
 func newReplacePassphraseCmd() *cli.Command {
 	return &cli.Command{
 		Name:  "replace-passphrase",
@@ -50,6 +51,7 @@ func newReplacePassphraseCmd() *cli.Command {
 	}
 }
 
+//nolint:dupl // newReplacePassphraseCmd and newReplacePINCmd have similar behaviour
 func newReplacePINCmd() *cli.Command {
 	return &cli.Command{
 		Name:  "replace-pin",

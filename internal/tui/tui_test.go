@@ -9,8 +9,7 @@ import (
 	"testing"
 	"testing/synctest"
 	"time"
-
-	_ "unsafe"
+	_ "unsafe" // Required for go:linkname directives
 
 	"github.com/canonical/snap-tpmctl/internal/testutils/golden"
 	"github.com/canonical/snap-tpmctl/internal/tui"

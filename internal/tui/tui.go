@@ -8,6 +8,7 @@ import (
 	"os"
 	"strings"
 	"sync"
+	"syscall"
 	"text/tabwriter"
 	"time"
 
@@ -50,7 +51,7 @@ func ShowCursor() {
 func ReadUserSecret(form string) (string, error) {
 	fmt.Fprintf(stdout, "%s", form)
 
-	input, err := term.ReadPassword(int(os.Stdin.Fd()))
+	input, err := term.ReadPassword(syscall.Stdin)
 	fmt.Fprintln(stdout)
 
 	if err != nil {

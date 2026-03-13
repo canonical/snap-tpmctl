@@ -1,3 +1,4 @@
+//nolint:unused // helper functions used only in tests
 package snapd
 
 import "github.com/canonical/snap-tpmctl/internal/testutils/testsdetection"

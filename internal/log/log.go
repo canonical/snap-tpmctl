@@ -1,4 +1,4 @@
-// package log provides logging utilities for the application.
+// Package log provides logging utilities for the application.
 // It supports redirecting logs via a context to a specific logger, like test ones.
 package log
 
