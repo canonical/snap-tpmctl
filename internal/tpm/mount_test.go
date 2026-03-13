@@ -226,8 +226,8 @@ func TestUnmountVolume(t *testing.T) {
 			}
 			is.NoErr(err)
 
-			is.Equal(tc.activator.deactivated, tc.wantDectivated) // the volume is activated as expected
-			is.Equal(tc.mounter.unmounted, tc.wantUnmounted)      // the volume is mounted as expected
+			is.Equal(tc.activator.deactivated, tc.wantDectivated) // the volume is deactivated as expected
+			is.Equal(tc.mounter.unmounted, tc.wantUnmounted)      // the volume is unmounted as expected
 		})
 	}
 }
