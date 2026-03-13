@@ -20,12 +20,12 @@ func (m Mount) MountVolume(ctx context.Context, device, target string) error {
 
 	// Check if volume is already active
 	if _, err := os.Stat(mapperPath); os.IsNotExist(err) {
-		if err := m.ActivateVolume(volumeName, device); err != nil {
+		if err := m.ActivateVolume(volumeName, device, m.authRequestor); err != nil {
 			return fmt.Errorf("unable to activate volume: %v", err)
 		}
 	}
 
-	if err := m.mounter.Mount(mapperPath, target); err != nil {
+	if err := m.Mount(mapperPath, target); err != nil {
 		return fmt.Errorf("unable to mount volume: %v", err)
 	}
 
@@ -39,7 +39,7 @@ func (m Mount) UnmountVolume(ctx context.Context, target string) error {
 		return fmt.Errorf("unable to determine device path: %v", err)
 	}
 
-	if err := m.mounter.Unmount(target); err != nil {
+	if err := m.Unmount(target); err != nil {
 		return fmt.Errorf("unable to unmount volume: %v", err)
 	}
 

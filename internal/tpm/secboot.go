@@ -20,13 +20,21 @@ type Mounter interface {
 	Unmount(target string) error
 }
 
+type Activator interface {
+	ActivateVolume(volumeName, device string, authRequestor secboot.AuthRequestor) error
+	DeactivateVolume(volumeName string) error
+}
+
 // Mount provides methods to interact with secboot features.
 type Mount struct {
+	Activator
+	Mounter
+
 	authRequestor secboot.AuthRequestor
-	mounter       Mounter
 }
 
 type mOptions struct {
+	activator     Activator
 	authRequestor secboot.AuthRequestor
 	mounter       Mounter
 }
@@ -48,30 +56,34 @@ func NewMount(args ...MountOption) Mount {
 	}
 
 	o := mOptions{
-		mounter: &defaultMounter{},
+		activator: &defaultActivator{},
+		mounter:   &defaultMounter{},
 	}
 	for _, f := range args {
 		f(&o)
 	}
 
 	return Mount{
+		Activator:     o.activator,
+		Mounter:       o.mounter,
 		authRequestor: o.authRequestor,
-		mounter:       o.mounter,
 	}
 }
 
-func (m Mount) ActivateVolume(volumeName, device string) error {
+type defaultActivator struct{}
+
+func (m defaultActivator) ActivateVolume(volumeName, device string, authRequestor secboot.AuthRequestor) error {
 	return secboot.ActivateVolumeWithRecoveryKey(
 		volumeName,
 		device,
-		m.authRequestor,
+		authRequestor,
 		&secboot.ActivateVolumeOptions{
 			RecoveryKeyTries: 3,
 		},
 	)
 }
 
-func (m Mount) DeactivateVolume(volumeName string) error {
+func (m defaultActivator) DeactivateVolume(volumeName string) error {
 	return secboot.DeactivateVolume(volumeName)
 }
 

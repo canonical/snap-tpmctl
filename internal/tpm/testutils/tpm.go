@@ -23,6 +23,11 @@ func init() {
 //go:linkname WithSnapdClient github.com/canonical/snap-tpmctl/internal/tpm.withSnapdClient
 func WithSnapdClient(snapdClient *snapd.Client) tpm.Option
 
+// WithActivator is an option that configures the TPM to use the provided volume activator.
+//
+//go:linkname WithActivator github.com/canonical/snap-tpmctl/internal/tpm.withActivator
+func WithActivator(m *tpm.Activator) tpm.MountOption
+
 // WithMounter is an option that configures the TPM to use the provided system mounter.
 //
 //go:linkname WithMounter github.com/canonical/snap-tpmctl/internal/tpm.withMounter
