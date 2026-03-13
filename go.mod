@@ -5,7 +5,7 @@ go 1.26.0
 require (
 	github.com/google/go-cmp v0.7.0
 	github.com/matryer/is v1.4.1
-	github.com/snapcore/secboot v0.0.0-20260126133925-99e0bbda867d
+	github.com/snapcore/secboot v0.0.0-20260310175100-357a0e79a562
 	github.com/snapcore/snapd v0.0.0-20260128063429-c3be32030ec4
 	github.com/urfave/cli/v3 v3.6.2
 	golang.org/x/term v0.39.0
@@ -18,7 +18,7 @@ require (
 	github.com/canonical/go-kbkdf v0.0.0-20250104172618-3b1308f9acf9 // indirect
 	github.com/canonical/go-password-validator v0.0.0-20250617132709-1b205303ca54 // indirect
 	github.com/canonical/go-sp800.90a-drbg v0.0.0-20210314144037-6eeb1040d6c3 // indirect
-	github.com/canonical/go-tpm2 v1.13.0 // indirect
+	github.com/canonical/go-tpm2 v1.15.0 // indirect
 	github.com/canonical/tcglog-parser v0.0.0-20240924110432-d15eaf652981 // indirect
 	github.com/godbus/dbus/v5 v5.1.0 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
