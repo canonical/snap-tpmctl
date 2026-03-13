@@ -2,6 +2,8 @@ github.com/canonical/cpuid v0.0.0-20220614022739-219e067757cb h1:+kA/9oHTqUx4P08
 github.com/canonical/cpuid v0.0.0-20220614022739-219e067757cb/go.mod h1:6j8Sw3dwYVcBXltEeGklDoK/8UJVJNQPUkg1ZdQUgbk=
 github.com/canonical/go-efilib v1.7.0 h1:QLtWh/x9rtBjokext9c6e+hT/AR3X9D0U8DQN+/BVbM=
 github.com/canonical/go-efilib v1.7.0/go.mod h1:n0Ttsy1JuHAvqaFbZBs6PAzoiiJdfkHsAmDOEbexYEQ=
+github.com/canonical/go-efilib v1.7.1-0.20260310185303-7166aa858b24 h1:WCrkrG2hJuPQXt+mIrCyYWY+hsXO9y/R9i/EOrt/T0M=
+github.com/canonical/go-efilib v1.7.1-0.20260310185303-7166aa858b24/go.mod h1:n0Ttsy1JuHAvqaFbZBs6PAzoiiJdfkHsAmDOEbexYEQ=
 github.com/canonical/go-kbkdf v0.0.0-20250104172618-3b1308f9acf9 h1:Twk1ZSTWRClfGShP16ePf2JIiayqWS4ix1rkAR6baag=
 github.com/canonical/go-kbkdf v0.0.0-20250104172618-3b1308f9acf9/go.mod h1:IneQ5/yQcfPXrGekEXpR6yeea55ZD24N5+kHzeDseOM=
 github.com/canonical/go-password-validator v0.0.0-20250617132709-1b205303ca54 h1:JO3wAsxjrvQDf/X3q4RLIdzDCWrFjzhwUmCKrhnrIO8=
@@ -12,6 +14,8 @@ github.com/canonical/go-tpm2 v1.13.0 h1:Ka9VmUVwoz9pJef5JXP6Gd4CIhxFE70X26K8x3Le
 github.com/canonical/go-tpm2 v1.13.0/go.mod h1:P50xMwC7y5/uxPikzWdK4d9pW9orKi8+ZL5sBifxoBQ=
 github.com/canonical/tcglog-parser v0.0.0-20240924110432-d15eaf652981 h1:vrUzSfbhl8mzdXPzjxq4jXZPCCNLv18jy6S7aVTS2tI=
 github.com/canonical/tcglog-parser v0.0.0-20240924110432-d15eaf652981/go.mod h1:ywdPBqUGkuuiitPpVWCfilf2/gq+frhq4CNiNs9KyHU=
+github.com/chai2010/gettext-go v1.0.3 h1:9liNh8t+u26xl5ddmWLmsOsdNLwkdRTg5AG+JnTiM80=
+github.com/chai2010/gettext-go v1.0.3/go.mod h1:y+wnP2cHYaVj19NZhYKAwEMH2CI1gNHeQQ+5AjwawxA=
 github.com/creack/pty v1.1.9/go.mod h1:oKZEueFk5CKHvIhNR5MUki03XCEU+Q6VDXinZuGJ33E=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
@@ -54,8 +58,12 @@ github.com/snapcore/go-gettext v0.0.0-20230721153050-9082cdc2db05 h1:U4jvhafXCGp
 github.com/snapcore/go-gettext v0.0.0-20230721153050-9082cdc2db05/go.mod h1:1ueMvqqhxoixAuIFQdiz8E23ng0DJPGrb+EhnjuqpXc=
 github.com/snapcore/secboot v0.0.0-20260126133925-99e0bbda867d h1:Ysytl+q40+vBg9QwYCMeXVkYjwH7CBFcBYpv4rJeu9Y=
 github.com/snapcore/secboot v0.0.0-20260126133925-99e0bbda867d/go.mod h1:BeEYaTJC4cqXVgpjjxajO31p2kVDvXwXJJx3YD7nCaE=
+github.com/snapcore/secboot v0.0.0-20260302105957-77bc2457cc76 h1:Vj0VE1XwZTC4YddTYlCYI4X+fukMXkX46d7GRxFbHcg=
+github.com/snapcore/secboot v0.0.0-20260302105957-77bc2457cc76/go.mod h1:BeEYaTJC4cqXVgpjjxajO31p2kVDvXwXJJx3YD7nCaE=
 github.com/snapcore/snapd v0.0.0-20260128063429-c3be32030ec4 h1:blW8WGqafaTuzscoG0g8k8pbl4o+JdrFQxUTLB9RLTY=
 github.com/snapcore/snapd v0.0.0-20260128063429-c3be32030ec4/go.mod h1:dvC9NyhdJRvu/FH7jWQe5dfsYBoNdYxG9r74+Wkm+mE=
+github.com/snapcore/snapd v0.0.0-20260313202959-bf4e65be7eb6 h1:W5CU0aLlPWxH/XW0iUqUuOPtEi063f+qoASQqa8yNiw=
+github.com/snapcore/snapd v0.0.0-20260313202959-bf4e65be7eb6/go.mod h1:HJQ8zpjdGPuoWqRVvgm8PdpVZ1h3AMOOSwRcakfaspY=
 github.com/stretchr/testify v1.11.1 h1:7s2iGBzp5EwR7/aIZr8ao5+dra3wiQyKjjFuvgVKu7U=
 github.com/stretchr/testify v1.11.1/go.mod h1:wZwfW3scLgRK+23gO65QZefKpKQRnfz6sD981Nm4B6U=
 github.com/urfave/cli/v3 v3.6.2 h1:lQuqiPrZ1cIz8hz+HcrG0TNZFxU70dPZ3Yl+pSrH9A8=
@@ -68,6 +76,8 @@ golang.org/x/exp v0.0.0-20240416160154-fe59bbe5cc7f h1:99ci1mjWVBWwJiEKYY6jWa4d2
 golang.org/x/exp v0.0.0-20240416160154-fe59bbe5cc7f/go.mod h1:/lliqkxwWAhPjf5oSOIJup2XcqJaw8RGS6k3TGEc7GI=
 golang.org/x/net v0.49.0 h1:eeHFmOGUTtaaPSGNmjBKpbng9MulQsJURQUAfUwY++o=
 golang.org/x/net v0.49.0/go.mod h1:/ysNB2EvaqvesRkuLAyjI1ycPZlQHM3q01F02UY/MV8=
+golang.org/x/sync v0.8.0 h1:3NFvSEYkUoMifnESzZl15y791HH1qU2xm6eCJU5ZPXQ=
+golang.org/x/sync v0.8.0/go.mod h1:Czt+wKu1gCyEFDUtn0jG5QVvpJ6rzVqr5aXyt9drQfk=
 golang.org/x/sys v0.40.0 h1:DBZZqJ2Rkml6QMQsZywtnjnnGvHza6BTfYFWY9kjEWQ=
 golang.org/x/sys v0.40.0/go.mod h1:OgkHotnGiDImocRcuBABYBEXf8A9a87e/uXjp9XT3ks=
 golang.org/x/term v0.39.0 h1:RclSuaJf32jOqZz74CkPA9qFuVTX7vhLlpfj/IGWlqY=
