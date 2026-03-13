@@ -1,3 +1,4 @@
+// Package tpmtestutils provides helpers for TPM-related tests.
 package tpmtestutils
 
 import (
@@ -26,12 +27,17 @@ func WithSnapdClient(snapdClient *snapd.Client) tpm.Option
 // WithActivator is an option that configures the TPM to use the provided volume activator.
 //
 //go:linkname WithActivator github.com/canonical/snap-tpmctl/internal/tpm.withActivator
-func WithActivator(m *tpm.Activator) tpm.MountOption
+func WithActivator(m tpm.Activator) tpm.MountOption
+
+// WithFileSystem is an option that configures the TPM to use the provided volume activator.
+//
+//go:linkname WithFileSystem github.com/canonical/snap-tpmctl/internal/tpm.withFileSystem
+func WithFileSystem(m tpm.FileSystem) tpm.MountOption
 
 // WithMounter is an option that configures the TPM to use the provided system mounter.
 //
 //go:linkname WithMounter github.com/canonical/snap-tpmctl/internal/tpm.withMounter
-func WithMounter(m *tpm.Mounter) tpm.MountOption
+func WithMounter(m tpm.Mounter) tpm.MountOption
 
 // GetTestPath returns the test path based on the service.
 func GetTestPath(t *testing.T, wantErr bool, service string) string {
@@ -45,7 +51,7 @@ func GetTestPath(t *testing.T, wantErr bool, service string) string {
 	return path
 }
 
-// HasBodyContent checks that at least one request contains all the expected body content
+// HasBodyContent checks that at least one request contains all the expected body content.
 func HasBodyContent(is *is.I, requests []snapdtestutils.RecordedRequest, content ...string) bool {
 	is.Helper()
 

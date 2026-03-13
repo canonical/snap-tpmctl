@@ -22,6 +22,14 @@ func withActivator(a Activator) MountOption {
 	}
 }
 
+// withFileSystem allows you to specify a custom filesystem for testing purposes.
+func withFileSystem(f FileSystem) MountOption {
+	testsdetection.MustBeTesting()
+	return func(mo *mOptions) {
+		mo.filesystem = f
+	}
+}
+
 // withMounter allows you to specify a custom system mounter for testing purposes.
 func withMounter(m Mounter) MountOption {
 	testsdetection.MustBeTesting()
