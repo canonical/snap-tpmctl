@@ -26,7 +26,7 @@ func withActivator(a Activator) MountOption {
 func withFileSystem(f FileSystem) MountOption {
 	testsdetection.MustBeTesting()
 	return func(mo *mOptions) {
-		mo.filesystem = f
+		mo.fs = f
 	}
 }
 

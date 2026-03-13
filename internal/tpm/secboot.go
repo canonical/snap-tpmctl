@@ -49,7 +49,7 @@ type Mount struct {
 type mOptions struct {
 	activator     Activator
 	authRequestor secboot.AuthRequestor
-	filesystem    FileSystem
+	fs            FileSystem
 	mounter       Mounter
 }
 
@@ -73,20 +73,15 @@ func NewMount(args ...MountOption) Mount {
 	statfs := base.(fs.StatFS) //nolint:forcetypeassert // fs.FS is documented to implement fs.StatFS
 
 	o := mOptions{
-		activator:  &defaultActivator{},
-		mounter:    &defaultMounter{},
-		filesystem: &defaultFileSystem{statfs},
+		activator: &defaultActivator{},
+		mounter:   &defaultMounter{},
+		fs:        &defaultFileSystem{statfs},
 	}
 	for _, f := range args {
 		f(&o)
 	}
 
-	return Mount{
-		activator:     o.activator,
-		authRequestor: o.authRequestor,
-		fs:            o.filesystem,
-		mounter:       o.mounter,
-	}
+	return Mount(o)
 }
 
 // getDeviceFromMount parses /proc/mounts and returns the device path for the given mount point.
