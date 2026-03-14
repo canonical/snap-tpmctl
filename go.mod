@@ -7,7 +7,7 @@ require (
 	github.com/matryer/is v1.4.1
 	github.com/snapcore/secboot v0.0.0-20260126133925-99e0bbda867d
 	github.com/snapcore/snapd v0.0.0-20260128063429-c3be32030ec4
-	github.com/urfave/cli/v3 v3.6.2
+	github.com/urfave/cli/v3 v3.7.0
 	golang.org/x/term v0.39.0
 	gopkg.in/yaml.v3 v3.0.1
 )
