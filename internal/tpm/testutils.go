@@ -14,14 +14,6 @@ func withSnapdClient(snapdClient *snapd.Client) Option {
 	}
 }
 
-// withActivator allows you to specify a custom TPM volume activator for testing purposes.
-func withActivator(a Activator) MountOption {
-	testsdetection.MustBeTesting()
-	return func(mo *mOptions) {
-		mo.activator = a
-	}
-}
-
 // withFileSystem allows you to specify a custom filesystem for testing purposes.
 func withFileSystem(f FileSystem) MountOption {
 	testsdetection.MustBeTesting()
@@ -30,10 +22,10 @@ func withFileSystem(f FileSystem) MountOption {
 	}
 }
 
-// withMounter allows you to specify a custom system mounter for testing purposes.
-func withMounter(m Mounter) MountOption {
+// withVolume allows you to specify a custom system mounter for testing purposes.
+func withVolume(m Volume) MountOption {
 	testsdetection.MustBeTesting()
 	return func(mo *mOptions) {
-		mo.mounter = m
+		mo.vol = m
 	}
 }

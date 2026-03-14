@@ -18,12 +18,6 @@ import (
 //go:linkname systemdCryptsetupPath github.com/snapcore/secboot/internal/luks2.systemdCryptsetupPath
 var systemdCryptsetupPath string
 
-// Activator provides methods to activate and deactivate encrypted volumes.
-type Activator interface {
-	ActivateVolume(volumeName, device string, authRequestor secboot.AuthRequestor) error
-	DeactivateVolume(volumeName string) error
-}
-
 // FileSystem provides filesystem operations required by Mount.
 type FileSystem interface {
 	fs.StatFS
@@ -32,25 +26,25 @@ type FileSystem interface {
 	RemoveAll(path string) error
 }
 
-// Mounter provides methods to mount and unmount block devices.
-type Mounter interface {
+// Volume provides methods to activate and mount volumes.
+type Volume interface {
+	Activate(volumeName, device string, authRequestor secboot.AuthRequestor) error
+	Deactivate(volumeName string) error
 	Mount(path, target string) error
 	Unmount(target string) error
 }
 
 // Mount provides methods to interact with secboot features.
 type Mount struct {
-	activator     Activator
 	authRequestor secboot.AuthRequestor
 	fs            FileSystem
-	mounter       Mounter
+	vol           Volume
 }
 
 type mOptions struct {
-	activator     Activator
 	authRequestor secboot.AuthRequestor
 	fs            FileSystem
-	mounter       Mounter
+	vol           Volume
 }
 
 // MountOption is a functional option for configuring the SecTPM.
@@ -73,9 +67,8 @@ func NewMount(args ...MountOption) Mount {
 	statfs := base.(fs.StatFS) //nolint:forcetypeassert // fs.FS is documented to implement fs.StatFS
 
 	o := mOptions{
-		activator: &defaultActivator{},
-		mounter:   &defaultMounter{},
-		fs:        &defaultFileSystem{statfs},
+		fs:  &defaultFileSystem{statfs},
+		vol: &defaultVolume{},
 	}
 	for _, f := range args {
 		f(&o)
@@ -109,23 +102,6 @@ func (m Mount) getDeviceFromMount(mountPoint string) (string, error) {
 	return "", fmt.Errorf("mount point %q doesn't exist", mountPoint)
 }
 
-type defaultActivator struct{}
-
-func (m defaultActivator) ActivateVolume(volumeName, device string, authRequestor secboot.AuthRequestor) error {
-	return secboot.ActivateVolumeWithRecoveryKey(
-		volumeName,
-		device,
-		authRequestor,
-		&secboot.ActivateVolumeOptions{
-			RecoveryKeyTries: 3,
-		},
-	)
-}
-
-func (m defaultActivator) DeactivateVolume(volumeName string) error {
-	return secboot.DeactivateVolume(volumeName)
-}
-
 type defaultFileSystem struct {
 	fs.StatFS
 }
@@ -138,13 +114,28 @@ func (fs defaultFileSystem) RemoveAll(path string) error {
 	return os.RemoveAll(hostPath(path))
 }
 
-type defaultMounter struct{}
+type defaultVolume struct{}
 
-func (m defaultMounter) Mount(path, target string) error {
+func (v defaultVolume) Activate(volumeName, device string, authRequestor secboot.AuthRequestor) error {
+	return secboot.ActivateVolumeWithRecoveryKey(
+		volumeName,
+		device,
+		authRequestor,
+		&secboot.ActivateVolumeOptions{
+			RecoveryKeyTries: 3,
+		},
+	)
+}
+
+func (v defaultVolume) Deactivate(volumeName string) error {
+	return secboot.DeactivateVolume(volumeName)
+}
+
+func (v defaultVolume) Mount(path, target string) error {
 	return syscall.Mount(hostPath(path), target, "ext4", syscall.MS_RELATIME, "rw")
 }
 
-func (m defaultMounter) Unmount(target string) error {
+func (v defaultVolume) Unmount(target string) error {
 	return syscall.Unmount(target, 0)
 }
 

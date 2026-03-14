@@ -2,10 +2,11 @@ package tpm_test
 
 import (
 	"errors"
-	"fmt"
+	"io"
 	"io/fs"
 	"testing"
 	"testing/fstest"
+	"testing/iotest"
 
 	"github.com/canonical/snap-tpmctl/internal/testutils"
 	"github.com/canonical/snap-tpmctl/internal/tpm"
@@ -21,9 +22,8 @@ func TestMountVolume(t *testing.T) {
 		device string
 		target string
 
-		activator  testActivator
 		filesystem testFileSystem
-		mounter    testMounter
+		volume     testVolume
 
 		wantActivated bool
 		wantMounted   bool
@@ -33,17 +33,15 @@ func TestMountVolume(t *testing.T) {
 		"Success on mounting volume": {
 			device:        "/dev/test",
 			target:        "/media/vol",
-			activator:     testActivator{},
-			mounter:       testMounter{},
+			volume:        testVolume{},
 			filesystem:    testFileSystem{},
 			wantActivated: true,
 			wantMounted:   true,
 		},
 		"Success on mounting already active volume": {
-			device:    "/dev/test",
-			target:    "/media/vol",
-			activator: testActivator{},
-			mounter:   testMounter{},
+			device: "/dev/test",
+			target: "/media/vol",
+			volume: testVolume{},
 			filesystem: testFileSystem{
 				MapFS: fstest.MapFS{
 					"dev/mapper/dev-test": &fstest.MapFile{},
@@ -53,10 +51,9 @@ func TestMountVolume(t *testing.T) {
 		},
 
 		"Fail to create directory": {
-			device:    "/dev/test",
-			target:    "/media/vol",
-			activator: testActivator{},
-			mounter:   testMounter{},
+			device: "/dev/test",
+			target: "/media/vol",
+			volume: testVolume{},
 			filesystem: testFileSystem{
 				wantErr: true,
 			},
@@ -65,16 +62,14 @@ func TestMountVolume(t *testing.T) {
 		"Fail to activate volume": {
 			device:     "/dev/test",
 			target:     "/media/vol",
-			activator:  testActivator{wantErr: true},
-			mounter:    testMounter{},
+			volume:     testVolume{wantActivateErr: true},
 			filesystem: testFileSystem{},
 			wantErr:    true,
 		},
 		"Fail to mount volume": {
 			device:        "/dev/test",
 			target:        "/media/vol",
-			activator:     testActivator{},
-			mounter:       testMounter{wantErr: true},
+			volume:        testVolume{wantMountErr: true},
 			filesystem:    testFileSystem{},
 			wantActivated: true,
 			wantErr:       true,
@@ -88,8 +83,7 @@ func TestMountVolume(t *testing.T) {
 			ctx := testutils.ContextLoggerWithDebug(t)
 
 			m := tpm.NewMount(
-				tpmtestutils.WithActivator(&tc.activator),
-				tpmtestutils.WithMounter(&tc.mounter),
+				tpmtestutils.WithVolume(&tc.volume),
 				tpmtestutils.WithFileSystem(tc.filesystem),
 			)
 
@@ -100,8 +94,8 @@ func TestMountVolume(t *testing.T) {
 			}
 			is.NoErr(err)
 
-			is.Equal(tc.activator.activated, tc.wantActivated) // the volume is activated as expected
-			is.Equal(tc.mounter.mounted, tc.wantMounted)       // the volume is mounted as expected
+			is.Equal(tc.volume.activated, tc.wantActivated) // the volume is activated as expected
+			is.Equal(tc.volume.mounted, tc.wantMounted)     // the volume is mounted as expected
 		})
 	}
 }
@@ -112,9 +106,8 @@ func TestUnmountVolume(t *testing.T) {
 	tests := map[string]struct {
 		target string
 
-		activator  testActivator
 		filesystem testFileSystem
-		mounter    testMounter
+		volume     testVolume
 
 		wantDectivated bool
 		wantUnmounted  bool
@@ -122,9 +115,8 @@ func TestUnmountVolume(t *testing.T) {
 		wantErr bool
 	}{
 		"Success on deactivating volume": {
-			target:    "/media/vol",
-			activator: testActivator{},
-			mounter:   testMounter{},
+			target: "/media/vol",
+			volume: testVolume{},
 			filesystem: testFileSystem{
 				MapFS: fstest.MapFS{
 					"proc/mounts": &fstest.MapFile{
@@ -138,24 +130,21 @@ func TestUnmountVolume(t *testing.T) {
 
 		"Fail to get device /proc/mounts": {
 			target:     "/media/vol",
-			activator:  testActivator{},
-			mounter:    testMounter{},
+			volume:     testVolume{},
 			filesystem: testFileSystem{},
 			wantErr:    true,
 		},
 		"Fail to read /proc/mounts": {
-			target:    "/media/vol",
-			activator: testActivator{},
-			mounter:   testMounter{},
+			target: "/media/vol",
+			volume: testVolume{},
 			filesystem: testFileSystem{
-				readErr: true,
+				wantReadErr: true,
 			},
 			wantErr: true,
 		},
 		"Fail to find device from /proc/mounts": {
-			target:    "/media/vol",
-			activator: testActivator{},
-			mounter:   testMounter{},
+			target: "/media/vol",
+			volume: testVolume{},
 			filesystem: testFileSystem{
 				MapFS: fstest.MapFS{
 					"proc/mounts": &fstest.MapFile{
@@ -166,9 +155,8 @@ func TestUnmountVolume(t *testing.T) {
 			wantErr: true,
 		},
 		"Fail to remove directory": {
-			target:    "/media/vol",
-			activator: testActivator{},
-			mounter:   testMounter{},
+			target: "/media/vol",
+			volume: testVolume{},
 			filesystem: testFileSystem{
 				wantErr: true,
 				MapFS: fstest.MapFS{
@@ -180,9 +168,8 @@ func TestUnmountVolume(t *testing.T) {
 			wantErr: true,
 		},
 		"Fail to unmount volume": {
-			target:    "/media/vol",
-			activator: testActivator{},
-			mounter:   testMounter{wantErr: true},
+			target: "/media/vol",
+			volume: testVolume{wantMountErr: true},
 			filesystem: testFileSystem{
 				MapFS: fstest.MapFS{
 					"proc/mounts": &fstest.MapFile{
@@ -193,9 +180,8 @@ func TestUnmountVolume(t *testing.T) {
 			wantErr: true,
 		},
 		"Fail to deactivate volume": {
-			target:    "/media/vol",
-			activator: testActivator{wantErr: true},
-			mounter:   testMounter{},
+			target: "/media/vol",
+			volume: testVolume{wantActivateErr: true},
 			filesystem: testFileSystem{
 				MapFS: fstest.MapFS{
 					"proc/mounts": &fstest.MapFile{
@@ -214,8 +200,7 @@ func TestUnmountVolume(t *testing.T) {
 			ctx := testutils.ContextLoggerWithDebug(t)
 
 			m := tpm.NewMount(
-				tpmtestutils.WithActivator(&tc.activator),
-				tpmtestutils.WithMounter(&tc.mounter),
+				tpmtestutils.WithVolume(&tc.volume),
 				tpmtestutils.WithFileSystem(tc.filesystem),
 			)
 
@@ -226,92 +211,87 @@ func TestUnmountVolume(t *testing.T) {
 			}
 			is.NoErr(err)
 
-			is.Equal(tc.activator.deactivated, tc.wantDectivated) // the volume is deactivated as expected
-			is.Equal(tc.mounter.unmounted, tc.wantUnmounted)      // the volume is unmounted as expected
+			is.Equal(tc.volume.deactivated, tc.wantDectivated) // the volume is deactivated as expected
+			is.Equal(tc.volume.unmounted, tc.wantUnmounted)    // the volume is unmounted as expected
 		})
 	}
-}
-
-type testActivator struct {
-	activated   bool
-	deactivated bool
-
-	wantErr bool
-}
-
-func (m *testActivator) ActivateVolume(volumeName, device string, authRequestor secboot.AuthRequestor) error {
-	if m.wantErr {
-		return fmt.Errorf("test error")
-	}
-
-	m.activated = true
-	return nil
-}
-
-func (m *testActivator) DeactivateVolume(volumeName string) error {
-	if m.wantErr {
-		return fmt.Errorf("test error")
-	}
-
-	m.deactivated = true
-	return nil
 }
 
 type testFileSystem struct {
 	fstest.MapFS
 
-	readErr bool
-	wantErr bool
+	wantReadErr bool
+	wantErr     bool
 }
 
 func (fs testFileSystem) MkdirAll(path string) error {
 	if fs.wantErr {
-		return fmt.Errorf("test error")
+		return errors.New("test error")
 	}
 	return nil
 }
 
 func (fs testFileSystem) Open(name string) (fs.File, error) {
-	if fs.readErr {
-		return &errorFile{err: errors.New("simulated I/O error")}, nil
+	if fs.wantReadErr {
+		return &errorFile{iotest.ErrReader(errors.New("simulated I/O error"))}, nil
 	}
 	return fs.MapFS.Open(name)
 }
 
 func (fs testFileSystem) RemoveAll(path string) error {
 	if fs.wantErr {
-		return fmt.Errorf("test error")
+		return errors.New("test error")
 	}
 	return nil
 }
 
-type testMounter struct {
-	mounted   bool
-	unmounted bool
+type testVolume struct {
+	activated   bool
+	deactivated bool
+	mounted     bool
+	unmounted   bool
 
-	wantErr bool
+	wantActivateErr bool
+	wantMountErr    bool
 }
 
-func (m *testMounter) Mount(path, target string) error {
-	if m.wantErr {
-		return fmt.Errorf("test error")
+func (m *testVolume) Activate(volumeName, device string, authRequestor secboot.AuthRequestor) error {
+	if m.wantActivateErr {
+		return errors.New("test error")
+	}
+
+	m.activated = true
+	return nil
+}
+
+func (m *testVolume) Deactivate(volumeName string) error {
+	if m.wantActivateErr {
+		return errors.New("test error")
+	}
+
+	m.deactivated = true
+	return nil
+}
+
+func (m *testVolume) Mount(path, target string) error {
+	if m.wantMountErr {
+		return errors.New("test error")
 	}
 
 	m.mounted = true
 	return nil
 }
 
-func (m *testMounter) Unmount(target string) error {
-	if m.wantErr {
-		return fmt.Errorf("test error")
+func (m *testVolume) Unmount(target string) error {
+	if m.wantMountErr {
+		return errors.New("test error")
 	}
 
 	m.unmounted = true
 	return nil
 }
 
-type errorFile struct{ err error }
+type errorFile struct{ io.Reader }
 
-func (e *errorFile) Read(p []byte) (int, error) { return 0, e.err }
 func (e *errorFile) Close() error               { return nil }
-func (e *errorFile) Stat() (fs.FileInfo, error) { return nil, errors.New("no stat") }
+func (e *errorFile) Stat() (fs.FileInfo, error) { return nil, errors.New("err stat") }

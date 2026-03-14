@@ -22,20 +22,15 @@ func init() {
 //go:linkname WithSnapdClient github.com/canonical/snap-tpmctl/internal/tpm.withSnapdClient
 func WithSnapdClient(snapdClient *snapd.Client) tpm.Option
 
-// WithActivator is an option that configures the TPM to use the provided volume activator.
-//
-//go:linkname WithActivator github.com/canonical/snap-tpmctl/internal/tpm.withActivator
-func WithActivator(m tpm.Activator) tpm.MountOption
-
 // WithFileSystem is an option that configures the TPM to use the provided volume activator.
 //
 //go:linkname WithFileSystem github.com/canonical/snap-tpmctl/internal/tpm.withFileSystem
 func WithFileSystem(m tpm.FileSystem) tpm.MountOption
 
-// WithMounter is an option that configures the TPM to use the provided system mounter.
+// WithVolume is an option that configures the TPM to use the provided system mounter.
 //
-//go:linkname WithMounter github.com/canonical/snap-tpmctl/internal/tpm.withMounter
-func WithMounter(m tpm.Mounter) tpm.MountOption
+//go:linkname WithVolume github.com/canonical/snap-tpmctl/internal/tpm.withVolume
+func WithVolume(m tpm.Volume) tpm.MountOption
 
 // HasBodyContent checks that at least one request contains all the expected body content.
 func HasBodyContent(is *is.I, requests []snapdtestutils.RecordedRequest, content ...string) bool {
