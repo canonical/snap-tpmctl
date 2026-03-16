@@ -95,50 +95,6 @@ func Spin(msg string) (stop func()) {
 	}
 }
 
-// TODO: Matt to use Spin() instead and removing this.
-func WithSpinner(message string, fn func() error) error {
-	_, err := WithSpinnerResult(message, func() (struct{}, error) {
-		return struct{}{}, fn()
-	})
-	return err
-}
-
-// WithSpinnerResult executes a function while displaying a spinner in the terminal.
-func WithSpinnerResult[T any](message string, fn func() (T, error)) (T, error) {
-	// Generic result channel
-	done := make(chan struct {
-		result T
-		err    error
-	}, 1)
-
-	// Start the func in a goroutine
-	go func() {
-		result, err := fn()
-		done <- struct {
-			result T
-			err    error
-		}{result, err}
-	}()
-
-	// Timer to trigger changing the spinner char to produce a loading spinner
-	ticker := time.NewTicker(100 * time.Millisecond)
-	defer ticker.Stop()
-
-	// Hide cursor while spinning
-	HideCursor()
-
-	var spinner progress.ANSIMeter
-	for {
-		select {
-		case res := <-done:
-			spinner.Finished()
-			return res.result, res.err
-		case <-ticker.C:
-			spinner.Spin(message)
-		}
-	}
-}
-
 // DisplayTable writes a formatted table to the given writer with optional headers.
 func DisplayTable(w io.Writer, headers []string, rows [][]string, hideHeaders bool) error {
 	if len(rows) == 0 {
