@@ -128,32 +128,6 @@ func TestUnmountVolume(t *testing.T) {
 			wantUnmounted:  true,
 		},
 
-		"Fail to get device /proc/mounts": {
-			target:     "/media/vol",
-			volume:     testVolume{},
-			filesystem: testFileSystem{},
-			wantErr:    true,
-		},
-		"Fail to read /proc/mounts": {
-			target: "/media/vol",
-			volume: testVolume{},
-			filesystem: testFileSystem{
-				wantReadErr: true,
-			},
-			wantErr: true,
-		},
-		"Fail to find device from /proc/mounts": {
-			target: "/media/vol",
-			volume: testVolume{},
-			filesystem: testFileSystem{
-				MapFS: fstest.MapFS{
-					"proc/mounts": &fstest.MapFile{
-						Data: []byte("/dev/mapper/dev-test /media/wrong ext4 rw 0 0\n"),
-					},
-				},
-			},
-			wantErr: true,
-		},
 		"Fail to remove directory": {
 			target: "/media/vol",
 			volume: testVolume{},
@@ -213,6 +187,75 @@ func TestUnmountVolume(t *testing.T) {
 
 			is.Equal(tc.volume.deactivated, tc.wantDectivated) // the volume is deactivated as expected
 			is.Equal(tc.volume.unmounted, tc.wantUnmounted)    // the volume is unmounted as expected
+		})
+	}
+}
+
+func TestGetMapperFromMount(t *testing.T) {
+	t.Parallel()
+
+	tests := map[string]struct {
+		mapper string
+		target string
+
+		filesystem testFileSystem
+
+		wantErr bool
+	}{
+		"Success on getting mapper": {
+			mapper: "/dev/mapper/dev-test",
+			target: "/media/vol",
+			filesystem: testFileSystem{
+				MapFS: fstest.MapFS{
+					"proc/mounts": &fstest.MapFile{
+						Data: []byte("/dev/mapper/dev-test /media/vol ext4 rw 0 0\n"),
+					},
+				},
+			},
+		},
+
+		"Fail to get mapper /proc/mounts": {
+			target:     "/media/vol",
+			filesystem: testFileSystem{},
+			wantErr:    true,
+		},
+		"Fail to read /proc/mounts": {
+			target: "/media/vol",
+			filesystem: testFileSystem{
+				wantReadErr: true,
+			},
+			wantErr: true,
+		},
+		"Fail to find mapper from /proc/mounts": {
+			target: "/media/vol",
+			filesystem: testFileSystem{
+				MapFS: fstest.MapFS{
+					"proc/mounts": &fstest.MapFile{
+						Data: []byte("/dev/mapper/dev-test /media/wrong ext4 rw 0 0\n"),
+					},
+				},
+			},
+			wantErr: true,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+			is := is.New(t)
+
+			m := tpm.NewMount(
+				tpmtestutils.WithFileSystem(tc.filesystem),
+			)
+
+			mapper, err := tpm.GetMapperFromMount(m, tc.target)
+			if tc.wantErr {
+				is.True(err != nil)
+				return
+			}
+			is.NoErr(err)
+
+			is.Equal(mapper, tc.mapper) // the device mapper is the expected one
 		})
 	}
 }
