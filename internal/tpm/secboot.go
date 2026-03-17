@@ -77,8 +77,8 @@ func NewMount(args ...MountOption) Mount {
 	return Mount(o)
 }
 
-// getDeviceFromMount parses /proc/mounts and returns the device path for the given mount point.
-func (m Mount) getDeviceFromMount(mountPoint string) (string, error) {
+// getMapperFromMount parses /proc/mounts and returns the mapper path for the given mount point.
+func (m Mount) getMapperFromMount(mountPoint string) (string, error) {
 	file, err := m.fs.Open("proc/mounts")
 	if err != nil {
 		return "", fmt.Errorf("unable to open /proc/mounts: %v", err)
@@ -99,7 +99,7 @@ func (m Mount) getDeviceFromMount(mountPoint string) (string, error) {
 		return "", fmt.Errorf("error reading /proc/mounts: %v", err)
 	}
 
-	return "", fmt.Errorf("mount point %q doesn't exist", mountPoint)
+	return "", fmt.Errorf("the mount point doesn't exist")
 }
 
 type defaultFileSystem struct {

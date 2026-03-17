@@ -34,7 +34,7 @@ func (m Mount) MountVolume(ctx context.Context, device, target string) error {
 
 // UnmountVolume deactivates the specified volume.
 func (m Mount) UnmountVolume(ctx context.Context, target string) error {
-	device, err := m.getDeviceFromMount(target)
+	mapperPath, err := m.getMapperFromMount(target)
 	if err != nil {
 		return fmt.Errorf("unable to determine device path: %v", err)
 	}
@@ -47,7 +47,7 @@ func (m Mount) UnmountVolume(ctx context.Context, target string) error {
 		return fmt.Errorf("unable to remove mount point: %v", err)
 	}
 
-	volumeName := filepath.Base(device)
+	volumeName := filepath.Base(mapperPath)
 	if err := m.vol.Deactivate(volumeName); err != nil {
 		return fmt.Errorf("unable to deactivate volume: %v", err)
 	}
