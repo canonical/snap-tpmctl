@@ -6,12 +6,12 @@ package snapdtestutils
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"path/filepath"
-	"slices"
 	"testing"
 	_ "unsafe" // Required for go:linkname directives
 
@@ -40,7 +40,8 @@ type RecordedRequest struct {
 type MockSnapdServer struct {
 	*snapd.Client
 
-	Requests *[]RecordedRequest
+	Requests       []RecordedRequest
+	currentRequest int
 }
 
 // NewMockSnapdServer creates a new snapd client with a mock server that responds with the contents of the test file asset.
@@ -54,37 +55,39 @@ func NewMockSnapdServer(t *testing.T, ctx context.Context, roots ...string) *Moc
 		roots = []string{testutils.TestPath(t)}
 	}
 
-	var done []string
-	recordedRequests := new([]RecordedRequest)
+	m := MockSnapdServer{}
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		log.Debug(ctx, "Received request: %v %v", r.Method, r.URL.Path)
+		m.currentRequest++
 
 		b, err := io.ReadAll(r.Body)
 		is.NoErr(err) // Server: could not read request body
 
-		*recordedRequests = append(*recordedRequests, RecordedRequest{
+		m.Requests = append(m.Requests, RecordedRequest{
 			Method: r.Method,
 			Path:   r.URL.Path,
 			Body:   string(b),
 		})
 
-		// Search for response from the last root and look for the test response file in each root until found.
-		var resp []byte
+		// Look for file with path: <root>/<method>/<url-path>:<currentRequest> in each root, the first match is used as the response and than marked as done.
+		var requests []string
 		for _, p := range roots {
-			request := filepath.Join(p, r.Method, r.URL.Path)
+			requests = append(requests, fmt.Sprintf("%s:%d", filepath.Join(p, r.Method, r.URL.Path), m.currentRequest))
+		}
+		for _, p := range roots {
+			requests = append(requests, filepath.Join(p, r.Method, r.URL.Path))
+		}
 
-			if slices.Contains(done, request) {
-				continue
-			}
-
-			resp, err = os.ReadFile(request)
+		// Search for response and look for the test response file in each root until found.
+		var resp []byte
+		for _, r := range requests {
+			resp, err = os.ReadFile(r)
 			if os.IsNotExist(err) {
 				continue
 			}
 			is.NoErr(err) // Setup: read the test response from test file asset
 
-			done = append(done, request)
 			break
 		}
 
@@ -108,9 +111,6 @@ func NewMockSnapdServer(t *testing.T, ctx context.Context, roots ...string) *Moc
 	}))
 	t.Cleanup(ts.Close)
 
-	c := snapd.New(withBaseURL(ts.URL))
-	return &MockSnapdServer{
-		Client:   c,
-		Requests: recordedRequests,
-	}
+	m.Client = snapd.New(withBaseURL(ts.URL))
+	return &m
 }

@@ -35,7 +35,7 @@ func GetTestPath(t *testing.T, wantErr bool, service string) string {
 	return path
 }
 
-// HasBodyContent checks that at least one request contains all the expected body content
+// HasBodyContent checks that at least one request contains all the expected body content.
 func HasBodyContent(is *is.I, requests []snapdtestutils.RecordedRequest, content ...string) bool {
 	is.Helper()
 

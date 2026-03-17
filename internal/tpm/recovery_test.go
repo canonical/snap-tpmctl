@@ -49,7 +49,7 @@ func TestCreateKey(t *testing.T) {
 			is.NoErr(err)
 			is.Equal(got, tc.recoveryKey)
 
-			is.True(tpmtestutils.HasBodyContent(is, *c.Requests, tc.recoveryKeyName))
+			is.True(tpmtestutils.HasBodyContent(is, c.Requests, tc.recoveryKeyName))
 		})
 	}
 }
@@ -92,7 +92,7 @@ func TestRegenerateKey(t *testing.T) {
 			is.NoErr(err)
 			is.Equal(got, tc.recoveryKey)
 
-			is.True(tpmtestutils.HasBodyContent(is, *c.Requests, tc.recoveryKeyName))
+			is.True(tpmtestutils.HasBodyContent(is, c.Requests, tc.recoveryKeyName))
 		})
 	}
 }
@@ -130,7 +130,7 @@ func TestCheckKey(t *testing.T) {
 			is.NoErr(err)
 			is.Equal(got, true)
 
-			is.True(tpmtestutils.HasBodyContent(is, *c.Requests, tc.recoveryKey))
+			is.True(tpmtestutils.HasBodyContent(is, c.Requests, tc.recoveryKey))
 		})
 	}
 }
