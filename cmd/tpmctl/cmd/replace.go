@@ -40,11 +40,14 @@ func newReplacePassphraseCmd() *cli.Command {
 				return err
 			}
 
-			if err := tui.WithSpinner("Replacing passphrase...", func() error {
-				return s.ReplacePassphrase(ctx, oldPassphrase, newPassphrase)
-			}); err != nil {
+			stop := tui.Spin("Replacing passphrase...")
+			defer stop()
+
+			if err := s.ReplacePassphrase(ctx, oldPassphrase, newPassphrase); err != nil {
 				return err
 			}
+			stop()
+
 			fmt.Println("Passphrase replaced successfully")
 			return nil
 		},
@@ -82,11 +85,14 @@ func newReplacePINCmd() *cli.Command {
 				return err
 			}
 
-			if err := tui.WithSpinner("Replacing PIN...", func() error {
-				return s.ReplacePIN(ctx, oldPIN, newPIN)
-			}); err != nil {
+			stop := tui.Spin("Replacing PIN...")
+			defer stop()
+
+			if err := s.ReplacePIN(ctx, oldPIN, newPIN); err != nil {
 				return err
 			}
+			stop()
+
 			fmt.Println("PIN replaced successfully")
 			return nil
 		},

@@ -47,11 +47,14 @@ func newAddPassphraseCmd() *cli.Command {
 				return err
 			}
 
-			if err := tui.WithSpinner("Adding passphrase...", func() error {
-				return s.AddPassphrase(ctx, newPassphrase)
-			}); err != nil {
+			stop := tui.Spin("Adding passphrase...")
+			defer stop()
+
+			if err := s.AddPassphrase(ctx, newPassphrase); err != nil {
 				return err
 			}
+			stop()
+
 			fmt.Println("Passphrase added successfully")
 			return nil
 		},
@@ -93,12 +96,14 @@ func newAddPINCmd() *cli.Command {
 			if err := s.IsValidPIN(ctx, newPIN); err != nil {
 				return err
 			}
+			stop := tui.Spin("Adding PIN...")
+			defer stop()
 
-			if err := tui.WithSpinner("Adding PIN...", func() error {
-				return s.AddPIN(ctx, newPIN)
-			}); err != nil {
+			if err := s.AddPIN(ctx, newPIN); err != nil {
 				return err
 			}
+			stop()
+
 			fmt.Println("PIN added successfully")
 			return nil
 		},

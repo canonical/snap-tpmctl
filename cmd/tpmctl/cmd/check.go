@@ -27,12 +27,14 @@ func newCheckCmd() *cli.Command {
 				return err
 			}
 
-			ok, err := tui.WithSpinnerResult("Checking recovery key...", func() (bool, error) {
-				return s.CheckKey(ctx, key)
-			})
+			stop := tui.Spin("Checking recovery key...")
+			defer stop()
+
+			ok, err := s.CheckKey(ctx, key)
 			if err != nil {
 				return err
 			}
+			stop()
 
 			msg := "Recovery key does not work"
 			if ok {

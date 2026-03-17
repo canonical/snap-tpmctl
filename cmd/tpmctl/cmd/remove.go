@@ -28,11 +28,13 @@ func newRemovePassphraseCmd() *cli.Command {
 				return err
 			}
 
-			if err := tui.WithSpinner("Removing passphrase...", func() error {
-				return s.RemovePassphrase(ctx)
-			}); err != nil {
+			stop := tui.Spin("Removing passphrase...")
+			defer stop()
+
+			if err := s.RemovePassphrase(ctx); err != nil {
 				return err
 			}
+			stop()
 
 			fmt.Println("Passphrase removed successfully")
 			return nil
@@ -57,11 +59,14 @@ func newRemovePINCmd() *cli.Command {
 				return err
 			}
 
-			if err := tui.WithSpinner("Removing PIN...", func() error {
-				return s.RemovePIN(ctx)
-			}); err != nil {
+			stop := tui.Spin("Removing PIN...")
+			defer stop()
+
+			if err := s.RemovePIN(ctx); err != nil {
 				return err
 			}
+			stop()
+
 			fmt.Println("PIN removed successfully")
 			return nil
 		},
