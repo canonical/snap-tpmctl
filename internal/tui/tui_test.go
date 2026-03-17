@@ -18,34 +18,9 @@ import (
 //go:linkname spinnerStdout github.com/snapcore/snapd/progress.stdout
 var spinnerStdout io.Writer
 
-type syncBuffer struct {
-	mu  sync.Mutex
-	buf strings.Builder
-}
-
-func (b *syncBuffer) Write(p []byte) (int, error) {
-	b.mu.Lock()
-	defer b.mu.Unlock()
-
-	return b.buf.Write(p)
-}
-
-func (b *syncBuffer) String() string {
-	b.mu.Lock()
-	defer b.mu.Unlock()
-
-	return b.buf.String()
-}
-
-func (b *syncBuffer) Reset() {
-	b.mu.Lock()
-	defer b.mu.Unlock()
-
-	b.buf.Reset()
-}
-
 func TestSpin(t *testing.T) {
-	// Capture spinner output to a buffer.
+	// Capture spinner output to a buffer, with a mutex to avoid race conditions:
+	// https://github.com/golang/go/issues/74352
 	var instantBuf, globalBuf syncBuffer
 
 	w := io.MultiWriter(&instantBuf, &globalBuf)
@@ -81,4 +56,30 @@ func TestSpin(t *testing.T) {
 
 		golden.CheckOrUpdate(t, globalBuf.String())
 	})
+}
+
+type syncBuffer struct {
+	mu  sync.Mutex
+	buf strings.Builder
+}
+
+func (b *syncBuffer) Write(p []byte) (int, error) {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+
+	return b.buf.Write(p)
+}
+
+func (b *syncBuffer) String() string {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+
+	return b.buf.String()
+}
+
+func (b *syncBuffer) Reset() {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+
+	b.buf.Reset()
 }
