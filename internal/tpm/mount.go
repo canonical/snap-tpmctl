@@ -1,58 +1,109 @@
 package tpm
 
 import (
+	"bufio"
 	"context"
 	"errors"
 	"fmt"
 	"io/fs"
+	"os"
 	"path/filepath"
 	"strings"
+	_ "unsafe" // Needed for go:linkname.
+
+	"github.com/canonical/snap-tpmctl/internal/log"
+	"github.com/snapcore/secboot"
 )
 
-// MountVolume activates the specified encrypted volume using the provided device path.
-func (m Mount) MountVolume(ctx context.Context, device, target string) error {
-	volumeName := luksVolumeName(device)
-	mapperPath := filepath.Join("dev/mapper/", volumeName)
+// We are executing through a snap, thus we need to link to the actual package location.
+//
+//go:linkname systemdCryptsetupPath github.com/snapcore/secboot/internal/luks2.systemdCryptsetupPath
+var systemdCryptsetupPath string
 
-	if err := m.fs.MkdirAll(target); err != nil {
+// Mount activates and mounts the TPM-protected volume at the given path to the target mount point.
+func (s SnapTPM) Mount(ctx context.Context, device, target string, authRequestor secboot.AuthRequestor) error {
+	if snapPath := os.Getenv("SNAP"); snapPath != "" {
+		systemdCryptsetupPath = filepath.Join(snapPath, "usr/bin/systemd-cryptsetup")
+	}
+
+	volumeName := luksVolumeName(device)
+	mapperPath := filepath.Join(s.root, "dev/mapper/", volumeName)
+
+	if err := os.MkdirAll(target, 0750); err != nil {
 		return fmt.Errorf("unable to create directory: %v", err)
 	}
 
 	// Check if volume is already active
-	if _, err := m.fs.Stat(mapperPath); errors.Is(err, fs.ErrNotExist) {
-		if err := m.vol.Activate(volumeName, device, m.authRequestor); err != nil {
+	if _, err := os.Stat(mapperPath); errors.Is(err, fs.ErrNotExist) {
+		if err := secboot.ActivateVolumeWithRecoveryKey(
+			volumeName,
+			device,
+			authRequestor,
+			&secboot.ActivateVolumeOptions{
+				RecoveryKeyTries: 3,
+			}); err != nil {
 			return fmt.Errorf("unable to activate volume: %v", err)
 		}
 	}
 
-	if err := m.vol.Mount(mapperPath, target); err != nil {
+	log.Debug(ctx, "Mounting %q to %q", mapperPath, target)
+	if err := s.syscall.Mount(mapperPath, target); err != nil {
 		return fmt.Errorf("unable to mount volume: %v", err)
 	}
 
 	return nil
 }
 
-// UnmountVolume deactivates the specified volume.
-func (m Mount) UnmountVolume(ctx context.Context, target string) error {
-	mapperPath, err := m.getMapperFromMount(target)
+// Unmount unmounts and deactivate the TPM-protected volume from the target mount point.
+func (s SnapTPM) Unmount(ctx context.Context, target string) error {
+	if snapPath := os.Getenv("SNAP"); snapPath != "" {
+		systemdCryptsetupPath = filepath.Join(snapPath, "usr/bin/systemd-cryptsetup")
+	}
+
+	mapperPath, err := s.getMapperFromMount(target)
 	if err != nil {
 		return fmt.Errorf("unable to determine device path: %v", err)
 	}
 
-	if err := m.vol.Unmount(target); err != nil {
+	if err := s.syscall.Unmount(target); err != nil {
 		return fmt.Errorf("unable to unmount volume: %v", err)
 	}
 
-	if err := m.fs.RemoveAll(target); err != nil {
+	if err := os.RemoveAll(target); err != nil {
 		return fmt.Errorf("unable to remove mount point: %v", err)
 	}
 
 	volumeName := filepath.Base(mapperPath)
-	if err := m.vol.Deactivate(volumeName); err != nil {
+	if err := secboot.DeactivateVolume(volumeName); err != nil {
 		return fmt.Errorf("unable to deactivate volume: %v", err)
 	}
 
 	return nil
+}
+
+// getMapperFromMount parses /proc/mounts and returns the mapper path for the given mount point.
+func (s SnapTPM) getMapperFromMount(mountPoint string) (string, error) {
+	file, err := os.Open(filepath.Join(s.root, "proc", "mounts"))
+	if err != nil {
+		return "", fmt.Errorf("unable to open /proc/mounts: %v", err)
+	}
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		fields := strings.Fields(scanner.Text())
+
+		// Each line format: device mount_point fstype options dummy dummy
+		if len(fields) >= 2 && fields[1] == mountPoint {
+			return fields[0], nil
+		}
+	}
+
+	if err := scanner.Err(); err != nil {
+		return "", fmt.Errorf("error reading /proc/mounts: %v", err)
+	}
+
+	return "", fmt.Errorf("the mount point doesn't exist")
 }
 
 // luksVolumeName converts a directory path into a valid LUKS volume name.

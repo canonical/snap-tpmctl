@@ -14,18 +14,18 @@ func withSnapdClient(snapdClient *snapd.Client) Option {
 	}
 }
 
-// withFileSystem allows you to specify a custom filesystem for testing purposes.
-func withFileSystem(f FileSystem) MountOption {
+// withRoot allows you to specify a custom root for testing purposes.
+func withRoot(root string) Option {
 	testsdetection.MustBeTesting()
-	return func(mo *mOptions) {
-		mo.fs = f
+	return func(o *options) {
+		o.root = root
 	}
 }
 
-// withVolume allows you to specify a custom system mounter for testing purposes.
-func withVolume(m Volume) MountOption {
+// withSyscall allows you to specify a custom root for testing purposes.
+func withSyscall(s Syscall) Option {
 	testsdetection.MustBeTesting()
-	return func(mo *mOptions) {
-		mo.vol = m
+	return func(o *options) {
+		o.syscall = s
 	}
 }

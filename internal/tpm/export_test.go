@@ -1,3 +1,3 @@
 package tpm
 
-var GetMapperFromMount = Mount.getMapperFromMount
+var GetMapperFromMount = SnapTPM.getMapperFromMount

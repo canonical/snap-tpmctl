@@ -1,12 +1,14 @@
 package tpm_test
 
 import (
+	"context"
 	"errors"
-	"io"
-	"io/fs"
+	"flag"
+	"fmt"
+	"os"
+	"path/filepath"
+	"strings"
 	"testing"
-	"testing/fstest"
-	"testing/iotest"
 
 	"github.com/canonical/snap-tpmctl/internal/testutils"
 	"github.com/canonical/snap-tpmctl/internal/tpm"
@@ -16,177 +18,158 @@ import (
 )
 
 func TestMountVolume(t *testing.T) {
-	t.Parallel()
-
 	tests := map[string]struct {
-		device string
-		target string
+		device        string
+		target        string
+		syscall       testSyscall
+		authRequestor authRequestor
+		targetExists  bool
 
-		filesystem testFileSystem
-		volume     testVolume
+		wantMounted bool
 
-		wantActivated bool
-		wantMounted   bool
-
-		wantErr bool
+		wantErr      bool
+		wantMkdirErr bool
 	}{
-		"Success on mounting volume": {
-			device:        "/dev/test",
-			target:        "/media/vol",
-			volume:        testVolume{},
-			filesystem:    testFileSystem{},
-			wantActivated: true,
-			wantMounted:   true,
-		},
-		"Success on mounting already active volume": {
-			device: "/dev/test",
-			target: "/media/vol",
-			volume: testVolume{},
-			filesystem: testFileSystem{
-				MapFS: fstest.MapFS{
-					"dev/mapper/dev-test": &fstest.MapFile{},
-				},
-			},
-			wantMounted: true,
+		"Success on mounting volume": {wantMounted: true},
+		"Success when target already exists": {
+			target:       "existing-mount-dir",
+			targetExists: true,
+			wantMounted:  true,
 		},
 
-		"Fail to create directory": {
-			device: "/dev/test",
-			target: "/media/vol",
-			volume: testVolume{},
-			filesystem: testFileSystem{
-				wantErr: true,
-			},
-			wantErr: true,
-		},
-		"Fail to activate volume": {
-			device:     "/dev/test",
-			target:     "/media/vol",
-			volume:     testVolume{wantActivateErr: true},
-			filesystem: testFileSystem{},
-			wantErr:    true,
-		},
-		"Fail to mount volume": {
-			device:        "/dev/test",
-			target:        "/media/vol",
-			volume:        testVolume{wantMountErr: true},
-			filesystem:    testFileSystem{},
-			wantActivated: true,
-			wantErr:       true,
-		},
+		"Error out when unable to crate directory": {wantMkdirErr: true, wantErr: true},
+		"Error out when authRequestor fails":       {authRequestor: authRequestor{wantErr: true}, wantErr: true},
+		"Error out when unable to mount volume":    {syscall: testSyscall{wantErr: true}, wantErr: true},
+		"Error out when systemd-cryptsetup fails":  {device: "exit-with-failure", wantErr: true},
 	}
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			t.Parallel()
 			is := is.New(t)
 			ctx := testutils.ContextLoggerWithDebug(t)
 
-			m := tpm.NewMount(
-				tpmtestutils.WithVolume(&tc.volume),
-				tpmtestutils.WithFileSystem(tc.filesystem),
+			root := t.TempDir()
+
+			// cryptsetup mock binary
+			setupMockBinary(is, root)
+			t.Setenv("SNAP", root)
+
+			if tc.device == "" {
+				tc.device = "test-device"
+			}
+			tc.device = filepath.Join(root, tc.device) // Convert to an absolute path
+
+			if tc.target == "" {
+				tc.target = "mount-dir"
+			}
+			tc.target = filepath.Join(root, tc.target) // Convert to an absolute path
+
+			if tc.targetExists {
+				err := os.MkdirAll(tc.target, 0750)
+				is.NoErr(err) // Setup: target directory should exist before mounting
+			}
+
+			if tc.wantMkdirErr {
+				f, err := os.Create(tc.target)
+				is.NoErr(err) // Setup: target should exist before mounting as a file
+				defer f.Close()
+			}
+
+			s := tpm.New(
+				tpmtestutils.WithRoot(root),
+				tpmtestutils.WithSyscall(&tc.syscall),
 			)
 
-			err := m.MountVolume(ctx, tc.device, tc.target)
+			err := s.Mount(ctx, tc.device, tc.target, &tc.authRequestor)
 			if tc.wantErr {
 				is.True(err != nil)
 				return
 			}
 			is.NoErr(err)
 
-			is.Equal(tc.volume.activated, tc.wantActivated) // the volume is activated as expected
-			is.Equal(tc.volume.mounted, tc.wantMounted)     // the volume is mounted as expected
+			is.Equal(tc.syscall.mounted, tc.wantMounted) // the volume is mounted as expected
 		})
 	}
 }
 
 func TestUnmountVolume(t *testing.T) {
-	t.Parallel()
-
 	tests := map[string]struct {
-		target string
+		target  string
+		mapper  string
+		syscall testSyscall
 
-		filesystem testFileSystem
-		volume     testVolume
+		wantUnmounted bool
 
-		wantDectivated bool
-		wantUnmounted  bool
-
-		wantErr bool
+		wantErr      bool
+		wantRmdirErr bool
+		wantGetErr   bool
 	}{
-		"Success on deactivating volume": {
-			target: "/media/vol",
-			volume: testVolume{},
-			filesystem: testFileSystem{
-				MapFS: fstest.MapFS{
-					"proc/mounts": &fstest.MapFile{
-						Data: []byte("/dev/mapper/dev-test /media/vol ext4 rw 0 0\n"),
-					},
-				},
-			},
-			wantDectivated: true,
-			wantUnmounted:  true,
-		},
+		"Success on unmounting volume": {wantUnmounted: true},
 
-		"Fail to remove directory": {
-			target: "/media/vol",
-			volume: testVolume{},
-			filesystem: testFileSystem{
-				wantErr: true,
-				MapFS: fstest.MapFS{
-					"proc/mounts": &fstest.MapFile{
-						Data: []byte("/dev/mapper/dev-test /media/vol ext4 rw 0 0\n"),
-					},
-				},
-			},
-			wantErr: true,
-		},
-		"Fail to unmount volume": {
-			target: "/media/vol",
-			volume: testVolume{wantMountErr: true},
-			filesystem: testFileSystem{
-				MapFS: fstest.MapFS{
-					"proc/mounts": &fstest.MapFile{
-						Data: []byte("/dev/mapper/dev-test /media/vol ext4 rw 0 0\n"),
-					},
-				},
-			},
-			wantErr: true,
-		},
-		"Fail to deactivate volume": {
-			target: "/media/vol",
-			volume: testVolume{wantActivateErr: true},
-			filesystem: testFileSystem{
-				MapFS: fstest.MapFS{
-					"proc/mounts": &fstest.MapFile{
-						Data: []byte("/dev/mapper/dev-test /media/vol ext4 rw 0 0\n"),
-					},
-				},
-			},
-			wantErr: true,
-		},
+		"Error out when unable to remove directory":   {wantRmdirErr: true, wantErr: true},
+		"Error out when unable determine device path": {wantGetErr: true, wantErr: true},
+		"Error out when unable to unmount volume":     {syscall: testSyscall{wantErr: true}, wantErr: true},
+		"Error out when systemd-cryptsetup fails":     {mapper: "exit-with-failure", wantErr: true},
 	}
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			t.Parallel()
 			is := is.New(t)
 			ctx := testutils.ContextLoggerWithDebug(t)
 
-			m := tpm.NewMount(
-				tpmtestutils.WithVolume(&tc.volume),
-				tpmtestutils.WithFileSystem(tc.filesystem),
+			root := t.TempDir()
+
+			// cryptsetup mock binary
+			setupMockBinary(is, root)
+			t.Setenv("SNAP", root)
+
+			if tc.mapper == "" {
+				tc.mapper = "test-device"
+			}
+			tc.mapper = filepath.Join(root, "dev", "mapper", tc.mapper) // Convert to an absolute path
+
+			if tc.target == "" {
+				tc.target = "mount-dir"
+			}
+			tc.target = filepath.Join(root, tc.target) // Convert to an absolute path
+
+			content := fmt.Sprintf("%s %s ext4 rw 0 0\n", tc.mapper, tc.target)
+			if tc.wantGetErr {
+				tc.target = "wrong-target"
+			}
+
+			setupProcMount(is, root, content)
+
+			// In order to test `RemoveAll` failure, we need to set custom permission
+			// for the parent folder of the target.
+			if tc.wantRmdirErr {
+				err := os.MkdirAll(tc.target, 0750)
+				is.NoErr(err)
+
+				//nolint:gosec // test-only permissions, non-sensitive temp path
+				err = os.Chmod(filepath.Dir(tc.target), 0555)
+				is.NoErr(err)
+
+				defer func() {
+					//nolint:gosec // test-only permissions, non-sensitive temp path
+					err := os.Chmod(filepath.Dir(tc.target), 0750)
+					is.NoErr(err)
+				}()
+			}
+
+			s := tpm.New(
+				tpmtestutils.WithRoot(root),
+				tpmtestutils.WithSyscall(&tc.syscall),
 			)
 
-			err := m.UnmountVolume(ctx, tc.target)
+			err := s.Unmount(ctx, tc.target)
 			if tc.wantErr {
 				is.True(err != nil)
 				return
 			}
 			is.NoErr(err)
 
-			is.Equal(tc.volume.deactivated, tc.wantDectivated) // the volume is deactivated as expected
-			is.Equal(tc.volume.unmounted, tc.wantUnmounted)    // the volume is unmounted as expected
+			is.Equal(tc.syscall.unmounted, tc.wantUnmounted) // the volume is unmounted as expected
 		})
 	}
 }
@@ -195,48 +178,17 @@ func TestGetMapperFromMount(t *testing.T) {
 	t.Parallel()
 
 	tests := map[string]struct {
-		mapper string
 		target string
 
-		filesystem testFileSystem
-
-		wantErr bool
+		wantFileErr bool
+		wantReadErr bool
+		wantErr     bool
 	}{
-		"Success on getting mapper": {
-			mapper: "/dev/mapper/dev-test",
-			target: "/media/vol",
-			filesystem: testFileSystem{
-				MapFS: fstest.MapFS{
-					"proc/mounts": &fstest.MapFile{
-						Data: []byte("/dev/mapper/dev-test /media/vol ext4 rw 0 0\n"),
-					},
-				},
-			},
-		},
+		"Success on getting mapper": {},
 
-		"Fail to get mapper /proc/mounts": {
-			target:     "/media/vol",
-			filesystem: testFileSystem{},
-			wantErr:    true,
-		},
-		"Fail to read /proc/mounts": {
-			target: "/media/vol",
-			filesystem: testFileSystem{
-				wantReadErr: true,
-			},
-			wantErr: true,
-		},
-		"Fail to find mapper from /proc/mounts": {
-			target: "/media/vol",
-			filesystem: testFileSystem{
-				MapFS: fstest.MapFS{
-					"proc/mounts": &fstest.MapFile{
-						Data: []byte("/dev/mapper/dev-test /media/wrong ext4 rw 0 0\n"),
-					},
-				},
-			},
-			wantErr: true,
-		},
+		"Fail to find mapper /proc/mounts": {target: "wrong-target", wantErr: true},
+		"Fail to open /proc/mounts":        {wantFileErr: true, wantErr: true},
+		"Fail to read /proc/mounts":        {wantReadErr: true, wantErr: true},
 	}
 
 	for name, tc := range tests {
@@ -244,21 +196,127 @@ func TestGetMapperFromMount(t *testing.T) {
 			t.Parallel()
 			is := is.New(t)
 
-			m := tpm.NewMount(
-				tpmtestutils.WithFileSystem(tc.filesystem),
-			)
+			root := t.TempDir()
 
-			mapper, err := tpm.GetMapperFromMount(m, tc.target)
+			mapper := filepath.Join(root, "dev", "mapper", "test-device")
+			target := "mount-dir"
+
+			if tc.target == "" {
+				tc.target = target
+			}
+			tc.target = filepath.Join(root, tc.target) // Convert to an absolute path
+
+			content := fmt.Sprintf("%s %s ext4 rw 0 0\n", mapper, filepath.Join(root, target))
+			if tc.wantReadErr {
+				// Scanner default max token: 64K. This will return a Read error
+				content = strings.Repeat("a", 70*1024) + "\n"
+			}
+
+			setupProcMount(is, root, content)
+
+			if tc.wantFileErr {
+				err := os.Remove(filepath.Join(root, "proc", "mounts"))
+				is.NoErr(err) // Setup: /proc/mounts should be deleted for file error
+			}
+
+			s := tpm.New(tpmtestutils.WithRoot(root))
+
+			m, err := tpm.GetMapperFromMount(s, tc.target)
 			if tc.wantErr {
 				is.True(err != nil)
 				return
 			}
 			is.NoErr(err)
 
-			is.Equal(mapper, tc.mapper) // the device mapper is the expected one
+			is.Equal(m, mapper) // the device mapper is the expected one
 		})
 	}
 }
+
+func TestMain(m *testing.M) {
+	if filepath.Base(os.Args[0]) == "systemd-cryptsetup" {
+		systemdCryptsetupMock()
+		return
+	}
+
+	m.Run()
+}
+
+func setupMockBinary(is *is.I, root string) {
+	is.Helper()
+
+	usrBin := filepath.Join(root, "usr", "bin")
+	err := os.MkdirAll(usrBin, 0750)
+	is.NoErr(err) // Setup: could not create mock binary directory
+	path, err := filepath.Abs(os.Args[0])
+	is.NoErr(err) // Setup: could not find asbsolute path to self
+	err = os.Symlink(path, filepath.Join(usrBin, "systemd-cryptsetup"))
+	is.NoErr(err) // Setup: could not create symlink for mock cryptsetup binary
+}
+
+func setupProcMount(is *is.I, root, content string) {
+	is.Helper()
+
+	err := os.MkdirAll(filepath.Join(root, "proc"), 0750)
+	is.NoErr(err)
+	f, err := os.Create(filepath.Join(root, "proc", "mounts"))
+	is.NoErr(err)
+	defer f.Close()
+
+	_, err = f.WriteString(content)
+	is.NoErr(err)
+}
+
+func systemdCryptsetupMock() {
+	flag.Parse()
+	args := flag.Args()
+
+	fmt.Println("Mock systemd-cryptsetup called with args:", args)
+
+	volumeName := args[1]
+	if strings.Contains(volumeName, "exit-with-failure") {
+		os.Exit(1)
+	}
+
+	os.Exit(0)
+}
+
+type authRequestor struct {
+	wantErr bool
+}
+
+func (r authRequestor) RequestUserCredential(ctx context.Context, name, path string, authTypes secboot.UserAuthType) (string, error) {
+	if r.wantErr {
+		return "", errors.New("test error")
+	}
+	return "22003-18216-51619-31723-49692-17125-14174-57839", nil
+}
+
+type testSyscall struct {
+	mounted   bool
+	unmounted bool
+
+	wantErr bool
+}
+
+func (t *testSyscall) Mount(path, target string) error {
+	if t.wantErr {
+		return errors.New("test error")
+	}
+	t.mounted = true
+	return nil
+}
+
+func (t *testSyscall) Unmount(target string) error {
+	if t.wantErr {
+		return errors.New("test error")
+	}
+	t.unmounted = true
+	return nil
+}
+
+/*
+
 
 type testFileSystem struct {
 	fstest.MapFS
@@ -338,3 +396,4 @@ type errorFile struct{ io.Reader }
 
 func (e *errorFile) Close() error               { return nil }
 func (e *errorFile) Stat() (fs.FileInfo, error) { return nil, errors.New("err stat") }
+*/
