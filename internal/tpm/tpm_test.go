@@ -28,9 +28,7 @@ func TestFdeStatus(t *testing.T) {
 			is := is.New(t)
 			ctx := testutils.ContextLoggerWithDebug(t)
 
-			path := tpmtestutils.GetTestPath(t, tc.wantErr, "FdeStatus")
-
-			c := snapdtestutils.NewMockSnapdServer(t, ctx, path)
+			c := snapdtestutils.NewMockSnapdServer(t, ctx)
 			s := tpm.New(tpmtestutils.WithSnapdClient(c.Client))
 
 			got, err := s.FdeStatus(ctx)

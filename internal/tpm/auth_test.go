@@ -11,7 +11,6 @@ import (
 	"github.com/matryer/is"
 )
 
-//nolint:dupl // TestAddPassphrase and TestAddPIN have similar behaviour
 func TestAddPassphrase(t *testing.T) {
 	t.Parallel()
 
@@ -30,9 +29,8 @@ func TestAddPassphrase(t *testing.T) {
 			t.Parallel()
 			is := is.New(t)
 			ctx := testutils.ContextLoggerWithDebug(t)
-			path := tpmtestutils.GetTestPath(t, tc.wantErr, "ReplacePlatformKey")
 
-			c := snapdtestutils.NewMockSnapdServer(t, ctx, path)
+			c := snapdtestutils.NewMockSnapdServer(t, ctx)
 			s := tpm.New(tpmtestutils.WithSnapdClient(c.Client))
 
 			err := s.AddPassphrase(ctx, tc.passphrase)
@@ -66,9 +64,8 @@ func TestReplacePassphrase(t *testing.T) {
 			t.Parallel()
 			is := is.New(t)
 			ctx := testutils.ContextLoggerWithDebug(t)
-			path := tpmtestutils.GetTestPath(t, tc.wantErr, "ReplacePassphrase")
 
-			c := snapdtestutils.NewMockSnapdServer(t, ctx, path)
+			c := snapdtestutils.NewMockSnapdServer(t, ctx)
 			s := tpm.New(tpmtestutils.WithSnapdClient(c.Client))
 
 			err := s.ReplacePassphrase(ctx, tc.old, tc.new)
@@ -99,9 +96,8 @@ func TestRemovePassphrase(t *testing.T) {
 			t.Parallel()
 			is := is.New(t)
 			ctx := testutils.ContextLoggerWithDebug(t)
-			path := tpmtestutils.GetTestPath(t, tc.wantErr, "ReplacePlatformKey")
 
-			c := snapdtestutils.NewMockSnapdServer(t, ctx, path)
+			c := snapdtestutils.NewMockSnapdServer(t, ctx)
 			s := tpm.New(tpmtestutils.WithSnapdClient(c.Client))
 
 			err := s.RemovePassphrase(ctx)
@@ -116,7 +112,6 @@ func TestRemovePassphrase(t *testing.T) {
 	}
 }
 
-//nolint:dupl // TestAddPassphrase and TestAddPIN have similar behaviour
 func TestAddPIN(t *testing.T) {
 	t.Parallel()
 
@@ -135,9 +130,8 @@ func TestAddPIN(t *testing.T) {
 			t.Parallel()
 			is := is.New(t)
 			ctx := testutils.ContextLoggerWithDebug(t)
-			path := tpmtestutils.GetTestPath(t, tc.wantErr, "ReplacePlatformKey")
 
-			c := snapdtestutils.NewMockSnapdServer(t, ctx, path)
+			c := snapdtestutils.NewMockSnapdServer(t, ctx)
 			s := tpm.New(tpmtestutils.WithSnapdClient(c.Client))
 
 			err := s.AddPIN(ctx, tc.pin)
@@ -171,9 +165,8 @@ func TestReplacePIN(t *testing.T) {
 			t.Parallel()
 			is := is.New(t)
 			ctx := testutils.ContextLoggerWithDebug(t)
-			path := tpmtestutils.GetTestPath(t, tc.wantErr, "ReplacePIN")
 
-			c := snapdtestutils.NewMockSnapdServer(t, ctx, path)
+			c := snapdtestutils.NewMockSnapdServer(t, ctx)
 			s := tpm.New(tpmtestutils.WithSnapdClient(c.Client))
 
 			err := s.ReplacePIN(ctx, tc.old, tc.new)
@@ -204,9 +197,8 @@ func TestRemovePIN(t *testing.T) {
 			t.Parallel()
 			is := is.New(t)
 			ctx := testutils.ContextLoggerWithDebug(t)
-			path := tpmtestutils.GetTestPath(t, tc.wantErr, "ReplacePlatformKey")
 
-			c := snapdtestutils.NewMockSnapdServer(t, ctx, path)
+			c := snapdtestutils.NewMockSnapdServer(t, ctx)
 			s := tpm.New(tpmtestutils.WithSnapdClient(c.Client))
 
 			err := s.RemovePIN(ctx)

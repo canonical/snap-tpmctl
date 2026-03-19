@@ -19,14 +19,12 @@ func TestCreateKey(t *testing.T) {
 		recoveryKeyName string
 		recoveryKey     string
 
-		wantGenErr bool
-		wantAddErr bool
-		wantErr    bool
+		wantErr bool
 	}{
 		"Success_creating_recovery_key": {recoveryKeyName: "test", recoveryKey: "11272-47509-28031-54818-41671-38673-11053-06376"},
 
-		"Fail_generating_recovery_key": {wantGenErr: true, wantErr: true},
-		"Fail_adding_recovery_key":     {wantAddErr: true, wantErr: true},
+		"Fail_generating_recovery_key": {wantErr: true},
+		"Fail_adding_recovery_key":     {wantErr: true},
 	}
 
 	for name, tc := range tests {
@@ -35,10 +33,7 @@ func TestCreateKey(t *testing.T) {
 			is := is.New(t)
 			ctx := testutils.ContextLoggerWithDebug(t)
 
-			pathGen := tpmtestutils.GetTestPath(t, tc.wantGenErr, "GenerateRecoveryKey")
-			pathAdd := tpmtestutils.GetTestPath(t, tc.wantAddErr, "AddRecoveryKey")
-
-			c := snapdtestutils.NewMockSnapdServer(t, ctx, pathGen, pathAdd)
+			c := snapdtestutils.NewMockSnapdServer(t, ctx)
 			s := tpm.New(tpmtestutils.WithSnapdClient(c.Client))
 
 			got, err := s.CreateKey(ctx, tc.recoveryKeyName)
@@ -62,14 +57,12 @@ func TestRegenerateKey(t *testing.T) {
 		recoveryKeyName string
 		recoveryKey     string
 
-		wantGenErr bool
-		wantAddErr bool
-		wantErr    bool
+		wantErr bool
 	}{
 		"Success_regenerating_recovery_key": {recoveryKeyName: "test", recoveryKey: "11272-47509-28031-54818-41671-38673-11053-06376"},
 
-		"Fail_generating_recovery_key": {wantGenErr: true, wantErr: true},
-		"Fail_adding_recovery_key":     {wantAddErr: true, wantErr: true},
+		"Fail_generating_recovery_key": {wantErr: true},
+		"Fail_adding_recovery_key":     {wantErr: true},
 	}
 
 	for name, tc := range tests {
@@ -78,10 +71,7 @@ func TestRegenerateKey(t *testing.T) {
 			is := is.New(t)
 			ctx := testutils.ContextLoggerWithDebug(t)
 
-			pathGen := tpmtestutils.GetTestPath(t, tc.wantGenErr, "GenerateRecoveryKey")
-			pathAdd := tpmtestutils.GetTestPath(t, tc.wantAddErr, "ReplaceRecoveryKey")
-
-			c := snapdtestutils.NewMockSnapdServer(t, ctx, pathGen, pathAdd)
+			c := snapdtestutils.NewMockSnapdServer(t, ctx)
 			s := tpm.New(tpmtestutils.WithSnapdClient(c.Client))
 
 			got, err := s.RegenerateKey(ctx, tc.recoveryKeyName)
@@ -116,9 +106,7 @@ func TestCheckKey(t *testing.T) {
 			is := is.New(t)
 			ctx := testutils.ContextLoggerWithDebug(t)
 
-			path := tpmtestutils.GetTestPath(t, tc.wantErr, "CheckRecoveryKey")
-
-			c := snapdtestutils.NewMockSnapdServer(t, ctx, path)
+			c := snapdtestutils.NewMockSnapdServer(t, ctx)
 			s := tpm.New(tpmtestutils.WithSnapdClient(c.Client))
 
 			got, err := s.CheckKey(ctx, tc.recoveryKey)
