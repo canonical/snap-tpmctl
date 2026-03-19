@@ -40,26 +40,30 @@ type RecordedRequest struct {
 type MockSnapdServer struct {
 	*snapd.Client
 
-	Requests       []RecordedRequest
-	currentRequest int
+	Requests        []RecordedRequest
+	currentRequests map[string]int
 }
 
 // NewMockSnapdServer creates a new snapd client with a mock server that responds with the contents of the test file asset.
-// The test file asset is searched in the provided roots in order, the first match is used as the response and than marked as done.
+// We are looking first at root/<method>/<url-path>:<currentRequest> and fallacbk to
+//
+//	root/<method>/<url-path> for the test response file asset, where <method> is the HTTP method of the request,
+//
+// <url-path> is the URL path of the request and <currentRequest> is the number of times that a request with
+// the same method and URL path has been received by the server.
 // If no match is found, a 404 response is returned.
-func NewMockSnapdServer(t *testing.T, ctx context.Context, roots ...string) *MockSnapdServer {
+func NewMockSnapdServer(t *testing.T, ctx context.Context) *MockSnapdServer {
 	t.Helper()
 	is := is.New(t)
 
-	if roots == nil {
-		roots = []string{testutils.TestPath(t)}
-	}
+	root := testutils.TestPath(t)
 
-	m := MockSnapdServer{}
+	m := MockSnapdServer{
+		currentRequests: map[string]int{},
+	}
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		log.Debug(ctx, "Received request: %v %v", r.Method, r.URL.Path)
-		m.currentRequest++
 
 		b, err := io.ReadAll(r.Body)
 		is.NoErr(err) // Server: could not read request body
@@ -70,18 +74,11 @@ func NewMockSnapdServer(t *testing.T, ctx context.Context, roots ...string) *Moc
 			Body:   string(b),
 		})
 
-		// Look for file with path: <root>/<method>/<url-path>:<currentRequest> in each root, the first match is used as the response and than marked as done.
-		var requests []string
-		for _, p := range roots {
-			requests = append(requests, fmt.Sprintf("%s:%d", filepath.Join(p, r.Method, r.URL.Path), m.currentRequest))
-		}
-		for _, p := range roots {
-			requests = append(requests, filepath.Join(p, r.Method, r.URL.Path))
-		}
-
-		// Search for response and look for the test response file in each root until found.
+		// Search for response in <root>/<method>/<url-path>:<currentRequest> and fallback to <root>/<method>/<url-path>.
 		var resp []byte
-		for _, r := range requests {
+		uri := filepath.Join(root, r.Method, r.URL.Path)
+		m.currentRequests[uri]++
+		for _, r := range []string{fmt.Sprintf("%s:%d", uri, m.currentRequests[uri]), uri} {
 			resp, err = os.ReadFile(r)
 			if os.IsNotExist(err) {
 				continue
