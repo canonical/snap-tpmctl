@@ -13,3 +13,19 @@ func withSnapdClient(snapdClient *snapd.Client) Option {
 		opts.snapdClient = snapdClient
 	}
 }
+
+// withRoot allows you to specify a custom root for testing purposes.
+func withRoot(root string) Option {
+	testsdetection.MustBeTesting()
+	return func(o *options) {
+		o.root = root
+	}
+}
+
+// withSyscall allows you to specify a custom root for testing purposes.
+func withSyscall(s Syscall) Option {
+	testsdetection.MustBeTesting()
+	return func(o *options) {
+		o.syscall = s
+	}
+}

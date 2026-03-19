@@ -56,7 +56,8 @@ func newMountVolumeCmd() *cli.Command {
 				return err
 			}
 
-			if err := tpm.MountVolume(device, p, &authRequestor{}); err != nil {
+			s := tpm.New()
+			if err := s.Mount(ctx, device, p, &authRequestor{}); err != nil {
 				return err
 			}
 
@@ -85,7 +86,8 @@ func newUnmountVolumeCmd() *cli.Command {
 				return err
 			}
 
-			if err := tpm.UnmountVolume(p); err != nil {
+			s := tpm.New()
+			if err := s.Unmount(ctx, p); err != nil {
 				return err
 			}
 

@@ -1,3 +1,4 @@
+// Package tpmtestutils provides helpers for TPM-related tests.
 package tpmtestutils
 
 import (
@@ -20,6 +21,16 @@ func init() {
 //
 //go:linkname WithSnapdClient github.com/canonical/snap-tpmctl/internal/tpm.withSnapdClient
 func WithSnapdClient(snapdClient *snapd.Client) tpm.Option
+
+// WithRoot is an option that configures the TPM to use the provided system mounter.
+//
+//go:linkname WithRoot github.com/canonical/snap-tpmctl/internal/tpm.withRoot
+func WithRoot(r string) tpm.Option
+
+// WithSyscall is an option that configures the TPM to use the provided system mounter.
+//
+//go:linkname WithSyscall github.com/canonical/snap-tpmctl/internal/tpm.withSyscall
+func WithSyscall(s tpm.Syscall) tpm.Option
 
 // HasBodyContent checks that at least one request contains all the expected body content.
 func HasBodyContent(is *is.I, requests []snapdtestutils.RecordedRequest, content ...string) bool {
