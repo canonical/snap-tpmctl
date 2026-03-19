@@ -25,22 +25,24 @@ func TestMountVolume(t *testing.T) {
 		authRequestor authRequestor
 		targetExists  bool
 
-		wantMounted bool
+		wantMounted   bool
+		wantRequested bool
 
 		wantErr      bool
 		wantMkdirErr bool
 	}{
-		"Success on mounting volume": {wantMounted: true},
+		"Success on mounting volume": {wantRequested: true, wantMounted: true},
 		"Success when target already exists": {
-			target:       "existing-mount-dir",
-			targetExists: true,
-			wantMounted:  true,
+			target:        "existing-mount-dir",
+			targetExists:  true,
+			wantRequested: true,
+			wantMounted:   true,
 		},
 
 		"Error out when unable to crate directory": {wantMkdirErr: true, wantErr: true},
 		"Error out when authRequestor fails":       {authRequestor: authRequestor{wantErr: true}, wantErr: true},
-		"Error out when unable to mount volume":    {syscall: testSyscall{wantErr: true}, wantErr: true},
-		"Error out when systemd-cryptsetup fails":  {device: "exit-with-failure", wantErr: true},
+		"Error out when unable to mount volume":    {syscall: testSyscall{wantErr: true}, wantRequested: true, wantErr: true},
+		"Error out when systemd-cryptsetup fails":  {device: "exit-with-failure", wantRequested: true, wantErr: true},
 	}
 
 	for name, tc := range tests {
@@ -69,6 +71,7 @@ func TestMountVolume(t *testing.T) {
 				is.NoErr(err) // Setup: target directory should exist before mounting
 			}
 
+			// In order to test the `MkdirAll` failure, we need create a target file with the supposed target folder name.
 			if tc.wantMkdirErr {
 				f, err := os.Create(tc.target)
 				is.NoErr(err) // Setup: target should exist before mounting as a file
@@ -87,7 +90,8 @@ func TestMountVolume(t *testing.T) {
 			}
 			is.NoErr(err)
 
-			is.Equal(tc.syscall.mounted, tc.wantMounted) // the volume is mounted as expected
+			is.Equal(tc.authRequestor.requested, tc.wantRequested) // the recovery key is asked as expected
+			is.Equal(tc.syscall.mounted, tc.wantMounted)           // the volume is mounted as expected
 		})
 	}
 }
@@ -102,12 +106,11 @@ func TestUnmountVolume(t *testing.T) {
 
 		wantErr      bool
 		wantRmdirErr bool
-		wantGetErr   bool
 	}{
 		"Success on unmounting volume": {wantUnmounted: true},
 
 		"Error out when unable to remove directory":   {wantRmdirErr: true, wantErr: true},
-		"Error out when unable determine device path": {wantGetErr: true, wantErr: true},
+		"Error out when unable determine device path": {target: "not-existing-target", wantErr: true},
 		"Error out when unable to unmount volume":     {syscall: testSyscall{wantErr: true}, wantErr: true},
 		"Error out when systemd-cryptsetup fails":     {mapper: "exit-with-failure", wantErr: true},
 	}
@@ -128,20 +131,16 @@ func TestUnmountVolume(t *testing.T) {
 			}
 			tc.mapper = filepath.Join(root, "dev", "mapper", tc.mapper) // Convert to an absolute path
 
+			target := "mount-dir"
 			if tc.target == "" {
-				tc.target = "mount-dir"
+				tc.target = target
 			}
 			tc.target = filepath.Join(root, tc.target) // Convert to an absolute path
 
-			content := fmt.Sprintf("%s %s ext4 rw 0 0\n", tc.mapper, tc.target)
-			if tc.wantGetErr {
-				tc.target = "wrong-target"
-			}
-
+			content := fmt.Sprintf("%s %s ext4 rw 0 0\n", tc.mapper, filepath.Join(root, target))
 			setupProcMount(is, root, content)
 
-			// In order to test `RemoveAll` failure, we need to set custom permission
-			// for the parent folder of the target.
+			// In order to test the `RemoveAll` failure, we need to set restrictive permissions for the target's parent folder.
 			if tc.wantRmdirErr {
 				err := os.MkdirAll(tc.target, 0750)
 				is.NoErr(err)
@@ -208,7 +207,7 @@ func TestGetMapperFromMount(t *testing.T) {
 
 			content := fmt.Sprintf("%s %s ext4 rw 0 0\n", mapper, filepath.Join(root, target))
 			if tc.wantReadErr {
-				// Scanner default max token: 64K. This will return a Read error
+				// Scanner default max token: 64K. This will return a read error
 				content = strings.Repeat("a", 70*1024) + "\n"
 			}
 
@@ -216,7 +215,7 @@ func TestGetMapperFromMount(t *testing.T) {
 
 			if tc.wantFileErr {
 				err := os.Remove(filepath.Join(root, "proc", "mounts"))
-				is.NoErr(err) // Setup: /proc/mounts should be deleted for file error
+				is.NoErr(err) // Setup: /proc/mounts should be deleted for a file error
 			}
 
 			s := tpm.New(tpmtestutils.WithRoot(root))
@@ -240,6 +239,20 @@ func TestMain(m *testing.M) {
 	}
 
 	m.Run()
+}
+
+func systemdCryptsetupMock() {
+	flag.Parse()
+	args := flag.Args()
+
+	fmt.Println("Mock systemd-cryptsetup called with args:", args)
+
+	volumeName := args[1]
+	if strings.Contains(volumeName, "exit-with-failure") {
+		os.Exit(1)
+	}
+
+	os.Exit(0)
 }
 
 func setupMockBinary(is *is.I, root string) {
@@ -267,28 +280,17 @@ func setupProcMount(is *is.I, root, content string) {
 	is.NoErr(err)
 }
 
-func systemdCryptsetupMock() {
-	flag.Parse()
-	args := flag.Args()
-
-	fmt.Println("Mock systemd-cryptsetup called with args:", args)
-
-	volumeName := args[1]
-	if strings.Contains(volumeName, "exit-with-failure") {
-		os.Exit(1)
-	}
-
-	os.Exit(0)
-}
-
 type authRequestor struct {
+	requested bool
+
 	wantErr bool
 }
 
-func (r authRequestor) RequestUserCredential(ctx context.Context, name, path string, authTypes secboot.UserAuthType) (string, error) {
+func (r *authRequestor) RequestUserCredential(ctx context.Context, name, path string, authTypes secboot.UserAuthType) (string, error) {
 	if r.wantErr {
 		return "", errors.New("test error")
 	}
+	r.requested = true
 	return "22003-18216-51619-31723-49692-17125-14174-57839", nil
 }
 
@@ -314,86 +316,3 @@ func (t *testSyscall) Unmount(target string) error {
 	t.unmounted = true
 	return nil
 }
-
-/*
-
-
-type testFileSystem struct {
-	fstest.MapFS
-
-	wantReadErr bool
-	wantErr     bool
-}
-
-func (fs testFileSystem) MkdirAll(path string) error {
-	if fs.wantErr {
-		return errors.New("test error")
-	}
-	return nil
-}
-
-func (fs testFileSystem) Open(name string) (fs.File, error) {
-	if fs.wantReadErr {
-		return &errorFile{iotest.ErrReader(errors.New("simulated I/O error"))}, nil
-	}
-	return fs.MapFS.Open(name)
-}
-
-func (fs testFileSystem) RemoveAll(path string) error {
-	if fs.wantErr {
-		return errors.New("test error")
-	}
-	return nil
-}
-
-type testVolume struct {
-	activated   bool
-	deactivated bool
-	mounted     bool
-	unmounted   bool
-
-	wantActivateErr bool
-	wantMountErr    bool
-}
-
-func (m *testVolume) Activate(volumeName, device string, authRequestor secboot.AuthRequestor) error {
-	if m.wantActivateErr {
-		return errors.New("test error")
-	}
-
-	m.activated = true
-	return nil
-}
-
-func (m *testVolume) Deactivate(volumeName string) error {
-	if m.wantActivateErr {
-		return errors.New("test error")
-	}
-
-	m.deactivated = true
-	return nil
-}
-
-func (m *testVolume) Mount(path, target string) error {
-	if m.wantMountErr {
-		return errors.New("test error")
-	}
-
-	m.mounted = true
-	return nil
-}
-
-func (m *testVolume) Unmount(target string) error {
-	if m.wantMountErr {
-		return errors.New("test error")
-	}
-
-	m.unmounted = true
-	return nil
-}
-
-type errorFile struct{ io.Reader }
-
-func (e *errorFile) Close() error               { return nil }
-func (e *errorFile) Stat() (fs.FileInfo, error) { return nil, errors.New("err stat") }
-*/
