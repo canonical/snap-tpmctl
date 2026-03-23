@@ -45,6 +45,7 @@ func TestAddPassphrase(t *testing.T) {
 	}
 }
 
+//nolint:dupl // TestReplacePassphrase and TestReplacePIN have similar behaviour
 func TestReplacePassphrase(t *testing.T) {
 	t.Parallel()
 
@@ -146,6 +147,7 @@ func TestAddPIN(t *testing.T) {
 	}
 }
 
+//nolint:dupl // TestReplacePassphrase and TestReplacePIN have similar behaviour
 func TestReplacePIN(t *testing.T) {
 	t.Parallel()
 
