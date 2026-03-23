@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/canonical/snap-tpmctl/internal/snapd"
 	"github.com/canonical/snap-tpmctl/internal/tpm"
 	"github.com/canonical/snap-tpmctl/internal/tui"
 	"github.com/urfave/cli/v3"
@@ -24,6 +25,19 @@ func newRegenerateKeyCmd() *cli.Command {
 				UsageText:   "<key-id>",
 				Destination: &recoveryKeyName,
 			},
+		},
+		ShellComplete: func(ctx context.Context, cmd *cli.Command) {
+			c := snapd.New()
+
+			result, err := c.ListVolumeInfo(ctx)
+			if err != nil {
+				return
+			}
+
+			data := parseKeySlots(result, snapd.IsRecoveryKey)
+			for _, name := range data {
+				fmt.Fprintf(cmd.Root().Writer, "%s\n", name)
+			}
 		},
 		Action: func(ctx context.Context, cmd *cli.Command) error {
 			s := tpm.New()
