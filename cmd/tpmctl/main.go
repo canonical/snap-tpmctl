@@ -14,8 +14,7 @@ type app interface {
 }
 
 func main() {
-	a := cmd.New(os.Args)
-	os.Exit(run(context.Background(), a))
+	os.Exit(run(context.Background(), cmd.New()))
 }
 
 func run(ctx context.Context, a app) int {

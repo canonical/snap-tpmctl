@@ -12,7 +12,7 @@ import (
 	"github.com/urfave/cli/v3"
 )
 
-func newRegenerateKeyCmd() *cli.Command {
+func (a App) newRegenerateKeyCmd() *cli.Command {
 	var recoveryKeyName string
 
 	return &cli.Command{
@@ -44,8 +44,6 @@ func newRegenerateKeyCmd() *cli.Command {
 			}
 		},
 		Action: func(ctx context.Context, cmd *cli.Command) error {
-			s := tpm.New()
-
 			// Validate the recovery key name
 			if err := tpm.ValidateRecoveryKeyName(ctx, recoveryKeyName); err != nil {
 				return err
@@ -54,7 +52,7 @@ func newRegenerateKeyCmd() *cli.Command {
 			stop := tui.Spin("Regenerating recovery key...")
 			defer stop()
 
-			recoveryKey, err := s.RegenerateKey(ctx, recoveryKeyName)
+			recoveryKey, err := a.tpm.RegenerateKey(ctx, recoveryKeyName)
 			if err != nil {
 				return err
 			}

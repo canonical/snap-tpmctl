@@ -3,34 +3,51 @@ package cmd
 import (
 	"context"
 	"log/slog"
+	"os"
 
 	"github.com/canonical/snap-tpmctl/internal/log"
+	"github.com/canonical/snap-tpmctl/internal/tpm"
 	"github.com/urfave/cli/v3"
 )
 
 // App is the main application structure.
 type App struct {
-	args []string
-	root cli.Command
+	option
 }
 
+type option struct {
+	tpm  tpm.SnapTPM
+	args []string
+}
+
+// Option is a functional option for configuring the App.
+type Option func(*option)
+
 // New returns a new App.
-func New(args []string) App {
+func New(args ...Option) App {
+	o := option{
+		args: os.Args,
+		tpm:  tpm.New(),
+	}
+	for _, f := range args {
+		f(&o)
+	}
+
 	return App{
-		args: args,
-		root: newRootCmd(),
+		option: o,
 	}
 }
 
 // Run is the main entry point of the app.
 func (a App) Run(ctx context.Context) error {
-	return a.root.Run(ctx, a.args)
+	root := a.newRootCmd()
+	return root.Run(ctx, a.args)
 }
 
 // version is set at build time via ldflags.
 var version = "dev"
 
-func newRootCmd() cli.Command {
+func (a App) newRootCmd() cli.Command {
 	var verbosity int
 
 	return cli.Command{
@@ -52,23 +69,23 @@ func newRootCmd() cli.Command {
 		},
 		HideVersion: true,
 		Commands: []*cli.Command{
-			newAddPINCmd(),
-			newAddPassphraseCmd(),
-			newCreateKeyCmd(),
-			newCheckCmd(),
-			newGetLuksKeyFromRecoveryKeyCmd(),
-			newListAllCmd(),
-			newListPassphraseCmd(),
-			newListPINCmd(),
-			newListRecoveryKeyCmd(),
-			newMountVolumeCmd(),
-			newReplacePassphraseCmd(),
-			newReplacePINCmd(),
-			newRegenerateKeyCmd(),
-			newRemovePassphraseCmd(),
-			newRemovePINCmd(),
-			newStatusCmd(),
-			newUnmountVolumeCmd(),
+			a.newAddPINCmd(),
+			a.newAddPassphraseCmd(),
+			a.newCreateKeyCmd(),
+			a.newCheckCmd(),
+			a.newGetLuksKeyFromRecoveryKeyCmd(),
+			a.newListAllCmd(),
+			a.newListPassphraseCmd(),
+			a.newListPINCmd(),
+			a.newListRecoveryKeyCmd(),
+			a.newMountVolumeCmd(),
+			a.newReplacePassphraseCmd(),
+			a.newReplacePINCmd(),
+			a.newRegenerateKeyCmd(),
+			a.newRemovePassphraseCmd(),
+			a.newRemovePINCmd(),
+			a.newStatusCmd(),
+			a.newUnmountVolumeCmd(),
 			newVersionCmd(),
 		},
 		Flags: []cli.Flag{

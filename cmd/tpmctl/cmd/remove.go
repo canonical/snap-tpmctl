@@ -6,12 +6,11 @@ import (
 	"os"
 
 	"github.com/canonical/snap-tpmctl/internal/snapd"
-	"github.com/canonical/snap-tpmctl/internal/tpm"
 	"github.com/canonical/snap-tpmctl/internal/tui"
 	"github.com/urfave/cli/v3"
 )
 
-func newRemovePassphraseCmd() *cli.Command {
+func (a App) newRemovePassphraseCmd() *cli.Command {
 	return &cli.Command{
 		Name:  "remove-passphrase",
 		Usage: "Remove passphrase authentication",
@@ -21,17 +20,15 @@ func newRemovePassphraseCmd() *cli.Command {
 				return fmt.Errorf("this command requires elevated privileges. Please run with sudo")
 			}
 
-			s := tpm.New()
-
 			// Validate auth mode is currently passphrase
-			if err := s.ValidateAuthMode(ctx, snapd.AuthModePassphrase); err != nil {
+			if err := a.tpm.ValidateAuthMode(ctx, snapd.AuthModePassphrase); err != nil {
 				return err
 			}
 
 			stop := tui.Spin("Removing passphrase...")
 			defer stop()
 
-			if err := s.RemovePassphrase(ctx); err != nil {
+			if err := a.tpm.RemovePassphrase(ctx); err != nil {
 				return err
 			}
 			stop()
@@ -42,7 +39,7 @@ func newRemovePassphraseCmd() *cli.Command {
 	}
 }
 
-func newRemovePINCmd() *cli.Command {
+func (a App) newRemovePINCmd() *cli.Command {
 	return &cli.Command{
 		Name:  "remove-pin",
 		Usage: "Remove PIN authentication",
@@ -52,17 +49,15 @@ func newRemovePINCmd() *cli.Command {
 				return fmt.Errorf("this command requires elevated privileges. Please run with sudo")
 			}
 
-			s := tpm.New()
-
 			// Validate auth mode is currently PIN
-			if err := s.ValidateAuthMode(ctx, snapd.AuthModePIN); err != nil {
+			if err := a.tpm.ValidateAuthMode(ctx, snapd.AuthModePIN); err != nil {
 				return err
 			}
 
 			stop := tui.Spin("Removing PIN...")
 			defer stop()
 
-			if err := s.RemovePIN(ctx); err != nil {
+			if err := a.tpm.RemovePIN(ctx); err != nil {
 				return err
 			}
 			stop()

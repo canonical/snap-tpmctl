@@ -4,19 +4,16 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/canonical/snap-tpmctl/internal/tpm"
 	"github.com/canonical/snap-tpmctl/internal/tui"
 	"github.com/urfave/cli/v3"
 )
 
 //nolint:dupl // newReplacePassphraseCmd and newReplacePINCmd have similar behaviour
-func newReplacePassphraseCmd() *cli.Command {
+func (a App) newReplacePassphraseCmd() *cli.Command {
 	return &cli.Command{
 		Name:  "replace-passphrase",
 		Usage: "Replace encryption passphrase",
 		Action: func(ctx context.Context, cmd *cli.Command) error {
-			s := tpm.New()
-
 			oldPassphrase, err := tui.ReadUserSecret("Enter current passphrase: ")
 			if err != nil {
 				return err
@@ -36,14 +33,14 @@ func newReplacePassphraseCmd() *cli.Command {
 				return fmt.Errorf("passphrase confirmation does not match")
 			}
 
-			if err := s.IsValidPassphrase(ctx, newPassphrase); err != nil {
+			if err := a.tpm.IsValidPassphrase(ctx, newPassphrase); err != nil {
 				return err
 			}
 
 			stop := tui.Spin("Replacing passphrase...")
 			defer stop()
 
-			if err := s.ReplacePassphrase(ctx, oldPassphrase, newPassphrase); err != nil {
+			if err := a.tpm.ReplacePassphrase(ctx, oldPassphrase, newPassphrase); err != nil {
 				return err
 			}
 			stop()
@@ -55,13 +52,11 @@ func newReplacePassphraseCmd() *cli.Command {
 }
 
 //nolint:dupl // newReplacePassphraseCmd and newReplacePINCmd have similar behaviour
-func newReplacePINCmd() *cli.Command {
+func (a App) newReplacePINCmd() *cli.Command {
 	return &cli.Command{
 		Name:  "replace-pin",
 		Usage: "Replace encryption PIN",
 		Action: func(ctx context.Context, cmd *cli.Command) error {
-			s := tpm.New()
-
 			oldPIN, err := tui.ReadUserSecret("Enter current PIN: ")
 			if err != nil {
 				return err
@@ -81,14 +76,14 @@ func newReplacePINCmd() *cli.Command {
 				return fmt.Errorf("PIN confirmation does not match")
 			}
 
-			if err := s.IsValidPIN(ctx, newPIN); err != nil {
+			if err := a.tpm.IsValidPIN(ctx, newPIN); err != nil {
 				return err
 			}
 
 			stop := tui.Spin("Replacing PIN...")
 			defer stop()
 
-			if err := s.ReplacePIN(ctx, oldPIN, newPIN); err != nil {
+			if err := a.tpm.ReplacePIN(ctx, oldPIN, newPIN); err != nil {
 				return err
 			}
 			stop()

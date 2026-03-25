@@ -13,7 +13,7 @@ import (
 	"github.com/urfave/cli/v3"
 )
 
-func newListAllCmd() *cli.Command {
+func (a App) newListAllCmd() *cli.Command {
 	var hideHeaders bool
 
 	return &cli.Command{
@@ -28,9 +28,7 @@ func newListAllCmd() *cli.Command {
 			},
 		},
 		Action: func(ctx context.Context, cmd *cli.Command) error {
-			c := snapd.New()
-
-			result, err := c.ListVolumeInfo(ctx)
+			result, err := a.tpm.ListVolumeInfo(ctx)
 			if err != nil {
 				return err
 			}
@@ -44,15 +42,13 @@ func newListAllCmd() *cli.Command {
 	}
 }
 
-func newListPassphraseCmd() *cli.Command {
+func (a App) newListPassphraseCmd() *cli.Command {
 	return &cli.Command{
 		Name:    "list-passphrases",
 		Usage:   "List passphrases",
 		Suggest: true,
 		Action: func(ctx context.Context, cmd *cli.Command) error {
-			c := snapd.New()
-
-			result, err := c.ListVolumeInfo(ctx)
+			result, err := a.tpm.ListVolumeInfo(ctx)
 			if err != nil {
 				return err
 			}
@@ -66,15 +62,13 @@ func newListPassphraseCmd() *cli.Command {
 	}
 }
 
-func newListRecoveryKeyCmd() *cli.Command {
+func (a App) newListRecoveryKeyCmd() *cli.Command {
 	return &cli.Command{
 		Name:    "list-recovery-keys",
 		Usage:   "List recovery keys",
 		Suggest: true,
 		Action: func(ctx context.Context, cmd *cli.Command) error {
-			c := snapd.New()
-
-			result, err := c.ListVolumeInfo(ctx)
+			result, err := a.tpm.ListVolumeInfo(ctx)
 			if err != nil {
 				return err
 			}
@@ -88,15 +82,13 @@ func newListRecoveryKeyCmd() *cli.Command {
 	}
 }
 
-func newListPINCmd() *cli.Command {
+func (a App) newListPINCmd() *cli.Command {
 	return &cli.Command{
 		Name:    "list-pins",
 		Usage:   "List pins",
 		Suggest: true,
 		Action: func(ctx context.Context, cmd *cli.Command) error {
-			c := snapd.New()
-
-			result, err := c.ListVolumeInfo(ctx)
+			result, err := a.tpm.ListVolumeInfo(ctx)
 			if err != nil {
 				return err
 			}

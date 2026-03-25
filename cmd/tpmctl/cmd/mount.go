@@ -27,7 +27,7 @@ func (r *authRequestor) RequestUserCredential(ctx context.Context, name, path st
 	return key, nil
 }
 
-func newMountVolumeCmd() *cli.Command {
+func (a App) newMountVolumeCmd() *cli.Command {
 	var device, dir string
 
 	return &cli.Command{
@@ -56,8 +56,7 @@ func newMountVolumeCmd() *cli.Command {
 				return err
 			}
 
-			s := tpm.New()
-			if err := s.Mount(ctx, device, p, &authRequestor{}); err != nil {
+			if err := a.tpm.Mount(ctx, device, p, &authRequestor{}); err != nil {
 				return err
 			}
 
@@ -66,7 +65,7 @@ func newMountVolumeCmd() *cli.Command {
 	}
 }
 
-func newUnmountVolumeCmd() *cli.Command {
+func (a App) newUnmountVolumeCmd() *cli.Command {
 	var dir string
 
 	return &cli.Command{
@@ -86,8 +85,7 @@ func newUnmountVolumeCmd() *cli.Command {
 				return err
 			}
 
-			s := tpm.New()
-			if err := s.Unmount(ctx, p); err != nil {
+			if err := a.tpm.Unmount(ctx, p); err != nil {
 				return err
 			}
 
@@ -96,7 +94,7 @@ func newUnmountVolumeCmd() *cli.Command {
 	}
 }
 
-func newGetLuksKeyFromRecoveryKeyCmd() *cli.Command {
+func (a App) newGetLuksKeyFromRecoveryKeyCmd() *cli.Command {
 	var hex, escaped bool
 
 	return &cli.Command{
