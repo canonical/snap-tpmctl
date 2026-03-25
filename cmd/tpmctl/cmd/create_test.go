@@ -41,11 +41,9 @@ func TestCreateKey(t *testing.T) {
 			app := cmd.New(cmdtestutils.WithSnapTPM(s), cmdtestutils.WithArgs(command, tc.recoveryKeyName))
 
 			err := app.Run(ctx)
-			if tc.wantErr {
-				is.True(err != nil)
+			if testutils.CheckError(is, err, tc.wantErr) {
 				return
 			}
-			is.NoErr(err)
 
 			is.True(logs.Len() == 0) // No logs printed by default
 		})
