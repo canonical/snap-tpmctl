@@ -58,6 +58,16 @@ func (s SnapTPM) FdeStatus(ctx context.Context) (string, error) {
 	return status, nil
 }
 
+// ListVolumeInfo retrieves information about system volumes.
+func (s SnapTPM) ListVolumeInfo(ctx context.Context) (result snapd.SystemVolumesResult, err error) {
+	result, err = s.snapdClient.ListVolumeInfo(ctx)
+	if err != nil {
+		return result, fmt.Errorf("failed to retrieve the volume info: %v", err)
+	}
+
+	return result, nil
+}
+
 type defaultSyscall struct{}
 
 func (defaultSyscall) Mount(path, target string) error {
