@@ -48,7 +48,6 @@ func TestListVolumeInfo(t *testing.T) {
 	t.Parallel()
 
 	tests := map[string]struct {
-		want    string
 		wantErr bool
 	}{
 		"Returns_volume_info": {},
