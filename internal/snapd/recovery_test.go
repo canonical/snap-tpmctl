@@ -31,11 +31,9 @@ func TestGenerateRecoveryKey(t *testing.T) {
 			c := snapdtestutils.NewMockSnapdServer(t, ctx)
 
 			got, err := c.GenerateRecoveryKey(ctx)
-			if tc.wantErr {
-				is.True(err != nil)
+			if testutils.CheckError(is, err, tc.wantErr) {
 				return
 			}
-			is.NoErr(err)
 
 			golden.CheckOrUpdateYAML(t, got)
 		})
@@ -67,11 +65,9 @@ func TestAddRecoveryKey(t *testing.T) {
 
 			keySlots := []snapd.Keyslot{{Name: tc.recoveryKeyName}}
 			err := c.AddRecoveryKey(ctx, tc.keyID, keySlots)
-			if tc.wantErr {
-				is.True(err != nil)
+			if testutils.CheckError(is, err, tc.wantErr) {
 				return
 			}
-			is.NoErr(err)
 		})
 	}
 }
@@ -101,11 +97,9 @@ func TestReplaceRecoveryKey(t *testing.T) {
 
 			keySlots := []snapd.Keyslot{{Name: tc.recoveryKeyName}}
 			err := c.ReplaceRecoveryKey(ctx, tc.keyID, keySlots)
-			if tc.wantErr {
-				is.True(err != nil)
+			if testutils.CheckError(is, err, tc.wantErr) {
 				return
 			}
-			is.NoErr(err)
 		})
 	}
 }
@@ -136,11 +130,9 @@ func TestCheckRecoveryKey(t *testing.T) {
 
 			// Container roles are passed as is to snapd. Not handled in that test.
 			valid, err := c.CheckRecoveryKey(ctx, tc.recoveryKey, nil)
-			if tc.wantErr {
-				is.True(err != nil)
+			if testutils.CheckError(is, err, tc.wantErr) {
 				return
 			}
-			is.NoErr(err)
 
 			is.Equal(valid, tc.want)
 		})

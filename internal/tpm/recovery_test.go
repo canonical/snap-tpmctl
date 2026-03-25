@@ -37,11 +37,9 @@ func TestCreateKey(t *testing.T) {
 			s := tpm.New(tpmtestutils.WithSnapdClient(c.Client))
 
 			got, err := s.CreateKey(ctx, tc.recoveryKeyName)
-			if tc.wantErr {
-				is.True(err != nil)
+			if testutils.CheckError(is, err, tc.wantErr) {
 				return
 			}
-			is.NoErr(err)
 			is.Equal(got, tc.recoveryKey)
 
 			is.True(tpmtestutils.HasBodyContent(is, c.Requests, tc.recoveryKeyName))
@@ -75,11 +73,9 @@ func TestRegenerateKey(t *testing.T) {
 			s := tpm.New(tpmtestutils.WithSnapdClient(c.Client))
 
 			got, err := s.RegenerateKey(ctx, tc.recoveryKeyName)
-			if tc.wantErr {
-				is.True(err != nil)
+			if testutils.CheckError(is, err, tc.wantErr) {
 				return
 			}
-			is.NoErr(err)
 			is.Equal(got, tc.recoveryKey)
 
 			is.True(tpmtestutils.HasBodyContent(is, c.Requests, tc.recoveryKeyName))
@@ -110,12 +106,10 @@ func TestCheckKey(t *testing.T) {
 			s := tpm.New(tpmtestutils.WithSnapdClient(c.Client))
 
 			got, err := s.CheckKey(ctx, tc.recoveryKey)
-			if tc.wantErr {
-				is.True(err != nil)
+			if testutils.CheckError(is, err, tc.wantErr) {
 				is.Equal(got, false)
 				return
 			}
-			is.NoErr(err)
 			is.Equal(got, true)
 
 			is.True(tpmtestutils.HasBodyContent(is, c.Requests, tc.recoveryKey))
@@ -143,11 +137,9 @@ func TestGetLuksKey(t *testing.T) {
 			ctx := testutils.ContextLoggerWithDebug(t)
 
 			got, err := tpm.GetLuksKey(ctx, tc.recoveryKey)
-			if tc.wantErr {
-				is.True(err != nil)
+			if testutils.CheckError(is, err, tc.wantErr) {
 				return
 			}
-			is.NoErr(err)
 
 			golden.CheckOrUpdate(t, string(got))
 		})

@@ -34,11 +34,9 @@ func TestAddPassphrase(t *testing.T) {
 			s := tpm.New(tpmtestutils.WithSnapdClient(c.Client))
 
 			err := s.AddPassphrase(ctx, tc.passphrase)
-			if tc.wantErr {
-				is.True(err != nil)
+			if testutils.CheckError(is, err, tc.wantErr) {
 				return
 			}
-			is.NoErr(err)
 
 			is.True(tpmtestutils.HasBodyContent(is, c.Requests, tc.passphrase))
 		})
@@ -70,11 +68,9 @@ func TestReplacePassphrase(t *testing.T) {
 			s := tpm.New(tpmtestutils.WithSnapdClient(c.Client))
 
 			err := s.ReplacePassphrase(ctx, tc.old, tc.new)
-			if tc.wantErr {
-				is.True(err != nil)
+			if testutils.CheckError(is, err, tc.wantErr) {
 				return
 			}
-			is.NoErr(err)
 
 			is.True(tpmtestutils.HasBodyContent(is, c.Requests, tc.old, tc.new))
 		})
@@ -102,11 +98,9 @@ func TestRemovePassphrase(t *testing.T) {
 			s := tpm.New(tpmtestutils.WithSnapdClient(c.Client))
 
 			err := s.RemovePassphrase(ctx)
-			if tc.wantErr {
-				is.True(err != nil)
+			if testutils.CheckError(is, err, tc.wantErr) {
 				return
 			}
-			is.NoErr(err)
 
 			is.True(tpmtestutils.HasBodyContent(is, c.Requests, string(snapd.AuthModeNone)))
 		})
@@ -136,11 +130,9 @@ func TestAddPIN(t *testing.T) {
 			s := tpm.New(tpmtestutils.WithSnapdClient(c.Client))
 
 			err := s.AddPIN(ctx, tc.pin)
-			if tc.wantErr {
-				is.True(err != nil)
+			if testutils.CheckError(is, err, tc.wantErr) {
 				return
 			}
-			is.NoErr(err)
 
 			is.True(tpmtestutils.HasBodyContent(is, c.Requests, tc.pin))
 		})
@@ -172,11 +164,9 @@ func TestReplacePIN(t *testing.T) {
 			s := tpm.New(tpmtestutils.WithSnapdClient(c.Client))
 
 			err := s.ReplacePIN(ctx, tc.old, tc.new)
-			if tc.wantErr {
-				is.True(err != nil)
+			if testutils.CheckError(is, err, tc.wantErr) {
 				return
 			}
-			is.NoErr(err)
 
 			is.True(tpmtestutils.HasBodyContent(is, c.Requests, tc.old, tc.new))
 		})
@@ -204,11 +194,9 @@ func TestRemovePIN(t *testing.T) {
 			s := tpm.New(tpmtestutils.WithSnapdClient(c.Client))
 
 			err := s.RemovePIN(ctx)
-			if tc.wantErr {
-				is.True(err != nil)
+			if testutils.CheckError(is, err, tc.wantErr) {
 				return
 			}
-			is.NoErr(err)
 
 			is.True(tpmtestutils.HasBodyContent(is, c.Requests, string(snapd.AuthModeNone)))
 		})

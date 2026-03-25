@@ -30,11 +30,9 @@ func TestFdeStatus(t *testing.T) {
 			c := snapdtestutils.NewMockSnapdServer(t, ctx)
 
 			got, err := c.FdeStatus(ctx)
-			if tc.wantErr {
-				is.True(err != nil)
+			if testutils.CheckError(is, err, tc.wantErr) {
 				return
 			}
-			is.NoErr(err)
 
 			is.Equal(got, tc.want) // TestFDEStatus returns the expected FDE status
 		})
