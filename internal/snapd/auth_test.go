@@ -33,11 +33,9 @@ func TestReplacePassphrase(t *testing.T) {
 
 			// Container roles are passed as is to snapd. Not handled in that test.
 			err := c.ReplacePassphrase(ctx, tc.oldPassphrase, tc.newPassphrase, nil)
-			if tc.wantErr {
-				is.True(err != nil)
+			if testutils.CheckError(is, err, tc.wantErr) {
 				return
 			}
-			is.NoErr(err)
 		})
 	}
 }
@@ -64,11 +62,9 @@ func TestCheckPassphrase(t *testing.T) {
 			c := snapdtestutils.NewMockSnapdServer(t, ctx)
 
 			err := c.CheckPassphrase(ctx, tc.passphrase)
-			if tc.wantErr {
-				is.True(err != nil)
+			if testutils.CheckError(is, err, tc.wantErr) {
 				return
 			}
-			is.NoErr(err)
 		})
 	}
 }
@@ -95,11 +91,9 @@ func TestCheckPIN(t *testing.T) {
 			c := snapdtestutils.NewMockSnapdServer(t, ctx)
 
 			err := c.CheckPIN(ctx, tc.pin)
-			if tc.wantErr {
-				is.True(err != nil)
+			if testutils.CheckError(is, err, tc.wantErr) {
 				return
 			}
-			is.NoErr(err)
 		})
 	}
 }
@@ -128,11 +122,9 @@ func TestReplacePIN(t *testing.T) {
 
 			// Container roles are passed as is to snapd. Not handled in that test.
 			err := c.ReplacePIN(ctx, tc.oldPIN, tc.newPIN, nil)
-			if tc.wantErr {
-				is.True(err != nil)
+			if testutils.CheckError(is, err, tc.wantErr) {
 				return
 			}
-			is.NoErr(err)
 		})
 	}
 }
@@ -163,11 +155,9 @@ func TestReplacePlatformKey(t *testing.T) {
 			c := snapdtestutils.NewMockSnapdServer(t, ctx)
 
 			err := c.ReplacePlatformKey(ctx, tc.authMode, tc.secret)
-			if tc.wantErr {
-				is.True(err != nil)
+			if testutils.CheckError(is, err, tc.wantErr) {
 				return
 			}
-			is.NoErr(err)
 		})
 	}
 }

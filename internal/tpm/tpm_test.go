@@ -33,11 +33,9 @@ func TestFdeStatus(t *testing.T) {
 			s := tpm.New(tpmtestutils.WithSnapdClient(c.Client))
 
 			got, err := s.FdeStatus(ctx)
-			if tc.wantErr {
-				is.True(err != nil)
+			if testutils.CheckError(is, err, tc.wantErr) {
 				return
 			}
-			is.NoErr(err)
 
 			is.Equal(got, tc.want) // TestFDEStatus returns the expected FDE status
 		})
@@ -65,11 +63,9 @@ func TestListVolumeInfo(t *testing.T) {
 			s := tpm.New(tpmtestutils.WithSnapdClient(c.Client))
 
 			got, err := s.ListVolumeInfo(ctx)
-			if tc.wantErr {
-				is.True(err != nil)
+			if testutils.CheckError(is, err, tc.wantErr) {
 				return
 			}
-			is.NoErr(err)
 
 			golden.CheckOrUpdateYAML(t, got) // TestListVolumeInfo returns the expected volume info
 		})

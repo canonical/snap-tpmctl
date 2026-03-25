@@ -84,11 +84,9 @@ func TestMountVolume(t *testing.T) {
 			)
 
 			err := s.Mount(ctx, tc.device, tc.target, &tc.authRequestor)
-			if tc.wantErr {
-				is.True(err != nil)
+			if testutils.CheckError(is, err, tc.wantErr) {
 				return
 			}
-			is.NoErr(err)
 
 			is.Equal(tc.authRequestor.requested, tc.wantRequested) // the recovery key is asked as expected
 			is.Equal(tc.syscall.mounted, tc.wantMounted)           // the volume is mounted as expected
@@ -162,11 +160,9 @@ func TestUnmountVolume(t *testing.T) {
 			)
 
 			err := s.Unmount(ctx, tc.target)
-			if tc.wantErr {
-				is.True(err != nil)
+			if testutils.CheckError(is, err, tc.wantErr) {
 				return
 			}
-			is.NoErr(err)
 
 			is.Equal(tc.syscall.unmounted, tc.wantUnmounted) // the volume is unmounted as expected
 		})
@@ -221,11 +217,9 @@ func TestGetMapperFromMount(t *testing.T) {
 			s := tpm.New(tpmtestutils.WithRoot(root))
 
 			m, err := tpm.GetMapperFromMount(s, tc.target)
-			if tc.wantErr {
-				is.True(err != nil)
+			if testutils.CheckError(is, err, tc.wantErr) {
 				return
 			}
-			is.NoErr(err)
 
 			is.Equal(m, mapper) // the device mapper is the expected one
 		})

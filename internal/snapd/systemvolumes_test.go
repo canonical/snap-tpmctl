@@ -31,11 +31,9 @@ func TestListVolumeInfo(t *testing.T) {
 			c := snapdtestutils.NewMockSnapdServer(t, ctx)
 
 			got, err := c.ListVolumeInfo(ctx)
-			if tc.wantErr {
-				is.True(err != nil)
+			if testutils.CheckError(is, err, tc.wantErr) {
 				return
 			}
-			is.NoErr(err)
 
 			golden.CheckOrUpdateYAML(t, got)
 		})
