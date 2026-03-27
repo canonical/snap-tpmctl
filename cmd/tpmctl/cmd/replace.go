@@ -44,7 +44,8 @@ func (a App) newReplacePassphraseCmd() *cli.Command {
 			}
 			stop()
 
-			fmt.Println("Passphrase replaced successfully")
+			fmt.Fprintln(a.tui.Writer(), "Passphrase replaced successfully")
+
 			return nil
 		},
 	}
@@ -87,7 +88,8 @@ func (a App) newReplacePINCmd() *cli.Command {
 			}
 			stop()
 
-			fmt.Println("PIN replaced successfully")
+			fmt.Fprintln(a.tui.Writer(), "PIN replaced successfully")
+
 			return nil
 		},
 	}
