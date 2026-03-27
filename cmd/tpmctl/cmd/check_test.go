@@ -71,11 +71,9 @@ func TestCheck(t *testing.T) {
 			)
 
 			err = app.Run(ctx)
-			if tc.wantErr {
-				is.True(err != nil)
+			if testutils.CheckError(is, err, tc.wantErr) {
 				return
 			}
-			is.NoErr(err)
 
 			is.True(logs.Len() == 0) // No logs printed by default
 		})
