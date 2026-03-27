@@ -1,11 +1,13 @@
 package cmd_test
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/canonical/snap-tpmctl/cmd/tpmctl/cmd"
 	cmdtestutils "github.com/canonical/snap-tpmctl/cmd/tpmctl/cmd/testutils"
 	"github.com/canonical/snap-tpmctl/internal/testutils"
+	"github.com/canonical/snap-tpmctl/internal/tui"
 	"github.com/matryer/is"
 )
 
@@ -14,7 +16,10 @@ func TestRun(t *testing.T) {
 	is := is.New(t)
 	ctx, logs := testutils.TestLoggerWithBuffer(t)
 
-	app := cmd.New(cmdtestutils.WithArgs("help"))
+	var out strings.Builder
+	tui := tui.New(nil, &out)
+
+	app := cmd.New(cmdtestutils.WithArgs("help"), cmdtestutils.WithTui(tui))
 
 	err := app.Run(ctx)
 	is.NoErr(err)
@@ -28,7 +33,10 @@ func TestVersion(t *testing.T) {
 
 	ctx, logs := testutils.TestLoggerWithBuffer(t)
 
-	app := cmd.New(cmdtestutils.WithArgs("version"))
+	var out strings.Builder
+	tui := tui.New(nil, &out)
+
+	app := cmd.New(cmdtestutils.WithArgs("version"), cmdtestutils.WithTui(tui))
 
 	err := app.Run(ctx)
 	is.NoErr(err)
