@@ -4,6 +4,7 @@ package cmd
 import (
 	"github.com/canonical/snap-tpmctl/internal/testutils/testsdetection"
 	"github.com/canonical/snap-tpmctl/internal/tpm"
+	"github.com/canonical/snap-tpmctl/internal/tui"
 )
 
 // withArgs allows you to specify a custom args for testing purposes.
@@ -19,5 +20,13 @@ func withSnapTPM(t tpm.SnapTPM) Option {
 	testsdetection.MustBeTesting()
 	return func(o *option) {
 		o.tpm = t
+	}
+}
+
+// withTui allows you to specify a custom tui for testing purposes.
+func withTui(t tui.Tui) Option {
+	testsdetection.MustBeTesting()
+	return func(o *option) {
+		o.tui = t
 	}
 }

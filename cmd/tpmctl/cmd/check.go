@@ -6,7 +6,6 @@ import (
 	"fmt"
 
 	"github.com/canonical/snap-tpmctl/internal/tpm"
-	"github.com/canonical/snap-tpmctl/internal/tui"
 	"github.com/urfave/cli/v3"
 )
 
@@ -16,7 +15,7 @@ func (a App) newCheckCmd() *cli.Command {
 		Usage:   "Check recovery key",
 		Suggest: true,
 		Action: func(ctx context.Context, cmd *cli.Command) error {
-			key, err := tui.ReadUserSecret("Enter recovery key: ")
+			key, err := a.tui.ReadUserSecret("Enter recovery key: ")
 			if err != nil {
 				return err
 			}
@@ -25,7 +24,7 @@ func (a App) newCheckCmd() *cli.Command {
 				return err
 			}
 
-			stop := tui.Spin("Checking recovery key...")
+			stop := a.tui.Spin("Checking recovery key...")
 			defer stop()
 
 			ok, err := a.tpm.CheckKey(ctx, key)

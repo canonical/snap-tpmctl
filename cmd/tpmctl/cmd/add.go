@@ -6,7 +6,6 @@ import (
 	"os"
 
 	"github.com/canonical/snap-tpmctl/internal/snapd"
-	"github.com/canonical/snap-tpmctl/internal/tui"
 	"github.com/urfave/cli/v3"
 )
 
@@ -26,12 +25,12 @@ func (a App) newAddPassphraseCmd() *cli.Command {
 				return err
 			}
 
-			newPassphrase, err := tui.ReadUserSecret("Enter new passphrase: ")
+			newPassphrase, err := a.tui.ReadUserSecret("Enter new passphrase: ")
 			if err != nil {
 				return err
 			}
 
-			confirmPassphrase, err := tui.ReadUserSecret("Confirm new passphrase: ")
+			confirmPassphrase, err := a.tui.ReadUserSecret("Confirm new passphrase: ")
 			if err != nil {
 				return err
 			}
@@ -44,7 +43,7 @@ func (a App) newAddPassphraseCmd() *cli.Command {
 				return err
 			}
 
-			stop := tui.Spin("Adding passphrase...")
+			stop := a.tui.Spin("Adding passphrase...")
 			defer stop()
 
 			if err := a.tpm.AddPassphrase(ctx, newPassphrase); err != nil {
@@ -74,12 +73,12 @@ func (a App) newAddPINCmd() *cli.Command {
 				return err
 			}
 
-			newPIN, err := tui.ReadUserSecret("Enter new PIN: ")
+			newPIN, err := a.tui.ReadUserSecret("Enter new PIN: ")
 			if err != nil {
 				return err
 			}
 
-			confirmPIN, err := tui.ReadUserSecret("Confirm new PIN: ")
+			confirmPIN, err := a.tui.ReadUserSecret("Confirm new PIN: ")
 			if err != nil {
 				return err
 			}
@@ -91,7 +90,7 @@ func (a App) newAddPINCmd() *cli.Command {
 			if err := a.tpm.IsValidPIN(ctx, newPIN); err != nil {
 				return err
 			}
-			stop := tui.Spin("Adding PIN...")
+			stop := a.tui.Spin("Adding PIN...")
 			defer stop()
 
 			if err := a.tpm.AddPIN(ctx, newPIN); err != nil {

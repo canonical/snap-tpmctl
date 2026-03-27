@@ -3,8 +3,6 @@ package cmd
 import (
 	"context"
 	"fmt"
-	"io"
-	"os"
 	"slices"
 	"strings"
 
@@ -33,7 +31,7 @@ func (a App) newListAllCmd() *cli.Command {
 				return err
 			}
 
-			if err := displayAllKeys(os.Stdout, result, hideHeaders); err != nil {
+			if err := displayAllKeys(a.tui, result, hideHeaders); err != nil {
 				return err
 			}
 
@@ -55,7 +53,7 @@ func (a App) newListPassphraseCmd() *cli.Command {
 
 			data := parseKeySlots(result, snapd.IsPassphrase)
 
-			displayKeySlotsFromMap(os.Stdout, "Passphrases", data)
+			displayKeySlotsFromMap(a.tui, "Passphrases", data)
 
 			return nil
 		},
@@ -75,7 +73,7 @@ func (a App) newListRecoveryKeyCmd() *cli.Command {
 
 			data := parseKeySlots(result, snapd.IsRecoveryKey)
 
-			displayKeySlotsFromMap(os.Stdout, "Recovery Keys", data)
+			displayKeySlotsFromMap(a.tui, "Recovery Keys", data)
 
 			return nil
 		},
@@ -95,7 +93,7 @@ func (a App) newListPINCmd() *cli.Command {
 
 			data := parseKeySlots(result, snapd.IsPIN)
 
-			displayKeySlotsFromMap(os.Stdout, "PINs", data)
+			displayKeySlotsFromMap(a.tui, "PINs", data)
 
 			return nil
 		},
@@ -157,7 +155,7 @@ func dashIfEmpty[T ~string](s T) string {
 	return string(s)
 }
 
-func displayAllKeys(w io.Writer, data snapd.SystemVolumesResult, hideHeaders bool) error {
+func displayAllKeys(t tui.Tui, data snapd.SystemVolumesResult, hideHeaders bool) error {
 	keys := getAllKeys(data)
 
 	rows := [][]string{}
@@ -177,7 +175,7 @@ func displayAllKeys(w io.Writer, data snapd.SystemVolumesResult, hideHeaders boo
 
 	headers := []string{"ContainerRole", "Volume", "VolumeName", "Encrypted", "KeyslotName", "AuthMode", "PlatformName", "Roles", "Type"}
 
-	if err := tui.DisplayTable(w, headers, rows, hideHeaders); err != nil {
+	if err := t.DisplayTable(headers, rows, hideHeaders); err != nil {
 		return err
 	}
 
@@ -204,9 +202,10 @@ func parseKeySlots(data snapd.SystemVolumesResult, filter func(snapd.KeySlotInfo
 	return result
 }
 
-func displayKeySlotsFromMap(w io.Writer, title string, entries []string) {
-	fmt.Fprintf(w, "%s:\n", title)
+func displayKeySlotsFromMap(t tui.Tui, title string, entries []string) {
+	w := t.Writer()
 
+	fmt.Fprintf(w, "%s:\n", title)
 	for _, e := range entries {
 		fmt.Fprintf(w, "* %s\n", e)
 	}

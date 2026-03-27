@@ -28,6 +28,9 @@ func TestSpin(t *testing.T) {
 	spinnerStdout = w
 	defer func() { spinnerStdout = os.Stdout }()
 
+	escapes := getEscapes(t)
+
+	tui := tui.New(nil, w)
 	synctest.Test(t, func(t *testing.T) {
 		is := is.New(t)
 
@@ -37,7 +40,8 @@ func TestSpin(t *testing.T) {
 		defer stop()
 		synctest.Wait()
 
-		is.Equal(instantBuf.String(), "")
+		// the buffer currently contains only the escapes for hiding the cursor
+		is.Equal(instantBuf.String(), escapes)
 
 		time.Sleep(time.Nanosecond)
 
@@ -56,6 +60,16 @@ func TestSpin(t *testing.T) {
 
 		golden.CheckOrUpdate(t, globalBuf.String())
 	})
+}
+
+func getEscapes(t *testing.T) string {
+	t.Helper()
+
+	escapes := strings.Builder{}
+	tt := tui.New(nil, &escapes)
+	tt.HideCursor()
+
+	return escapes.String()
 }
 
 type syncBuffer struct {

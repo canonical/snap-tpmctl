@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/canonical/snap-tpmctl/internal/tui"
 	"github.com/urfave/cli/v3"
 )
 
@@ -14,17 +13,17 @@ func (a App) newReplacePassphraseCmd() *cli.Command {
 		Name:  "replace-passphrase",
 		Usage: "Replace encryption passphrase",
 		Action: func(ctx context.Context, cmd *cli.Command) error {
-			oldPassphrase, err := tui.ReadUserSecret("Enter current passphrase: ")
+			oldPassphrase, err := a.tui.ReadUserSecret("Enter current passphrase: ")
 			if err != nil {
 				return err
 			}
 
-			newPassphrase, err := tui.ReadUserSecret("Enter new passphrase: ")
+			newPassphrase, err := a.tui.ReadUserSecret("Enter new passphrase: ")
 			if err != nil {
 				return err
 			}
 
-			confirmPassphrase, err := tui.ReadUserSecret("Confirm new passphrase: ")
+			confirmPassphrase, err := a.tui.ReadUserSecret("Confirm new passphrase: ")
 			if err != nil {
 				return err
 			}
@@ -37,7 +36,7 @@ func (a App) newReplacePassphraseCmd() *cli.Command {
 				return err
 			}
 
-			stop := tui.Spin("Replacing passphrase...")
+			stop := a.tui.Spin("Replacing passphrase...")
 			defer stop()
 
 			if err := a.tpm.ReplacePassphrase(ctx, oldPassphrase, newPassphrase); err != nil {
@@ -57,17 +56,17 @@ func (a App) newReplacePINCmd() *cli.Command {
 		Name:  "replace-pin",
 		Usage: "Replace encryption PIN",
 		Action: func(ctx context.Context, cmd *cli.Command) error {
-			oldPIN, err := tui.ReadUserSecret("Enter current PIN: ")
+			oldPIN, err := a.tui.ReadUserSecret("Enter current PIN: ")
 			if err != nil {
 				return err
 			}
 
-			newPIN, err := tui.ReadUserSecret("Enter new PIN: ")
+			newPIN, err := a.tui.ReadUserSecret("Enter new PIN: ")
 			if err != nil {
 				return err
 			}
 
-			confirmPIN, err := tui.ReadUserSecret("Confirm new PIN: ")
+			confirmPIN, err := a.tui.ReadUserSecret("Confirm new PIN: ")
 			if err != nil {
 				return err
 			}
@@ -80,7 +79,7 @@ func (a App) newReplacePINCmd() *cli.Command {
 				return err
 			}
 
-			stop := tui.Spin("Replacing PIN...")
+			stop := a.tui.Spin("Replacing PIN...")
 			defer stop()
 
 			if err := a.tpm.ReplacePIN(ctx, oldPIN, newPIN); err != nil {

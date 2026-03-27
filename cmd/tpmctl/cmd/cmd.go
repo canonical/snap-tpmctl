@@ -7,6 +7,7 @@ import (
 
 	"github.com/canonical/snap-tpmctl/internal/log"
 	"github.com/canonical/snap-tpmctl/internal/tpm"
+	"github.com/canonical/snap-tpmctl/internal/tui"
 	"github.com/urfave/cli/v3"
 )
 
@@ -16,8 +17,9 @@ type App struct {
 }
 
 type option struct {
-	tpm  tpm.SnapTPM
 	args []string
+	tpm  tpm.SnapTPM
+	tui  tui.Tui
 }
 
 // Option is a functional option for configuring the App.
@@ -28,6 +30,7 @@ func New(args ...Option) App {
 	o := option{
 		args: os.Args,
 		tpm:  tpm.New(),
+		tui:  tui.New(os.Stdin, os.Stdout),
 	}
 	for _, f := range args {
 		f(&o)

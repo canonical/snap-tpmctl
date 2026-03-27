@@ -12,14 +12,16 @@ import (
 	"github.com/urfave/cli/v3"
 )
 
-type authRequestor struct{}
+type authRequestor struct {
+	tui.Tui
+}
 
 func (r *authRequestor) RequestUserCredential(ctx context.Context, name, path string, authTypes secboot.UserAuthType) (string, error) {
 	if authTypes != secboot.UserAuthTypeRecoveryKey {
 		return "", fmt.Errorf("authentication type not supported")
 	}
 
-	key, err := tui.ReadUserSecret("Enter recovery key: ")
+	key, err := r.ReadUserSecret("Enter recovery key: ")
 	if err != nil {
 		return "", err
 	}
@@ -56,7 +58,7 @@ func (a App) newMountVolumeCmd() *cli.Command {
 				return err
 			}
 
-			if err := a.tpm.Mount(ctx, device, p, &authRequestor{}); err != nil {
+			if err := a.tpm.Mount(ctx, device, p, &authRequestor{a.tui}); err != nil {
 				return err
 			}
 
@@ -122,7 +124,7 @@ func (a App) newGetLuksKeyFromRecoveryKeyCmd() *cli.Command {
 			},
 		},
 		Action: func(ctx context.Context, cmd *cli.Command) error {
-			recoveryKey, err := tui.ReadUserSecret("Enter recovery key: ")
+			recoveryKey, err := a.tui.ReadUserSecret("Enter recovery key: ")
 			if err != nil {
 				return err
 			}

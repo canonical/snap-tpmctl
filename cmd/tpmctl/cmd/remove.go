@@ -6,7 +6,6 @@ import (
 	"os"
 
 	"github.com/canonical/snap-tpmctl/internal/snapd"
-	"github.com/canonical/snap-tpmctl/internal/tui"
 	"github.com/urfave/cli/v3"
 )
 
@@ -25,7 +24,7 @@ func (a App) newRemovePassphraseCmd() *cli.Command {
 				return err
 			}
 
-			stop := tui.Spin("Removing passphrase...")
+			stop := a.tui.Spin("Removing passphrase...")
 			defer stop()
 
 			if err := a.tpm.RemovePassphrase(ctx); err != nil {
@@ -54,7 +53,7 @@ func (a App) newRemovePINCmd() *cli.Command {
 				return err
 			}
 
-			stop := tui.Spin("Removing PIN...")
+			stop := a.tui.Spin("Removing PIN...")
 			defer stop()
 
 			if err := a.tpm.RemovePIN(ctx); err != nil {

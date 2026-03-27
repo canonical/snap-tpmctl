@@ -8,7 +8,6 @@ import (
 
 	"github.com/canonical/snap-tpmctl/internal/snapd"
 	"github.com/canonical/snap-tpmctl/internal/tpm"
-	"github.com/canonical/snap-tpmctl/internal/tui"
 	"github.com/urfave/cli/v3"
 )
 
@@ -49,7 +48,7 @@ func (a App) newRegenerateKeyCmd() *cli.Command {
 				return err
 			}
 
-			stop := tui.Spin("Regenerating recovery key...")
+			stop := a.tui.Spin("Regenerating recovery key...")
 			defer stop()
 
 			recoveryKey, err := a.tpm.RegenerateKey(ctx, recoveryKeyName)
@@ -63,7 +62,7 @@ func (a App) newRegenerateKeyCmd() *cli.Command {
 			// Wait for user to confirm by pressing Enter
 			fmt.Print("Save the recovery key somewhere safe. Press Enter to continue...")
 			_, _ = bufio.NewReader(os.Stdin).ReadString('\n')
-			tui.ClearPreviousLines(2)
+			a.tui.ClearPreviousLines(2)
 
 			return nil
 		},
