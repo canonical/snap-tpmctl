@@ -19,7 +19,7 @@ func (a App) newStatusCmd() *cli.Command {
 				return err
 			}
 
-			fmt.Printf("The FDE system is %s\n", strings.ToUpper(status))
+			fmt.Fprintf(a.tui.Writer(), "The FDE system is %s\n", strings.ToUpper(status))
 
 			return nil
 		},
