@@ -3,6 +3,7 @@ module github.com/canonical/snap-tpmctl
 go 1.26.0
 
 require (
+	github.com/creack/pty v1.1.24
 	github.com/google/go-cmp v0.7.0
 	github.com/matryer/is v1.4.1
 	github.com/snapcore/secboot v0.0.0-20260126133925-99e0bbda867d

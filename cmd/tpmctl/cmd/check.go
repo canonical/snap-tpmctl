@@ -38,7 +38,7 @@ func (a App) newCheckCmd() *cli.Command {
 				msg = "Recovery key works"
 			}
 
-			fmt.Println(msg)
+			fmt.Fprintln(a.tui.Writer(), msg)
 
 			return nil
 		},
