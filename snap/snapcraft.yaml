@@ -44,7 +44,7 @@ parts:
     plugin: go
     source: .
     build-snaps:
-      - go/1.25/stable
+      - go/latest/stable
     build-packages:
       - gcc
       - pkg-config
