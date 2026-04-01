@@ -67,7 +67,7 @@ func TestListVolumeInfo(t *testing.T) {
 				return
 			}
 
-			golden.CheckOrUpdateYAML(t, got) // TestListVolumeInfo returns the expected volume info
+			golden.CheckOrUpdate(t, got) // TestListVolumeInfo returns the expected volume info
 		})
 	}
 }

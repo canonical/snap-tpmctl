@@ -35,7 +35,7 @@ func TestListVolumeInfo(t *testing.T) {
 				return
 			}
 
-			golden.CheckOrUpdateYAML(t, got)
+			golden.CheckOrUpdate(t, got)
 		})
 	}
 }
