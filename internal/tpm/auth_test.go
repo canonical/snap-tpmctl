@@ -38,12 +38,11 @@ func TestAddPassphrase(t *testing.T) {
 				return
 			}
 
-			is.True(tpmtestutils.HasBodyContent(is, c.Requests, tc.passphrase))
+			tpmtestutils.OneRequestBodyContains(is, c.Requests, tc.passphrase)
 		})
 	}
 }
 
-//nolint:dupl // TestReplacePassphrase and TestReplacePIN have similar behaviour
 func TestReplacePassphrase(t *testing.T) {
 	t.Parallel()
 
@@ -72,7 +71,7 @@ func TestReplacePassphrase(t *testing.T) {
 				return
 			}
 
-			is.True(tpmtestutils.HasBodyContent(is, c.Requests, tc.old, tc.new))
+			tpmtestutils.OneRequestBodyContains(is, c.Requests, tc.old, tc.new)
 		})
 	}
 }
@@ -102,7 +101,7 @@ func TestRemovePassphrase(t *testing.T) {
 				return
 			}
 
-			is.True(tpmtestutils.HasBodyContent(is, c.Requests, string(snapd.AuthModeNone)))
+			tpmtestutils.OneRequestBodyContains(is, c.Requests, string(snapd.AuthModeNone))
 		})
 	}
 }
@@ -134,12 +133,11 @@ func TestAddPIN(t *testing.T) {
 				return
 			}
 
-			is.True(tpmtestutils.HasBodyContent(is, c.Requests, tc.pin))
+			tpmtestutils.OneRequestBodyContains(is, c.Requests, tc.pin)
 		})
 	}
 }
 
-//nolint:dupl // TestReplacePassphrase and TestReplacePIN have similar behaviour
 func TestReplacePIN(t *testing.T) {
 	t.Parallel()
 
@@ -168,7 +166,7 @@ func TestReplacePIN(t *testing.T) {
 				return
 			}
 
-			is.True(tpmtestutils.HasBodyContent(is, c.Requests, tc.old, tc.new))
+			tpmtestutils.OneRequestBodyContains(is, c.Requests, tc.old, tc.new)
 		})
 	}
 }
@@ -198,7 +196,7 @@ func TestRemovePIN(t *testing.T) {
 				return
 			}
 
-			is.True(tpmtestutils.HasBodyContent(is, c.Requests, string(snapd.AuthModeNone)))
+			tpmtestutils.OneRequestBodyContains(is, c.Requests, string(snapd.AuthModeNone))
 		})
 	}
 }

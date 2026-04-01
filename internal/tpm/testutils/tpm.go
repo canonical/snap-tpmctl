@@ -32,20 +32,20 @@ func WithRoot(r string) tpm.Option
 //go:linkname WithSyscall github.com/canonical/snap-tpmctl/internal/tpm.withSyscall
 func WithSyscall(s tpm.Syscall) tpm.Option
 
-// HasBodyContent checks that at least one request contains all the expected body content.
-func HasBodyContent(is *is.I, requests []snapdtestutils.RecordedRequest, content ...string) bool {
+// OneRequestBodyContains checks that at least one request contains all the expected wanted contents.
+func OneRequestBodyContains(is *is.I, requests []snapdtestutils.RecordedRequest, wants ...string) {
 	is.Helper()
 
-	if content == nil {
-		is.Fail()
+	if len(wants) == 0 {
+		panic("Programmer error: RequestsBodyContains checked for nothings as it doesn’t have any wants")
 	}
 
-	return slices.ContainsFunc(requests, func(r snapdtestutils.RecordedRequest) bool {
-		for _, c := range content {
-			if !strings.Contains(r.Body, c) {
+	is.True(slices.ContainsFunc(requests, func(r snapdtestutils.RecordedRequest) bool {
+		for _, want := range wants {
+			if !strings.Contains(r.Body, want) {
 				return false
 			}
 		}
 		return true
-	})
+	})) // Didn't find all wants in any of the requests.
 }
