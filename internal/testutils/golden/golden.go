@@ -29,7 +29,8 @@ func init() {
 }
 
 // CheckOrUpdate compares the provided object with the content of the golden file. If the update environment
-// variable is set, the golden file is updated with the provided object serialized as YAML.
+// variable is set, the golden file is updated using type-dependent encoding: string and []byte values are written
+// as raw bytes, and all other values are serialized as YAML.
 func CheckOrUpdate[T any](t *testing.T, got T) {
 	t.Helper()
 
