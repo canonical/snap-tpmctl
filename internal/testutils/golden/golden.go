@@ -78,20 +78,19 @@ func encodeGolden[T any](v T) ([]byte, error) {
 }
 
 // decodeGolden decodes the provided byte slice into the specified type.
-// If the type is []byte or string, it returns the data as is, otherwise it marshals the data to 
-// the specified type using YAML.
+// If the type is []byte or string, it returns the data as is, otherwise it
+// unmarshals the data to the specified type using YAML.
 func decodeGolden[T any](src []byte) (T, error) {
 	var t T
 	switch any(t).(type) {
 	case []byte:
-		return any(src).(T), nil
+		return any(src).(T), nil //nolint:forcetypeassert // T is []byte here, guaranteed by type switch
 	case string:
-		return any(string(src)).(T), nil
+		return any(string(src)).(T), nil //nolint:forcetypeassert // T is string here, guaranteed by type switch
 	}
 
 	err := yaml.Unmarshal(src, &t)
 	return t, err
-
 }
 
 // updateGoldenFile updates the golden file at the specified path with the provided data.
