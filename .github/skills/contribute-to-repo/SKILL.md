@@ -47,7 +47,7 @@ Common types: `feat`, `fix`, `refactor`, `chore`, `docs`, `test`.
 
 ```bash
 git add -A
-git commit -m "<message with trailers above>"
+git commit
 ```
 
 ### 3. Push to the fork
