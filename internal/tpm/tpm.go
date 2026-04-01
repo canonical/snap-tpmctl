@@ -19,14 +19,14 @@ type options struct {
 	snapdClient *snapd.Client
 
 	root    string
-	syscall Syscall
+	syscall syscaller
 }
 
 // Option is a functional option for configuring the SnapTPM.
 type Option func(*options)
 
-// Syscall abstracts mount and unmount system calls used by SnapTPM.
-type Syscall interface {
+// syscaller abstracts mount and unmount system calls used by SnapTPM.
+type syscaller interface {
 	Mount(path, target string) error
 	Unmount(target string) error
 }

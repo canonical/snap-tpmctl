@@ -27,10 +27,16 @@ func WithSnapdClient(snapdClient *snapd.Client) tpm.Option
 //go:linkname WithRoot github.com/canonical/snap-tpmctl/internal/tpm.withRoot
 func WithRoot(r string) tpm.Option
 
+// syscaller abstracts mount and unmount system calls used by SnapTPM.
+type syscaller interface {
+	Mount(path, target string) error
+	Unmount(target string) error
+}
+
 // WithSyscall is an option that configures the TPM to use the provided system mounter.
 //
 //go:linkname WithSyscall github.com/canonical/snap-tpmctl/internal/tpm.withSyscall
-func WithSyscall(s tpm.Syscall) tpm.Option
+func WithSyscall(s syscaller) tpm.Option
 
 // OneRequestBodyContains checks that at least one request contains all the expected wanted contents.
 func OneRequestBodyContains(is *is.I, requests []snapdtestutils.RecordedRequest, wants ...string) {

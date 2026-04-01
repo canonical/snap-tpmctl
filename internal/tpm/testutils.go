@@ -23,7 +23,7 @@ func withRoot(root string) Option {
 }
 
 // withSyscall allows you to specify a custom root for testing purposes.
-func withSyscall(s Syscall) Option {
+func withSyscall(s syscaller) Option {
 	testsdetection.MustBeTesting()
 	return func(o *options) {
 		o.syscall = s
