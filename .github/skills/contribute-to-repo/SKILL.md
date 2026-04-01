@@ -39,7 +39,7 @@ Stage all modified files and commit using **Conventional Commits** format:
 
 <body — what changed and why>
 
-Co-authored-by: <name> <<email>>
+Co-authored-by: <name> <email>
 Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
 ```
 
