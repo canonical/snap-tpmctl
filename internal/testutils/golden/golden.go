@@ -28,16 +28,16 @@ func init() {
 	}
 }
 
-// CheckOrUpdateYAML compares the provided object with the content of the golden file. If the update environment
+// CheckOrUpdate compares the provided object with the content of the golden file. If the update environment
 // variable is set, the golden file is updated with the provided object serialized as YAML.
-func CheckOrUpdateYAML[T any](t *testing.T, got T) {
+func CheckOrUpdate[T any](t *testing.T, got T) {
 	t.Helper()
 
 	is := is.New(t)
 	goldenFile := goldenPath(t)
 
 	if update {
-		data, err := yaml.Marshal(got)
+		data, err := encodeGolden(got)
 		is.NoErr(err) // Golden: cannot serialize provided object
 		updateGoldenFile(t, goldenFile, data)
 	}
@@ -45,8 +45,7 @@ func CheckOrUpdateYAML[T any](t *testing.T, got T) {
 	t.Logf("Comparing with %q", goldenFile)
 	src, err := os.ReadFile(goldenFile)
 	is.NoErr(err) // Golden: cannot read golden file
-	var want T
-	err = yaml.Unmarshal(src, &want)
+	want, err := decodeGolden[T](src)
 	is.NoErr(err) // Golden: cannot deserialize golden file content
 
 	diff := cmp.Diff(want, got,
@@ -64,29 +63,35 @@ func CheckOrUpdateYAML[T any](t *testing.T, got T) {
 	}
 }
 
-// CheckOrUpdate compares the provided string with the content of the golden file. If the update environment
-// variable is set, the golden file is updated with the provided string.
-func CheckOrUpdate(t *testing.T, got string) {
-	t.Helper()
-
-	is := is.New(t)
-	goldenFile := goldenPath(t)
-
-	data := []byte(got)
-
-	if update {
-		updateGoldenFile(t, goldenFile, data)
+// encodeGolden encodes the provided value into a byte slice.
+// If the value is already a []byte or string, it returns it as is, otherwise it marshals
+// the value to YAML.
+func encodeGolden[T any](v T) ([]byte, error) {
+	switch value := any(v).(type) {
+	case []byte:
+		return value, nil
+	case string:
+		return []byte(value), nil
 	}
 
-	t.Logf("Comparing with %q", goldenFile)
-	want, err := os.ReadFile(goldenFile)
-	is.NoErr(err) // Golden: cannot read golden file
+	return yaml.Marshal(v)
+}
 
-	diff := cmp.Diff(string(want), got)
-	if diff != "" {
-		t.Logf("Difference between golden file and actual output (-want +got):\n%s", diff)
-		t.Fatal()
+// decodeGolden decodes the provided byte slice into the specified type.
+// If the type is []byte or string, it returns the data as is, otherwise it marshals the data to 
+// the specified type using YAML.
+func decodeGolden[T any](src []byte) (T, error) {
+	var t T
+	switch any(t).(type) {
+	case []byte:
+		return any(src).(T), nil
+	case string:
+		return any(string(src)).(T), nil
 	}
+
+	err := yaml.Unmarshal(src, &t)
+	return t, err
+
 }
 
 // updateGoldenFile updates the golden file at the specified path with the provided data.
