@@ -30,7 +30,18 @@ git log --format="%an <%ae>" | grep -i "<name>" | head -1
 
 If no match is found, ask the user for the email directly.
 
-### 2. Stage and commit
+### 2. Lint, format, and test
+
+Before committing, run the linter (with auto-fix) and the test suite:
+
+```bash
+golangci-lint-v2 run ./... --fix
+go test ./...
+```
+
+Resolve any lint errors or test failures before proceeding.
+
+### 3. Stage and commit
 
 Stage all modified files and commit using **Conventional Commits** format:
 
@@ -50,13 +61,13 @@ git add -A
 git commit
 ```
 
-### 3. Push to the fork
+### 4. Push to the fork
 
 ```bash
 git push <fork-remote> <current-branch>
 ```
 
-### 4. Open a PR against upstream
+### 5. Open a PR against upstream
 
 Use the GitHub MCP tool `create_pull_request` with:
 - `owner`: upstream org (from `git remote -v`)
