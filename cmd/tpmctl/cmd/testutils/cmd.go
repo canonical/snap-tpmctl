@@ -19,6 +19,11 @@ func init() {
 //go:linkname WithArgs github.com/canonical/snap-tpmctl/cmd/tpmctl/cmd.withArgs
 func WithArgs(args ...string) cmd.Option
 
+// WithEuid is an option that configures the app to use the provided effective user id.
+//
+//go:linkname WithEuid github.com/canonical/snap-tpmctl/cmd/tpmctl/cmd.withEuid
+func WithEuid(id int) cmd.Option
+
 // WithSnapTPM is an option that configures the app to use the provided snap TPM.
 //
 //go:linkname WithSnapTPM github.com/canonical/snap-tpmctl/cmd/tpmctl/cmd.withSnapTPM

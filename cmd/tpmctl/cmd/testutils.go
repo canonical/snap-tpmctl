@@ -15,6 +15,14 @@ func withArgs(args ...string) Option {
 	}
 }
 
+// withEuid allows you to specify a custom args for testing purposes.
+func withEuid(id int) Option {
+	testsdetection.MustBeTesting()
+	return func(o *option) {
+		o.euid = id
+	}
+}
+
 // withSnapTPM allows you to specify a custom tpm for testing purposes.
 func withSnapTPM(t tpm.SnapTPM) Option {
 	testsdetection.MustBeTesting()

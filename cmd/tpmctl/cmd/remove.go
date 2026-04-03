@@ -3,7 +3,6 @@ package cmd
 import (
 	"context"
 	"fmt"
-	"os"
 
 	"github.com/canonical/snap-tpmctl/internal/snapd"
 	"github.com/urfave/cli/v3"
@@ -15,7 +14,7 @@ func (a App) newRemovePassphraseCmd() *cli.Command {
 		Usage: "Remove passphrase authentication",
 		Action: func(ctx context.Context, cmd *cli.Command) error {
 			// Ensure that the user's effective ID is root
-			if os.Geteuid() != 0 {
+			if !a.isUserRoot() {
 				return fmt.Errorf("this command requires elevated privileges. Please run with sudo")
 			}
 
@@ -44,7 +43,7 @@ func (a App) newRemovePINCmd() *cli.Command {
 		Usage: "Remove PIN authentication",
 		Action: func(ctx context.Context, cmd *cli.Command) error {
 			// Ensure that the user's effective ID is root
-			if os.Geteuid() != 0 {
+			if !a.isUserRoot() {
 				return fmt.Errorf("this command requires elevated privileges. Please run with sudo")
 			}
 

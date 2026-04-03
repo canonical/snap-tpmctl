@@ -18,6 +18,7 @@ type App struct {
 
 type option struct {
 	args []string
+	euid int
 	tpm  tpm.SnapTPM
 	tui  tui.Tui
 }
@@ -29,6 +30,7 @@ type Option func(*option)
 func New(args ...Option) App {
 	o := option{
 		args: os.Args,
+		euid: os.Geteuid(),
 		tpm:  tpm.New(),
 		tui:  tui.New(os.Stdin, os.Stdout),
 	}
@@ -45,6 +47,11 @@ func New(args ...Option) App {
 func (a App) Run(ctx context.Context) error {
 	root := a.newRootCmd()
 	return root.Run(ctx, a.args)
+}
+
+// isUserRoot returns true if the effective user ID is 0 (root).
+func (a App) isUserRoot() bool {
+	return a.euid == 0
 }
 
 // version is set at build time via ldflags.
