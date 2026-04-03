@@ -27,6 +27,10 @@ func newRegenerateKeyCmd() *cli.Command {
 			},
 		},
 		ShellComplete: func(ctx context.Context, cmd *cli.Command) {
+			if alreadyCompleted(cmd) {
+				return
+			}
+
 			c := snapd.New()
 
 			result, err := c.ListVolumeInfo(ctx)
