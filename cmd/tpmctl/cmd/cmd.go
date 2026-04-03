@@ -39,7 +39,18 @@ func newRootCmd() cli.Command {
 		Version:                version,
 		UseShortOptionHandling: true,
 		EnableShellCompletion:  true,
-		HideVersion:            true,
+		ConfigureShellCompletionCommand: func(cmd *cli.Command) {
+			complete := cmd.Action
+			cmd.Action = func(ctx context.Context, cmd *cli.Command) error {
+				// Patch the output of the bash completion command to remove the "default" file completion on bash.
+				if cmd.Args().Len() > 0 && cmd.Args().First() == "bash" {
+					cmd.Writer = bashCompletionWriter{Writer: cmd.Writer}
+				}
+
+				return complete(ctx, cmd)
+			}
+		},
+		HideVersion: true,
 		Commands: []*cli.Command{
 			newAddPINCmd(),
 			newAddPassphraseCmd(),
@@ -54,8 +65,8 @@ func newRootCmd() cli.Command {
 			newReplacePassphraseCmd(),
 			newReplacePINCmd(),
 			newRegenerateKeyCmd(),
-			newRemovePINCmd(),
 			newRemovePassphraseCmd(),
+			newRemovePINCmd(),
 			newStatusCmd(),
 			newUnmountVolumeCmd(),
 			newVersionCmd(),
