@@ -50,4 +50,4 @@ sudo snap-tpmctl mount-volume /dev/nvme0n1p4 /media/my-vol
 
 ## Contributing
 
-Contributions are welcome. Please read [`CONTRIBUTING.md`](./CONTRIBUTING.md) for more info.
+Contributions are welcome. Please read [`CONTRIBUTING.md`](./CONTRIBUTING.md) for details.
