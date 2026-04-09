@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"context"
 	"fmt"
-	"os"
 
 	"github.com/canonical/snap-tpmctl/internal/snapd"
 	"github.com/canonical/snap-tpmctl/internal/tpm"
@@ -57,11 +56,11 @@ func (a App) newRegenerateKeyCmd() *cli.Command {
 			}
 			stop()
 
-			fmt.Printf("Recovery Key: %s\n", recoveryKey)
+			fmt.Fprintf(a.tui.Writer(), "Recovery Key: %s\n", recoveryKey)
 
 			// Wait for user to confirm by pressing Enter
-			fmt.Print("Save the recovery key somewhere safe. Press Enter to continue...")
-			_, _ = bufio.NewReader(os.Stdin).ReadString('\n')
+			fmt.Fprint(a.tui.Writer(), "Save the recovery key somewhere safe. Press Enter to continue...")
+			_, _ = bufio.NewReader(a.tui.Reader()).ReadString('\n')
 			a.tui.ClearPreviousLines(2)
 
 			return nil
