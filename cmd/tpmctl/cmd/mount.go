@@ -142,7 +142,7 @@ func (a App) newGetLuksKeyFromRecoveryKeyCmd() *cli.Command {
 				format = "%q\n"
 			}
 
-			fmt.Printf(format, key)
+			fmt.Fprintf(a.tui.Writer(), format, key)
 
 			return nil
 		},
