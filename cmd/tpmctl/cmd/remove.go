@@ -31,7 +31,7 @@ func (a App) newRemovePassphraseCmd() *cli.Command {
 			}
 			stop()
 
-			fmt.Println("Passphrase removed successfully")
+			fmt.Fprintln(a.tui.Writer(), "Passphrase removed successfully")
 			return nil
 		},
 	}
@@ -60,7 +60,7 @@ func (a App) newRemovePINCmd() *cli.Command {
 			}
 			stop()
 
-			fmt.Println("PIN removed successfully")
+			fmt.Fprintln(a.tui.Writer(), "PIN removed successfully")
 			return nil
 		},
 	}
