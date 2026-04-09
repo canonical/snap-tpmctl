@@ -49,6 +49,11 @@ func (t Tui) Writer() io.Writer {
 	return t.w
 }
 
+// Reader returns the input reader configured for this Tui instance.
+func (t Tui) Reader() io.Reader {
+	return t.r
+}
+
 // ClearPreviousLines clears the previous lines in the terminal.
 func (t Tui) ClearPreviousLines(lines int) {
 	clr := fmt.Sprint(t.w, "\r", cursorUp, clrEOL)
