@@ -50,7 +50,7 @@ func (a App) newAddPassphraseCmd() *cli.Command {
 			}
 			stop()
 
-			fmt.Println("Passphrase added successfully")
+			fmt.Fprintln(a.tui.Writer(), "Passphrase added successfully")
 			return nil
 		},
 	}
@@ -97,7 +97,7 @@ func (a App) newAddPINCmd() *cli.Command {
 			}
 			stop()
 
-			fmt.Println("PIN added successfully")
+			fmt.Fprintln(a.tui.Writer(), "PIN added successfully")
 			return nil
 		},
 	}
