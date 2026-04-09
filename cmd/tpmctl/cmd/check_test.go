@@ -9,6 +9,7 @@ import (
 	cmdtestutils "github.com/canonical/snap-tpmctl/cmd/tpmctl/cmd/testutils"
 	snapdtestutils "github.com/canonical/snap-tpmctl/internal/snapd/testutils"
 	"github.com/canonical/snap-tpmctl/internal/testutils"
+	"github.com/canonical/snap-tpmctl/internal/testutils/golden"
 	"github.com/canonical/snap-tpmctl/internal/tpm"
 	tpmtestutils "github.com/canonical/snap-tpmctl/internal/tpm/testutils"
 	"github.com/canonical/snap-tpmctl/internal/tui"
@@ -25,7 +26,8 @@ func TestCheck(t *testing.T) {
 		wantReadErr bool
 		wantErr     bool
 	}{
-		"Success_checking_recovery_key": {},
+		"Success_checking_recovery_key":       {},
+		"Success_on_not_working_recovery_key": {},
 
 		"Fail_reading_input":             {wantReadErr: true, wantErr: true},
 		"Fail_with_invalid_recovery_key": {key: "invalid", wantErr: true},
@@ -76,6 +78,8 @@ func TestCheck(t *testing.T) {
 			}
 
 			is.True(logs.Len() == 0) // No logs printed by default
+
+			golden.CheckOrUpdate(t, out.String()) // TestCheck returns the expected output
 		})
 	}
 }
