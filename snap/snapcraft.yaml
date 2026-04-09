@@ -61,7 +61,35 @@ parts:
     after: [snap-tpmctl]
     plugin: nil
     override-build: |
-      $CRAFT_STAGE/bin/snap-tpmctl completion bash > $CRAFT_PART_INSTALL/completion.sh
+      # $CRAFT_STAGE/bin/snap-tpmctl completion bash > $CRAFT_PART_INSTALL/completion.sh
+
+      # Override the above command to generate the completion script 
+      # until the upstream completion script generation supports the 
+      # strict confinement requirements of snapcraft.
+      cat << 'EOF' > $CRAFT_PART_INSTALL/completion.sh
+      #!/bin/bash
+
+      __snap_tpmctl_complete() {
+        local cur opts
+        local words=("${COMP_WORDS[@]}")
+        local cword="${COMP_CWORD}"
+
+        COMPREPLY=()
+        cur="${words[$cword]}"
+
+        words=("${words[@]:0:$cword}")
+        if [[ "$cur" == "-"* ]]; then
+            requestComp="${words[*]} ${cur} --generate-shell-completion"
+        else
+            requestComp="${words[*]} --generate-shell-completion"
+        fi
+
+        opts=$(eval "${requestComp}" 2>/dev/null)
+        COMPREPLY=($(compgen -W "${opts}" -- "${cur}"))
+      }
+
+      complete -o nospace -F __snap_tpmctl_complete snap-tpmctl
+      EOF
 
   systemd-cryptsetup:
     plugin: nil
