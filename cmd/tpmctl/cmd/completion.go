@@ -13,7 +13,7 @@ type bashCompletionWriter struct {
 }
 
 func (w bashCompletionWriter) Write(p []byte) (int, error) {
-	patched := strings.ReplaceAll(string(p), "-o bashdefault -o default", "")
+	patched := strings.ReplaceAll(string(p), " -o bashdefault -o default", "")
 
 	_, err := w.Writer.Write([]byte(patched))
 	if err != nil {

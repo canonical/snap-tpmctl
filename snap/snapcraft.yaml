@@ -16,7 +16,8 @@ confinement: strict
 
 apps:
   snap-tpmctl:
-    command: bin/tpmctl
+    command: bin/snap-tpmctl
+    completer: completion.sh
     plugs:
       - block-devices
       - dm-crypt
@@ -40,7 +41,7 @@ plugs:
         options: [rw, relatime]
 
 parts:
-  tpmctl:
+  snap-tpmctl:
     plugin: go
     source: .
     build-snaps:
@@ -52,9 +53,43 @@ parts:
     override-build: |
       VERSION=$(craftctl get version)
       LDFLAGS="-X github.com/canonical/snap-tpmctl/cmd/tpmctl/cmd.Version=$VERSION"
-      go build -ldflags="$LDFLAGS" -o $SNAPCRAFT_PART_INSTALL/bin/tpmctl ./cmd/tpmctl
+      go build -ldflags="$LDFLAGS" -o $CRAFT_PART_INSTALL/bin/snap-tpmctl ./cmd/tpmctl
     after:
       - version
+
+  completion-script:
+    after: [snap-tpmctl]
+    plugin: nil
+    override-build: |
+      # $CRAFT_STAGE/bin/snap-tpmctl completion bash > $CRAFT_PART_INSTALL/completion.sh
+
+      # Override the above command to generate the completion script 
+      # until the upstream completion script generation supports the 
+      # strict confinement requirements of snapcraft.
+      cat << 'EOF' > $CRAFT_PART_INSTALL/completion.sh
+      #!/bin/bash
+
+      __snap_tpmctl_complete() {
+        local cur opts
+        local words=("${COMP_WORDS[@]}")
+        local cword="${COMP_CWORD}"
+
+        COMPREPLY=()
+        cur="${words[$cword]}"
+
+        words=("${words[@]:0:$cword}")
+        if [[ "$cur" == "-"* ]]; then
+            requestComp="${words[*]} ${cur} --generate-shell-completion"
+        else
+            requestComp="${words[*]} --generate-shell-completion"
+        fi
+
+        opts=$(eval "${requestComp}" 2>/dev/null)
+        COMPREPLY=($(compgen -W "${opts}" -- "${cur}"))
+      }
+
+      complete -o nospace -F __snap_tpmctl_complete snap-tpmctl
+      EOF
 
   systemd-cryptsetup:
     plugin: nil
