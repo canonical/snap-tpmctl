@@ -53,7 +53,7 @@ func (a App) newMountVolumeCmd() *cli.Command {
 				return err
 			}
 
-			p, err := ensurePathIsAbolute(dir)
+			p, err := ensurePathIsAbsolute(dir)
 			if err != nil {
 				return err
 			}
@@ -82,7 +82,7 @@ func (a App) newUnmountVolumeCmd() *cli.Command {
 			},
 		},
 		Action: func(ctx context.Context, cmd *cli.Command) error {
-			p, err := ensurePathIsAbolute(dir)
+			p, err := ensurePathIsAbsolute(dir)
 			if err != nil {
 				return err
 			}
@@ -166,8 +166,8 @@ func devicePathExists(p string) error {
 	return nil
 }
 
-// ensurePathIsAbolute resolves to an absolute path.
-func ensurePathIsAbolute(p string) (string, error) {
+// ensurePathIsAbsolute resolves to an absolute path.
+func ensurePathIsAbsolute(p string) (string, error) {
 	if p == "" {
 		return "", fmt.Errorf("directory path cannot be empty")
 	}
