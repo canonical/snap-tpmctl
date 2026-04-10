@@ -3,7 +3,6 @@ package tpm_test
 import (
 	"context"
 	"errors"
-	"flag"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -21,7 +20,7 @@ func TestMountVolume(t *testing.T) {
 	tests := map[string]struct {
 		device        string
 		target        string
-		syscall       testSyscall
+		syscall       tpmtestutils.TestSyscall
 		authRequestor authRequestor
 		targetExists  bool
 
@@ -41,7 +40,7 @@ func TestMountVolume(t *testing.T) {
 
 		"Error out when unable to crate directory": {wantMkdirErr: true, wantErr: true},
 		"Error out when authRequestor fails":       {authRequestor: authRequestor{wantErr: true}, wantErr: true},
-		"Error out when unable to mount volume":    {syscall: testSyscall{wantErr: true}, wantRequested: true, wantErr: true},
+		"Error out when unable to mount volume":    {syscall: tpmtestutils.TestSyscall{WantErr: true}, wantRequested: true, wantErr: true},
 		"Error out when systemd-cryptsetup fails":  {device: "exit-with-failure", wantRequested: true, wantErr: true},
 	}
 
@@ -53,7 +52,7 @@ func TestMountVolume(t *testing.T) {
 			root := t.TempDir()
 
 			// cryptsetup mock binary
-			setupMockBinary(is, root)
+			tpmtestutils.SetupMockBinary(is, root)
 			t.Setenv("SNAP", root)
 
 			if tc.device == "" {
@@ -89,7 +88,7 @@ func TestMountVolume(t *testing.T) {
 			}
 
 			is.Equal(tc.authRequestor.requested, tc.wantRequested) // the recovery key is asked as expected
-			is.Equal(tc.syscall.mounted, tc.wantMounted)           // the volume is mounted as expected
+			is.Equal(tc.syscall.Mounted, tc.wantMounted)           // the volume is mounted as expected
 		})
 	}
 }
@@ -98,7 +97,7 @@ func TestUnmountVolume(t *testing.T) {
 	tests := map[string]struct {
 		target  string
 		mapper  string
-		syscall testSyscall
+		syscall tpmtestutils.TestSyscall
 
 		wantUnmounted bool
 
@@ -109,7 +108,7 @@ func TestUnmountVolume(t *testing.T) {
 
 		"Error out when unable to remove directory":   {wantRmdirErr: true, wantErr: true},
 		"Error out when unable determine device path": {target: "not-existing-target", wantErr: true},
-		"Error out when unable to unmount volume":     {syscall: testSyscall{wantErr: true}, wantErr: true},
+		"Error out when unable to unmount volume":     {syscall: tpmtestutils.TestSyscall{WantErr: true}, wantErr: true},
 		"Error out when systemd-cryptsetup fails":     {mapper: "exit-with-failure", wantErr: true},
 	}
 
@@ -121,7 +120,7 @@ func TestUnmountVolume(t *testing.T) {
 			root := t.TempDir()
 
 			// cryptsetup mock binary
-			setupMockBinary(is, root)
+			tpmtestutils.SetupMockBinary(is, root)
 			t.Setenv("SNAP", root)
 
 			if tc.mapper == "" {
@@ -136,7 +135,7 @@ func TestUnmountVolume(t *testing.T) {
 			tc.target = filepath.Join(root, tc.target) // Convert to an absolute path
 
 			content := fmt.Sprintf("%s %s ext4 rw 0 0\n", tc.mapper, filepath.Join(root, target))
-			setupProcMount(is, root, content)
+			tpmtestutils.SetupProcMount(is, root, content)
 
 			// In order to test the `RemoveAll` failure, we need to set restrictive permissions for the target's parent folder.
 			if tc.wantRmdirErr {
@@ -164,7 +163,7 @@ func TestUnmountVolume(t *testing.T) {
 				return
 			}
 
-			is.Equal(tc.syscall.unmounted, tc.wantUnmounted) // the volume is unmounted as expected
+			is.Equal(tc.syscall.Unmounted, tc.wantUnmounted) // the volume is unmounted as expected
 		})
 	}
 }
@@ -207,7 +206,7 @@ func TestGetMapperFromMount(t *testing.T) {
 				content = strings.Repeat("a", 70*1024) + "\n"
 			}
 
-			setupProcMount(is, root, content)
+			tpmtestutils.SetupProcMount(is, root, content)
 
 			if tc.wantFileErr {
 				err := os.Remove(filepath.Join(root, "proc", "mounts"))
@@ -228,50 +227,11 @@ func TestGetMapperFromMount(t *testing.T) {
 
 func TestMain(m *testing.M) {
 	if filepath.Base(os.Args[0]) == "systemd-cryptsetup" {
-		systemdCryptsetupMock()
+		tpmtestutils.SystemdCryptsetupMock()
 		return
 	}
 
 	m.Run()
-}
-
-func systemdCryptsetupMock() {
-	flag.Parse()
-	args := flag.Args()
-
-	fmt.Println("Mock systemd-cryptsetup called with args:", args)
-
-	volumeName := args[1]
-	if strings.Contains(volumeName, "exit-with-failure") {
-		os.Exit(1)
-	}
-
-	os.Exit(0)
-}
-
-func setupMockBinary(is *is.I, root string) {
-	is.Helper()
-
-	usrBin := filepath.Join(root, "usr", "bin")
-	err := os.MkdirAll(usrBin, 0750)
-	is.NoErr(err) // Setup: could not create mock binary directory
-	path, err := filepath.Abs(os.Args[0])
-	is.NoErr(err) // Setup: could not find asbsolute path to self
-	err = os.Symlink(path, filepath.Join(usrBin, "systemd-cryptsetup"))
-	is.NoErr(err) // Setup: could not create symlink for mock cryptsetup binary
-}
-
-func setupProcMount(is *is.I, root, content string) {
-	is.Helper()
-
-	err := os.MkdirAll(filepath.Join(root, "proc"), 0750)
-	is.NoErr(err)
-	f, err := os.Create(filepath.Join(root, "proc", "mounts"))
-	is.NoErr(err)
-	defer f.Close()
-
-	_, err = f.WriteString(content)
-	is.NoErr(err)
 }
 
 type authRequestor struct {
@@ -286,27 +246,4 @@ func (r *authRequestor) RequestUserCredential(ctx context.Context, name, path st
 	}
 	r.requested = true
 	return "22003-18216-51619-31723-49692-17125-14174-57839", nil
-}
-
-type testSyscall struct {
-	mounted   bool
-	unmounted bool
-
-	wantErr bool
-}
-
-func (t *testSyscall) Mount(path, target string) error {
-	if t.wantErr {
-		return errors.New("test error")
-	}
-	t.mounted = true
-	return nil
-}
-
-func (t *testSyscall) Unmount(target string) error {
-	if t.wantErr {
-		return errors.New("test error")
-	}
-	t.unmounted = true
-	return nil
 }
