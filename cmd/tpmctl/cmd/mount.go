@@ -12,14 +12,16 @@ import (
 	"github.com/urfave/cli/v3"
 )
 
-type authRequestor struct{}
+type authRequestor struct {
+	tui.Tui
+}
 
 func (r *authRequestor) RequestUserCredential(ctx context.Context, name, path string, authTypes secboot.UserAuthType) (string, error) {
 	if authTypes != secboot.UserAuthTypeRecoveryKey {
 		return "", fmt.Errorf("authentication type not supported")
 	}
 
-	key, err := tui.ReadUserSecret("Enter recovery key: ")
+	key, err := r.ReadUserSecret("Enter recovery key: ")
 	if err != nil {
 		return "", err
 	}
@@ -27,7 +29,7 @@ func (r *authRequestor) RequestUserCredential(ctx context.Context, name, path st
 	return key, nil
 }
 
-func newMountVolumeCmd() *cli.Command {
+func (a App) newMountVolumeCmd() *cli.Command {
 	var device, dir string
 
 	return &cli.Command{
@@ -51,13 +53,12 @@ func newMountVolumeCmd() *cli.Command {
 				return err
 			}
 
-			p, err := ensurePathIsAbolute(dir)
+			p, err := ensurePathIsAbsolute(dir)
 			if err != nil {
 				return err
 			}
 
-			s := tpm.New()
-			if err := s.Mount(ctx, device, p, &authRequestor{}); err != nil {
+			if err := a.tpm.Mount(ctx, device, p, &authRequestor{a.tui}); err != nil {
 				return err
 			}
 
@@ -66,7 +67,7 @@ func newMountVolumeCmd() *cli.Command {
 	}
 }
 
-func newUnmountVolumeCmd() *cli.Command {
+func (a App) newUnmountVolumeCmd() *cli.Command {
 	var dir string
 
 	return &cli.Command{
@@ -81,13 +82,12 @@ func newUnmountVolumeCmd() *cli.Command {
 			},
 		},
 		Action: func(ctx context.Context, cmd *cli.Command) error {
-			p, err := ensurePathIsAbolute(dir)
+			p, err := ensurePathIsAbsolute(dir)
 			if err != nil {
 				return err
 			}
 
-			s := tpm.New()
-			if err := s.Unmount(ctx, p); err != nil {
+			if err := a.tpm.Unmount(ctx, p); err != nil {
 				return err
 			}
 
@@ -96,7 +96,7 @@ func newUnmountVolumeCmd() *cli.Command {
 	}
 }
 
-func newGetLuksKeyFromRecoveryKeyCmd() *cli.Command {
+func (a App) newGetLuksKeyFromRecoveryKeyCmd() *cli.Command {
 	var hex, escaped bool
 
 	return &cli.Command{
@@ -124,7 +124,7 @@ func newGetLuksKeyFromRecoveryKeyCmd() *cli.Command {
 			},
 		},
 		Action: func(ctx context.Context, cmd *cli.Command) error {
-			recoveryKey, err := tui.ReadUserSecret("Enter recovery key: ")
+			recoveryKey, err := a.tui.ReadUserSecret("Enter recovery key: ")
 			if err != nil {
 				return err
 			}
@@ -142,7 +142,7 @@ func newGetLuksKeyFromRecoveryKeyCmd() *cli.Command {
 				format = "%q\n"
 			}
 
-			fmt.Printf(format, key)
+			fmt.Fprintf(a.tui.Writer(), format, key)
 
 			return nil
 		},
@@ -166,8 +166,8 @@ func devicePathExists(p string) error {
 	return nil
 }
 
-// ensurePathIsAbolute resolves to an absolute path.
-func ensurePathIsAbolute(p string) (string, error) {
+// ensurePathIsAbsolute resolves to an absolute path.
+func ensurePathIsAbsolute(p string) (string, error) {
 	if p == "" {
 		return "", fmt.Errorf("directory path cannot be empty")
 	}

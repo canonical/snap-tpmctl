@@ -3,8 +3,6 @@ package cmd
 import (
 	"context"
 	"fmt"
-	"io"
-	"os"
 	"slices"
 	"strings"
 
@@ -13,7 +11,7 @@ import (
 	"github.com/urfave/cli/v3"
 )
 
-func newListAllCmd() *cli.Command {
+func (a App) newListAllCmd() *cli.Command {
 	var hideHeaders bool
 
 	return &cli.Command{
@@ -28,14 +26,12 @@ func newListAllCmd() *cli.Command {
 			},
 		},
 		Action: func(ctx context.Context, cmd *cli.Command) error {
-			c := snapd.New()
-
-			result, err := c.ListVolumeInfo(ctx)
+			result, err := a.tpm.ListVolumeInfo(ctx)
 			if err != nil {
 				return err
 			}
 
-			if err := displayAllKeys(os.Stdout, result, hideHeaders); err != nil {
+			if err := displayAllKeys(a.tui, result, hideHeaders); err != nil {
 				return err
 			}
 
@@ -44,66 +40,60 @@ func newListAllCmd() *cli.Command {
 	}
 }
 
-func newListPassphraseCmd() *cli.Command {
+func (a App) newListPassphraseCmd() *cli.Command {
 	return &cli.Command{
 		Name:    "list-passphrases",
 		Usage:   "List passphrases",
 		Suggest: true,
 		Action: func(ctx context.Context, cmd *cli.Command) error {
-			c := snapd.New()
-
-			result, err := c.ListVolumeInfo(ctx)
+			result, err := a.tpm.ListVolumeInfo(ctx)
 			if err != nil {
 				return err
 			}
 
 			data := parseKeySlots(result, snapd.IsPassphrase)
 
-			displayKeySlotsFromMap(os.Stdout, "Passphrases", data)
+			displayKeySlotsFromMap(a.tui, "Passphrases", data)
 
 			return nil
 		},
 	}
 }
 
-func newListRecoveryKeyCmd() *cli.Command {
+func (a App) newListRecoveryKeyCmd() *cli.Command {
 	return &cli.Command{
 		Name:    "list-recovery-keys",
 		Usage:   "List recovery keys",
 		Suggest: true,
 		Action: func(ctx context.Context, cmd *cli.Command) error {
-			c := snapd.New()
-
-			result, err := c.ListVolumeInfo(ctx)
+			result, err := a.tpm.ListVolumeInfo(ctx)
 			if err != nil {
 				return err
 			}
 
 			data := parseKeySlots(result, snapd.IsRecoveryKey)
 
-			displayKeySlotsFromMap(os.Stdout, "Recovery Keys", data)
+			displayKeySlotsFromMap(a.tui, "Recovery Keys", data)
 
 			return nil
 		},
 	}
 }
 
-func newListPINCmd() *cli.Command {
+func (a App) newListPINCmd() *cli.Command {
 	return &cli.Command{
 		Name:    "list-pins",
 		Usage:   "List pins",
 		Suggest: true,
 		Action: func(ctx context.Context, cmd *cli.Command) error {
-			c := snapd.New()
-
-			result, err := c.ListVolumeInfo(ctx)
+			result, err := a.tpm.ListVolumeInfo(ctx)
 			if err != nil {
 				return err
 			}
 
 			data := parseKeySlots(result, snapd.IsPIN)
 
-			displayKeySlotsFromMap(os.Stdout, "PINs", data)
+			displayKeySlotsFromMap(a.tui, "PINs", data)
 
 			return nil
 		},
@@ -165,7 +155,7 @@ func dashIfEmpty[T ~string](s T) string {
 	return string(s)
 }
 
-func displayAllKeys(w io.Writer, data snapd.SystemVolumesResult, hideHeaders bool) error {
+func displayAllKeys(t tui.Tui, data snapd.SystemVolumesResult, hideHeaders bool) error {
 	keys := getAllKeys(data)
 
 	rows := [][]string{}
@@ -185,7 +175,7 @@ func displayAllKeys(w io.Writer, data snapd.SystemVolumesResult, hideHeaders boo
 
 	headers := []string{"ContainerRole", "Volume", "VolumeName", "Encrypted", "KeyslotName", "AuthMode", "PlatformName", "Roles", "Type"}
 
-	if err := tui.DisplayTable(w, headers, rows, hideHeaders); err != nil {
+	if err := t.DisplayTable(headers, rows, hideHeaders); err != nil {
 		return err
 	}
 
@@ -212,9 +202,10 @@ func parseKeySlots(data snapd.SystemVolumesResult, filter func(snapd.KeySlotInfo
 	return result
 }
 
-func displayKeySlotsFromMap(w io.Writer, title string, entries []string) {
-	fmt.Fprintf(w, "%s:\n", title)
+func displayKeySlotsFromMap(t tui.Tui, title string, entries []string) {
+	w := t.Writer()
 
+	fmt.Fprintf(w, "%s:\n", title)
 	for _, e := range entries {
 		fmt.Fprintf(w, "* %s\n", e)
 	}

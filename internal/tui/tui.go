@@ -5,18 +5,14 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"os"
 	"strings"
 	"sync"
-	"syscall"
 	"text/tabwriter"
 	"time"
 
 	"github.com/snapcore/snapd/progress"
 	"golang.org/x/term"
 )
-
-var stdout io.Writer = os.Stdout
 
 // these are the bits of the ANSI escapes (beyond \r) that we use
 // (names of the terminfo capabilities, see terminfo(5)).
@@ -31,38 +27,70 @@ var (
 	cursorVisible = "\033[?25h"
 )
 
+// TerminalReader defines the input stream contract required by Tui.
+type TerminalReader interface {
+	io.Reader
+	Fd() uintptr
+}
+
+// Tui wraps reader and writer streams used by terminal UI helpers.
+type Tui struct {
+	r TerminalReader
+	w io.Writer
+}
+
+// New returns a Tui configured with the provided reader and writer streams.
+func New(r TerminalReader, w io.Writer) Tui {
+	return Tui{r, w}
+}
+
+// Writer returns the output writer configured for this Tui instance.
+func (t Tui) Writer() io.Writer {
+	return t.w
+}
+
+// Reader returns the input reader configured for this Tui instance.
+func (t Tui) Reader() io.Reader {
+	return t.r
+}
+
 // ClearPreviousLines clears the previous lines in the terminal.
-func ClearPreviousLines(lines int) {
-	clr := fmt.Sprint("\r", cursorUp, clrEOL)
-	fmt.Fprint(stdout, strings.Repeat(clr, lines))
+func (t Tui) ClearPreviousLines(lines int) {
+	clr := fmt.Sprint(t.w, "\r", cursorUp, clrEOL)
+	fmt.Fprint(t.w, strings.Repeat(clr, lines))
 }
 
 // HideCursor hides the cursor in the terminal.
-func HideCursor() {
-	fmt.Fprint(stdout, "\r", cursorInvisible, clrEOL)
+func (t Tui) HideCursor() {
+	fmt.Fprint(t.w, "\r", cursorInvisible, clrEOL)
 }
 
 // ShowCursor makes the cursor visible in the terminal.
-func ShowCursor() {
-	fmt.Fprint(stdout, "\r", cursorVisible, clrEOL)
+func (t Tui) ShowCursor() {
+	fmt.Fprint(t.w, "\r", cursorVisible, clrEOL)
 }
 
 // ReadUserSecret prompts the user for sensitive input with no echo on typing.
-func ReadUserSecret(form string) (string, error) {
-	fmt.Fprintf(stdout, "%s", form)
+func (t Tui) ReadUserSecret(form string) (string, error) {
+	fmt.Fprintf(t.w, "%s", form)
 
-	input, err := term.ReadPassword(syscall.Stdin)
-	fmt.Fprintln(stdout)
+	fd := t.r.Fd()
+	const maxInt = int(^uint(0) >> 1)
+	if fd > uintptr(maxInt) {
+		return "", fmt.Errorf("failed to read input: invalid file descriptor")
+	}
 
+	input, err := term.ReadPassword(int(fd))
 	if err != nil {
 		return "", fmt.Errorf("failed to read input: %v", err)
 	}
+	fmt.Fprintln(t.w)
 
 	return string(input), nil
 }
 
 // Spin provides a simple interface to start and stop a spinner in the terminal.
-func Spin(msg string) (stop func()) {
+func (t Tui) Spin(msg string) (stop func()) {
 	var spinner progress.ANSIMeter
 	done := make(chan struct{})
 	var wg sync.WaitGroup
@@ -72,7 +100,7 @@ func Spin(msg string) (stop func()) {
 		defer ticker.Stop()
 
 		// Hide cursor while spinning
-		HideCursor()
+		t.HideCursor()
 		for {
 			select {
 			case <-done:
@@ -96,7 +124,7 @@ func Spin(msg string) (stop func()) {
 }
 
 // DisplayTable writes a formatted table to the given writer with optional headers.
-func DisplayTable(w io.Writer, headers []string, rows [][]string, hideHeaders bool) error {
+func (t Tui) DisplayTable(headers []string, rows [][]string, hideHeaders bool) error {
 	if len(rows) == 0 {
 		return nil
 	}
@@ -116,7 +144,7 @@ func DisplayTable(w io.Writer, headers []string, rows [][]string, hideHeaders bo
 		return err
 	}
 
-	if _, err := io.Copy(w, &buf); err != nil {
+	if _, err := io.Copy(t.w, &buf); err != nil {
 		return err
 	}
 

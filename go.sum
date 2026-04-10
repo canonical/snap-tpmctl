@@ -13,6 +13,8 @@ github.com/canonical/go-tpm2 v1.13.0/go.mod h1:P50xMwC7y5/uxPikzWdK4d9pW9orKi8+Z
 github.com/canonical/tcglog-parser v0.0.0-20240924110432-d15eaf652981 h1:vrUzSfbhl8mzdXPzjxq4jXZPCCNLv18jy6S7aVTS2tI=
 github.com/canonical/tcglog-parser v0.0.0-20240924110432-d15eaf652981/go.mod h1:ywdPBqUGkuuiitPpVWCfilf2/gq+frhq4CNiNs9KyHU=
 github.com/creack/pty v1.1.9/go.mod h1:oKZEueFk5CKHvIhNR5MUki03XCEU+Q6VDXinZuGJ33E=
+github.com/creack/pty v1.1.24 h1:bJrF4RRfyJnbTJqzRLHzcGaZK1NeM5kTC9jGgovnR1s=
+github.com/creack/pty v1.1.24/go.mod h1:08sCNb52WyoAwi2QDyzUCTgcvVFhUzewun7wtTfvcwE=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/frankban/quicktest v1.2.2 h1:xfmOhhoH5fGPgbEAlhLpJH9p0z/0Qizio9osmvn9IUY=

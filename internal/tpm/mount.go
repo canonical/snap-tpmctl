@@ -3,9 +3,7 @@ package tpm
 import (
 	"bufio"
 	"context"
-	"errors"
 	"fmt"
-	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
@@ -34,7 +32,7 @@ func (s SnapTPM) Mount(ctx context.Context, device, target string, authRequestor
 	}
 
 	// Check if volume is already active
-	if _, err := os.Stat(mapperPath); errors.Is(err, fs.ErrNotExist) {
+	if _, err := os.Stat(mapperPath); os.IsNotExist(err) {
 		if err := secboot.ActivateVolumeWithRecoveryKey(
 			volumeName,
 			device,

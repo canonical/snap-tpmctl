@@ -2,6 +2,11 @@
 package tpmtestutils
 
 import (
+	"errors"
+	"flag"
+	"fmt"
+	"os"
+	"path/filepath"
 	"slices"
 	"strings"
 	_ "unsafe" // Required for go:linkname directives
@@ -54,4 +59,72 @@ func OneRequestBodyContains(is *is.I, requests []snapdtestutils.RecordedRequest,
 		}
 		return true
 	})) // Didn't find all wants in any of the requests.
+}
+
+// SystemdCryptsetupMock emulates the systemd-cryptsetup binary behavior for tests.
+func SystemdCryptsetupMock() {
+	flag.Parse()
+	args := flag.Args()
+
+	fmt.Println("Mock systemd-cryptsetup called with args:", args)
+
+	volumeName := args[1]
+	if strings.Contains(volumeName, "exit-with-failure") {
+		os.Exit(1)
+	}
+
+	os.Exit(0)
+}
+
+// SetupMockBinary creates a mock systemd-cryptsetup binary in the provided root for tests.
+func SetupMockBinary(is *is.I, root string) {
+	is.Helper()
+
+	usrBin := filepath.Join(root, "usr", "bin")
+	err := os.MkdirAll(usrBin, 0750)
+	is.NoErr(err) // Setup: could not create mock binary directory
+	path, err := filepath.Abs(os.Args[0])
+	is.NoErr(err) // Setup: could not find asbsolute path to self
+	err = os.Symlink(path, filepath.Join(usrBin, "systemd-cryptsetup"))
+	is.NoErr(err) // Setup: could not create symlink for mock cryptsetup binary
+}
+
+// SetupProcMount creates a mock /proc/mounts file with the provided content under root.
+func SetupProcMount(is *is.I, root, content string) {
+	is.Helper()
+
+	err := os.MkdirAll(filepath.Join(root, "proc"), 0750)
+	is.NoErr(err)
+	f, err := os.Create(filepath.Join(root, "proc", "mounts"))
+	is.NoErr(err)
+	defer f.Close()
+
+	_, err = f.WriteString(content)
+	is.NoErr(err)
+}
+
+// TestSyscall is a test implementation of mount and unmount system calls.
+type TestSyscall struct {
+	Mounted   bool
+	Unmounted bool
+
+	WantErr bool
+}
+
+// Mount records a mount call and optionally returns a test error.
+func (t *TestSyscall) Mount(path, target string) error {
+	if t.WantErr {
+		return errors.New("test error")
+	}
+	t.Mounted = true
+	return nil
+}
+
+// Unmount records an unmount call and optionally returns a test error.
+func (t *TestSyscall) Unmount(target string) error {
+	if t.WantErr {
+		return errors.New("test error")
+	}
+	t.Unmounted = true
+	return nil
 }
