@@ -9,6 +9,7 @@ import (
 	cmdtestutils "github.com/canonical/snap-tpmctl/cmd/tpmctl/cmd/testutils"
 	snapdtestutils "github.com/canonical/snap-tpmctl/internal/snapd/testutils"
 	"github.com/canonical/snap-tpmctl/internal/testutils"
+	"github.com/canonical/snap-tpmctl/internal/testutils/golden"
 	"github.com/canonical/snap-tpmctl/internal/tpm"
 	tpmtestutils "github.com/canonical/snap-tpmctl/internal/tpm/testutils"
 	"github.com/canonical/snap-tpmctl/internal/tui"
@@ -64,6 +65,8 @@ func TestRemove(t *testing.T) {
 				}
 
 				is.True(logs.Len() == 0) // No logs printed by default
+
+				golden.CheckOrUpdate(t, out.String()) // TestRemove returns the correct output
 			})
 		}
 	}
