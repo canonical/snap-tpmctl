@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/canonical/snap-tpmctl/internal/snapd"
 	"github.com/urfave/cli/v3"
 )
 
@@ -16,11 +15,6 @@ func (a App) newRemovePassphraseCmd() *cli.Command {
 			// Ensure that the user's effective ID is root
 			if !a.isUserRoot() {
 				return fmt.Errorf("this command requires elevated privileges. Please run with sudo")
-			}
-
-			// Validate auth mode is currently passphrase
-			if err := a.tpm.ValidateAuthMode(ctx, snapd.AuthModePassphrase); err != nil {
-				return err
 			}
 
 			stop := a.tui.Spin("Removing passphrase...")
@@ -45,11 +39,6 @@ func (a App) newRemovePINCmd() *cli.Command {
 			// Ensure that the user's effective ID is root
 			if !a.isUserRoot() {
 				return fmt.Errorf("this command requires elevated privileges. Please run with sudo")
-			}
-
-			// Validate auth mode is currently PIN
-			if err := a.tpm.ValidateAuthMode(ctx, snapd.AuthModePIN); err != nil {
-				return err
 			}
 
 			stop := a.tui.Spin("Removing PIN...")

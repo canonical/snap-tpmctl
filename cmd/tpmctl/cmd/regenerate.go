@@ -6,7 +6,6 @@ import (
 	"fmt"
 
 	"github.com/canonical/snap-tpmctl/internal/snapd"
-	"github.com/canonical/snap-tpmctl/internal/tpm"
 	"github.com/urfave/cli/v3"
 )
 
@@ -42,11 +41,6 @@ func (a App) newRegenerateKeyCmd() *cli.Command {
 			}
 		},
 		Action: func(ctx context.Context, cmd *cli.Command) error {
-			// Validate the recovery key name
-			if err := tpm.ValidateRecoveryKeyName(ctx, recoveryKeyName); err != nil {
-				return err
-			}
-
 			stop := a.tui.Spin("Regenerating recovery key...")
 			defer stop()
 

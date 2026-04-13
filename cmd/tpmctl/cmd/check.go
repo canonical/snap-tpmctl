@@ -5,7 +5,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/canonical/snap-tpmctl/internal/tpm"
 	"github.com/urfave/cli/v3"
 )
 
@@ -17,10 +16,6 @@ func (a App) newCheckCmd() *cli.Command {
 		Action: func(ctx context.Context, cmd *cli.Command) error {
 			key, err := a.tui.ReadRecoveryKey()
 			if err != nil {
-				return err
-			}
-
-			if err := tpm.ValidateRecoveryKey(key); err != nil {
 				return err
 			}
 
