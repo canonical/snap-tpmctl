@@ -27,11 +27,11 @@ func TestCheck(t *testing.T) {
 		wantErr     bool
 	}{
 		"Success_checking_recovery_key":       {},
-		"Success_on_not_working_recovery_key": {},
+		"Success_with_invalid_recovery_key":   {},
+		"Success_with_incorrect_recovery_key": {key: "incorrect"},
 
-		"Fail_reading_input":             {wantReadErr: true, wantErr: true},
-		"Fail_with_invalid_recovery_key": {key: "invalid", wantErr: true},
-		"Fail_checking_recovery_key":     {wantErr: true},
+		"Fail_reading_input":         {wantReadErr: true, wantErr: true},
+		"Fail_checking_recovery_key": {wantErr: true},
 	}
 
 	for name, tc := range tests {
