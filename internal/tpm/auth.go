@@ -35,8 +35,7 @@ func (s SnapTPM) ReplacePassphrase(ctx context.Context, oldPassphrase, newPassph
 
 // RemovePassphrase removes passphrase authentication from the platform key.
 func (s SnapTPM) RemovePassphrase(ctx context.Context) error {
-	err := s.snapdClient.ReplacePlatformKey(ctx, snapd.AuthModeNone, "")
-	if err != nil {
+	if err := s.snapdClient.ReplacePlatformKey(ctx, snapd.AuthModeNone, ""); err != nil {
 		return fmt.Errorf("failed to remove passphrase: %v", err)
 	}
 

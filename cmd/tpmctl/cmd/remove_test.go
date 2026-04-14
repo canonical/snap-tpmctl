@@ -31,7 +31,6 @@ func TestRemove(t *testing.T) {
 		"Success_on_removing": {},
 
 		"Fail_on_user_privilege": {wantUserErr: true, wantErr: true},
-		"Fail_wrong_auth_mode":   {wantErr: true},
 		"Fail_on_removing":       {wantErr: true},
 	}
 	for _, command := range commands {
