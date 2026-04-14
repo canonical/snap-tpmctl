@@ -52,7 +52,7 @@ parts:
       - git
     override-build: |
       VERSION=$(craftctl get version)
-      LDFLAGS="-X github.com/canonical/snap-tpmctl/cmd/tpmctl/cmd.Version=$VERSION"
+      LDFLAGS="-X github.com/canonical/snap-tpmctl/cmd/tpmctl/cmd.version=$VERSION"
       go build -ldflags="$LDFLAGS" -o $CRAFT_PART_INSTALL/bin/snap-tpmctl ./cmd/tpmctl
     after:
       - version
