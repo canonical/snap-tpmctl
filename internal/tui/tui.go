@@ -3,6 +3,7 @@ package tui
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"io"
 	"strings"
@@ -70,17 +71,24 @@ func (t Tui) ShowCursor() {
 	fmt.Fprint(t.w, "\r", cursorVisible, clrEOL)
 }
 
-// ReadUserSecret prompts the user for sensitive input with no echo on typing.
-func (t Tui) ReadUserSecret(form string) (string, error) {
-	fmt.Fprintf(t.w, "%s", form)
+// ReadUserSecret prompts the user for sensitive input with asterisk echo on typing.
+func (t Tui) ReadUserSecret(prompt string) (string, error) {
+	fmt.Fprint(t.w, prompt)
 
-	fd := t.r.Fd()
-	const maxInt = int(^uint(0) >> 1)
-	if fd > uintptr(maxInt) {
-		return "", fmt.Errorf("failed to read input: invalid file descriptor")
+	input, err := t.readMaskedInput(0)
+	if err != nil {
+		return "", fmt.Errorf("failed to read input: %v", err)
 	}
+	fmt.Fprintln(t.w)
 
-	input, err := term.ReadPassword(int(fd))
+	return string(input), nil
+}
+
+// ReadRecoveryKey prompts the user for entering a recovery key with automatic grouping hyphens.
+func (t Tui) ReadRecoveryKey() (string, error) {
+	fmt.Fprint(t.w, "Enter recovery key: ")
+
+	input, err := t.readMaskedInput(5)
 	if err != nil {
 		return "", fmt.Errorf("failed to read input: %v", err)
 	}
@@ -149,4 +157,76 @@ func (t Tui) DisplayTable(headers []string, rows [][]string, hideHeaders bool) e
 	}
 
 	return nil
+}
+
+func (t Tui) readMaskedInput(groupEvery int) ([]byte, error) {
+	const maxInputLen = 40
+
+	ptr := t.r.Fd()
+	const maxInt = int(^uint(0) >> 1)
+	if ptr > uintptr(maxInt) {
+		return nil, fmt.Errorf("failed to read input: invalid file descriptor")
+	}
+	fd := int(ptr)
+
+	oldState, err := term.MakeRaw(fd)
+	if err != nil {
+		return nil, err
+	}
+	// 2. Ensure terminal state is restored even if the program panics
+	defer func() {
+		if err := term.Restore(fd, oldState); err != nil {
+			fmt.Fprintf(t.w, "failed to restore terminal state: %v", err)
+		}
+	}()
+
+	var buf [1]byte
+	var ret []byte
+
+	for {
+		n, err := t.r.Read(buf[:])
+		if n > 0 {
+			switch buf[0] {
+			// Case for backspace (ASCII: 127)
+			case '\b', 127:
+				if len(ret) == 0 {
+					continue
+				}
+				if len(ret) > 0 {
+					ret = ret[:len(ret)-1]
+				}
+				fmt.Fprint(t.w, "\b \b")
+				// Remove the visual separator when deleting the first char of a group.
+				if len(ret) > 0 && groupEvery > 0 && len(ret)%groupEvery == 0 {
+					fmt.Fprint(t.w, "\b \b")
+				}
+
+			// Case for new line (ASCII: 12)
+			case '\n', 13:
+				return ret, nil
+
+			// Case for Ctrl+C (ASCII: 3)
+			case 3:
+				return nil, nil
+
+			default:
+				if len(ret) >= maxInputLen {
+					continue
+				}
+				// Print '-' before the first char of each next group.
+				if len(ret) > 0 && groupEvery > 0 && len(ret)%groupEvery == 0 {
+					fmt.Fprint(t.w, "-")
+				}
+				ret = append(ret, buf[0])
+				fmt.Fprint(t.w, "*")
+			}
+			continue
+		}
+		if err != nil {
+			if errors.Is(err, io.EOF) && len(ret) > 0 {
+				return ret, nil
+			}
+			return ret, err
+		}
+	}
 }
