@@ -182,28 +182,45 @@ func (t Tui) readMaskedInput(groupEvery int) ([]byte, error) {
 
 	var buf [1]byte
 	var ret []byte
+	var masked []byte
 
 	for {
+		lastIsSep := len(masked) > 0 && masked[len(masked)-1] == '-'
+		atGroupBoundary := groupEvery > 0 && len(ret)%groupEvery == 0
+
 		n, err := t.r.Read(buf[:])
 		if n > 0 {
 			switch buf[0] {
-			// Case for backspace (ASCII: 127)
+			// Case for backspace and delete (ASCII: 127)
 			case '\b', 127:
-				if len(ret) == 0 {
+				if len(masked) == 0 {
 					continue
 				}
-				if len(ret) > 0 {
+
+				last := masked[len(masked)-1]
+				masked = masked[:len(masked)-1]
+				fmt.Fprint(t.w, "\b \b")
+
+				if last == '*' && len(ret) > 0 {
 					ret = ret[:len(ret)-1]
 				}
-				fmt.Fprint(t.w, "\b \b")
-				// Remove the visual separator when deleting the first char of a group.
-				if len(ret) > 0 && groupEvery > 0 && len(ret)%groupEvery == 0 {
+
+				// Remove trailing visual separator after deleting the first char of a group.
+				if len(masked) > 0 && masked[len(masked)-1] == '-' {
+					masked = masked[:len(masked)-1]
 					fmt.Fprint(t.w, "\b \b")
 				}
 
-			// Case for new line (ASCII: 12)
-			case '\n', 13:
+			case '\n', '\r':
 				return ret, nil
+
+			case '-':
+				// Keep the internal value normalized while echoing typed separators.
+				if len(ret) > 0 && atGroupBoundary && !lastIsSep {
+					fmt.Fprint(t.w, "-")
+					masked = append(masked, '-')
+				}
+				continue
 
 			// Case for Ctrl+C (ASCII: 3)
 			case 3:
@@ -214,11 +231,13 @@ func (t Tui) readMaskedInput(groupEvery int) ([]byte, error) {
 					continue
 				}
 				// Print '-' before the first char of each next group.
-				if len(ret) > 0 && groupEvery > 0 && len(ret)%groupEvery == 0 {
+				if len(ret) > 0 && atGroupBoundary && !lastIsSep {
 					fmt.Fprint(t.w, "-")
+					masked = append(masked, '-')
 				}
 				ret = append(ret, buf[0])
 				fmt.Fprint(t.w, "*")
+				masked = append(masked, '*')
 			}
 			continue
 		}
