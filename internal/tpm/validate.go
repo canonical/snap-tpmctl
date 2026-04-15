@@ -160,7 +160,7 @@ func (s SnapTPM) ValidateRecoveryKeyNameUnique(ctx context.Context, recoveryKeyN
 	return nil
 }
 
-var isValidRecoveryKey = regexp.MustCompile("^([0-9]{5}-){7}[0-9]{5}$").MatchString
+var isValidRecoveryKey = regexp.MustCompile("^([0-9]{5}-?){7}[0-9]{5}$").MatchString
 
 // ValidateRecoveryKey validates that recovery key matches expected formatting.
 func ValidateRecoveryKey(key string) error {
