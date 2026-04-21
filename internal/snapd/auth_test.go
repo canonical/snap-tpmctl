@@ -138,9 +138,10 @@ func TestReplacePlatformKey(t *testing.T) {
 
 		wantErr bool
 	}{
-		"Replace_with_AuthModeNone":       {authMode: snapd.AuthModeNone},
-		"Replace_with_AuthModePIN":        {authMode: snapd.AuthModePIN, secret: "12345"},
-		"Replace_with_AuthModePassphrase": {authMode: snapd.AuthModePassphrase, secret: "test"},
+		"Replace_with_AuthModeNone":         {authMode: snapd.AuthModeNone},
+		"Replace_with_AuthModePIN":          {authMode: snapd.AuthModePIN, secret: "12345"},
+		"Replace_with_AuthModePassphrase":   {authMode: snapd.AuthModePassphrase, secret: "test"},
+		"Ignoring_AuthModeNone_with_secret": {authMode: snapd.AuthModeNone, secret: "test"},
 
 		"Error_on_snapd_call_returning_400": {wantErr: true},
 	}
