@@ -189,63 +189,64 @@ func (t Tui) readMaskedInput(groupEvery int) ([]byte, error) {
 		atGroupBoundary := groupEvery > 0 && len(ret)%groupEvery == 0
 
 		n, err := t.r.Read(buf[:])
-		if n > 0 {
-			switch buf[0] {
-			// Case for backspace and delete (ASCII: 127)
-			case '\b', 127:
-				if len(masked) == 0 {
-					continue
-				}
-
-				last := masked[len(masked)-1]
-				masked = masked[:len(masked)-1]
-				fmt.Fprint(t.w, "\b \b")
-
-				if last == '*' && len(ret) > 0 {
-					ret = ret[:len(ret)-1]
-				}
-
-				// Remove trailing visual separator after deleting the first char of a group.
-				if len(masked) > 0 && masked[len(masked)-1] == '-' {
-					masked = masked[:len(masked)-1]
-					fmt.Fprint(t.w, "\b \b")
-				}
-
-			case '\n', '\r':
-				return ret, nil
-
-			case '-':
-				// Keep the internal value normalized while echoing typed separators.
-				if len(ret) > 0 && atGroupBoundary && !lastIsSep {
-					fmt.Fprint(t.w, "-")
-					masked = append(masked, '-')
-				}
-				continue
-
-			// Case for Ctrl+C (ASCII: 3)
-			case 3:
-				return nil, nil
-
-			default:
-				if len(ret) >= maxInputLen {
-					continue
-				}
-				// Print '-' before the first char of each next group.
-				if len(ret) > 0 && atGroupBoundary && !lastIsSep {
-					fmt.Fprint(t.w, "-")
-					masked = append(masked, '-')
-				}
-				ret = append(ret, buf[0])
-				fmt.Fprint(t.w, "*")
-				masked = append(masked, '*')
-			}
-			continue
-		}
 		if err != nil {
 			if errors.Is(err, io.EOF) && len(ret) > 0 {
 				return ret, nil
 			}
 			return ret, err
+		}
+		if n == 0 {
+			continue
+		}
+
+		switch buf[0] {
+		// Case for backspace and delete (ASCII: 127)
+		case '\b', 127:
+			if len(masked) == 0 {
+				continue
+			}
+
+			last := masked[len(masked)-1]
+			masked = masked[:len(masked)-1]
+			fmt.Fprint(t.w, "\b \b")
+
+			if last == '*' && len(ret) > 0 {
+				ret = ret[:len(ret)-1]
+			}
+
+			// Remove trailing visual separator after deleting the first char of a group.
+			if len(masked) > 0 && masked[len(masked)-1] == '-' {
+				masked = masked[:len(masked)-1]
+				fmt.Fprint(t.w, "\b \b")
+			}
+
+		case '\n', '\r':
+			return ret, nil
+
+		case '-':
+			// Keep the internal value normalized while echoing typed separators.
+			if len(ret) > 0 && atGroupBoundary && !lastIsSep {
+				fmt.Fprint(t.w, "-")
+				masked = append(masked, '-')
+			}
+			continue
+
+		// Case for Ctrl+C (ASCII: 3)
+		case 3:
+			return nil, nil
+
+		default:
+			if len(ret) >= maxInputLen {
+				continue
+			}
+			// Print '-' before the first char of each next group.
+			if len(ret) > 0 && atGroupBoundary && !lastIsSep {
+				fmt.Fprint(t.w, "-")
+				masked = append(masked, '-')
+			}
+			ret = append(ret, buf[0])
+			fmt.Fprint(t.w, "*")
+			masked = append(masked, '*')
 		}
 	}
 }
