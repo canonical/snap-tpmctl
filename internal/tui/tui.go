@@ -159,9 +159,9 @@ func (t Tui) DisplayTable(headers []string, rows [][]string, hideHeaders bool) e
 	return nil
 }
 
-func (t Tui) readMaskedInput(groupEvery int) ([]byte, error) {
-	const maxInputLen = 40
+const maxInputLen = 40
 
+func (t Tui) readMaskedInput(groupEvery int) ([]byte, error) {
 	ptr := t.r.Fd()
 	const maxInt = int(^uint(0) >> 1)
 	if ptr > uintptr(maxInt) {

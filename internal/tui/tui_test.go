@@ -74,9 +74,10 @@ func TestReadSecret(t *testing.T) {
 
 		wantErr bool
 	}{
-		"Success":           {},
-		"Success_backspace": {input: "test\bx\n"},
-		"Success_ctrl_c":    {input: "\x03"},
+		"Success":                    {},
+		"Success_backspace":          {input: "test\bx\n"},
+		"Success_ctrl_c":             {input: "\x03"},
+		"Success_ignoring_backspace": {input: "\b\b\b\n"},
 
 		"Error_reading_input": {ttyReadError: true, wantErr: true},
 	}
@@ -138,9 +139,11 @@ func TestReadRecoveryKey(t *testing.T) {
 
 		wantErr bool
 	}{
-		"Success":                   {},
-		"Success_with_typed_hyphen": {input: "12345-12345\n"},
-		"Success_backspace":         {input: "1234\bx2345\n"},
+		"Success":                       {},
+		"Success_with_typed_hyphen":     {input: "12345-12345\n"},
+		"Success_backspace":             {input: "1234\bx2345\n"},
+		"Success_removing_separator":    {input: "123451\b12345\n"},
+		"Success_ignoring_larger_input": {input: strings.Repeat("12345", 10) + "\n"},
 
 		"Error_reading_input": {ttyReadError: true, wantErr: true},
 	}
@@ -181,6 +184,7 @@ func TestReadRecoveryKey(t *testing.T) {
 				return
 			}
 			is.NoErr(err)
+			is.True(len(key) <= tui.MaxInputLen)
 
 			got := struct {
 				Out string
