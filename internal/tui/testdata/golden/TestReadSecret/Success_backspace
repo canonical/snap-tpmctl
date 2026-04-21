@@ -1,1 +1,2 @@
-Enter passphrase: **** *
+out: "Enter passphrase: ****\b \b*\n"
+secret: tesx

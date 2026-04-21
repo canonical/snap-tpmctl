@@ -1,1 +1,2 @@
-Enter recovery key: **** **-***
+out: "Enter recovery key: ****\b \b**-***\n"
+key: 123x2345

@@ -1,1 +1,3 @@
-Enter recovery key: *****-*****
+out: |
+    Enter recovery key: *****-*****
+key: "1234512345"

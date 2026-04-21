@@ -61,7 +61,7 @@ func TestSpin(t *testing.T) {
 		stop()
 		synctest.Wait()
 
-		golden.CheckOrUpdate(t, globalBuf.String())
+		golden.CheckOrUpdate(t, globalBuf.String()) // TestSpin returns the expected spinner output
 	})
 }
 
@@ -69,17 +69,16 @@ func TestReadSecret(t *testing.T) {
 	t.Parallel()
 
 	tests := map[string]struct {
-		input      string
-		wantSecret string
+		input        string
+		ttyReadError bool
 
-		wantReadErr bool
-		wantErr     bool
+		wantErr bool
 	}{
 		"Success":           {},
-		"Success_backspace": {input: "test\bx\n", wantSecret: "tesx"},
-		"Success_ctrl_c":    {input: "\x03", wantSecret: ""},
+		"Success_backspace": {input: "test\bx\n"},
+		"Success_ctrl_c":    {input: "\x03"},
 
-		"Fail_reading_input": {wantReadErr: true, wantErr: true},
+		"Error_reading_input": {ttyReadError: true, wantErr: true},
 	}
 
 	for name, tc := range tests {
@@ -91,15 +90,14 @@ func TestReadSecret(t *testing.T) {
 			validSecret := "mysecret"
 			if tc.input == "" {
 				tc.input = validSecret + "\n"
-				tc.wantSecret = validSecret
 			}
 
 			ptmx, tty, err := pty.Open()
-			is.NoErr(err)
+			is.NoErr(err) // Setup: could not create fake terminal
 			defer ptmx.Close()
 			defer tty.Close()
 
-			if tc.wantReadErr {
+			if tc.ttyReadError {
 				tty = nil
 			}
 
@@ -113,14 +111,20 @@ func TestReadSecret(t *testing.T) {
 			}()
 
 			secret, err := tt.ReadUserSecret("Enter passphrase: ")
-
 			if testutils.CheckError(is, err, tc.wantErr) {
 				return
 			}
 			is.NoErr(err)
-			is.Equal(secret, tc.wantSecret)
 
-			golden.CheckOrUpdate(t, out.String())
+			got := struct {
+				Out    string
+				Secret string
+			}{
+				Out:    out.String(),
+				Secret: secret,
+			}
+
+			golden.CheckOrUpdate(t, got) // TestReadSecret returns the expected output and secret
 		})
 	}
 }
@@ -129,17 +133,16 @@ func TestReadRecoveryKey(t *testing.T) {
 	t.Parallel()
 
 	tests := map[string]struct {
-		input   string
-		wantKey string
+		input        string
+		ttyReadError bool
 
-		wantReadErr bool
-		wantErr     bool
+		wantErr bool
 	}{
 		"Success":                   {},
-		"Success_with_typed_hyphen": {input: "12345-12345\n", wantKey: "1234512345"},
-		"Success_backspace":         {input: "1234\bx2345\n", wantKey: "123x2345"},
+		"Success_with_typed_hyphen": {input: "12345-12345\n"},
+		"Success_backspace":         {input: "1234\bx2345\n"},
 
-		"Fail_reading_input": {wantReadErr: true, wantErr: true},
+		"Error_reading_input": {ttyReadError: true, wantErr: true},
 	}
 
 	for name, tc := range tests {
@@ -152,15 +155,14 @@ func TestReadRecoveryKey(t *testing.T) {
 			validKey := "1234512345123451234512345123451234512345"
 			if tc.input == "" {
 				tc.input = validKey + "\n"
-				tc.wantKey = validKey
 			}
 
 			ptmx, tty, err := pty.Open()
-			is.NoErr(err)
+			is.NoErr(err) // Setup: could not create fake terminal
 			defer ptmx.Close()
 			defer tty.Close()
 
-			if tc.wantReadErr {
+			if tc.ttyReadError {
 				tty = nil
 			}
 
@@ -179,9 +181,16 @@ func TestReadRecoveryKey(t *testing.T) {
 				return
 			}
 			is.NoErr(err)
-			is.Equal(key, tc.wantKey)
 
-			golden.CheckOrUpdate(t, out.String())
+			got := struct {
+				Out string
+				Key string
+			}{
+				Out: out.String(),
+				Key: key,
+			}
+
+			golden.CheckOrUpdate(t, got) // TestReadRecoveryKey returns the expected output
 		})
 	}
 }

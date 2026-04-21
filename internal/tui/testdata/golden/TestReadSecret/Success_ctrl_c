@@ -1,1 +1,2 @@
-Enter passphrase: 
+out: "Enter passphrase: \n"
+secret: ""
