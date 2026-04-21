@@ -15,7 +15,7 @@ func (a App) newCheckCmd() *cli.Command {
 		Usage:   "Check recovery key",
 		Suggest: true,
 		Action: func(ctx context.Context, cmd *cli.Command) error {
-			key, err := a.tui.ReadUserSecret("Enter recovery key: ")
+			key, err := a.tui.ReadRecoveryKey()
 			if err != nil {
 				return err
 			}

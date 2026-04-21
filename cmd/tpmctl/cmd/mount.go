@@ -21,7 +21,7 @@ func (r *authRequestor) RequestUserCredential(ctx context.Context, name, path st
 		return "", fmt.Errorf("authentication type not supported")
 	}
 
-	key, err := r.ReadUserSecret("Enter recovery key: ")
+	key, err := r.ReadRecoveryKey()
 	if err != nil {
 		return "", err
 	}
@@ -124,7 +124,7 @@ func (a App) newGetLuksKeyFromRecoveryKeyCmd() *cli.Command {
 			},
 		},
 		Action: func(ctx context.Context, cmd *cli.Command) error {
-			recoveryKey, err := a.tui.ReadUserSecret("Enter recovery key: ")
+			recoveryKey, err := a.tui.ReadRecoveryKey()
 			if err != nil {
 				return err
 			}

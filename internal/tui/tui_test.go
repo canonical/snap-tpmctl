@@ -1,6 +1,7 @@
 package tui_test
 
 import (
+	"fmt"
 	"io"
 	"os"
 	"strings"
@@ -10,8 +11,10 @@ import (
 	"time"
 	_ "unsafe" // Required for go:linkname directives
 
+	"github.com/canonical/snap-tpmctl/internal/testutils"
 	"github.com/canonical/snap-tpmctl/internal/testutils/golden"
 	"github.com/canonical/snap-tpmctl/internal/tui"
+	"github.com/creack/pty"
 	"github.com/matryer/is"
 )
 
@@ -58,8 +61,142 @@ func TestSpin(t *testing.T) {
 		stop()
 		synctest.Wait()
 
-		golden.CheckOrUpdate(t, globalBuf.String())
+		golden.CheckOrUpdate(t, globalBuf.String()) // TestSpin returns the expected spinner output
 	})
+}
+
+func TestReadSecret(t *testing.T) {
+	t.Parallel()
+
+	tests := map[string]struct {
+		input        string
+		ttyReadError bool
+
+		wantErr bool
+	}{
+		"Success":                    {},
+		"Success_backspace":          {input: "test\bx\n"},
+		"Success_ctrl_c":             {input: "\x03"},
+		"Success_ignoring_backspace": {input: "\b\b\b\n"},
+
+		"Error_reading_input": {ttyReadError: true, wantErr: true},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			is := is.New(t)
+
+			validSecret := "mysecret"
+			if tc.input == "" {
+				tc.input = validSecret + "\n"
+			}
+
+			ptmx, tty, err := pty.Open()
+			is.NoErr(err) // Setup: could not create fake terminal
+			defer ptmx.Close()
+			defer tty.Close()
+
+			if tc.ttyReadError {
+				tty = nil
+			}
+
+			var out strings.Builder
+			tt := tui.New(tty, &out)
+
+			done := make(chan struct{})
+			go func() {
+				defer close(done)
+				fmt.Fprint(ptmx, tc.input)
+			}()
+
+			secret, err := tt.ReadUserSecret("Enter passphrase: ")
+			if testutils.CheckError(is, err, tc.wantErr) {
+				return
+			}
+			is.NoErr(err)
+
+			got := struct {
+				Out    string
+				Secret string
+			}{
+				Out:    out.String(),
+				Secret: secret,
+			}
+
+			golden.CheckOrUpdate(t, got) // TestReadSecret returns the expected output and secret
+		})
+	}
+}
+
+func TestReadRecoveryKey(t *testing.T) {
+	t.Parallel()
+
+	tests := map[string]struct {
+		input        string
+		ttyReadError bool
+
+		wantErr bool
+	}{
+		"Success":                       {},
+		"Success_with_typed_hyphen":     {input: "12345-12345\n"},
+		"Success_backspace":             {input: "1234\bx2345\n"},
+		"Success_removing_separator":    {input: "123451\b12345\n"},
+		"Success_ignoring_larger_input": {input: strings.Repeat("12345", 10) + "\n"},
+
+		"Error_reading_input": {ttyReadError: true, wantErr: true},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			is := is.New(t)
+
+			// 40-digit key (8 groups of 5 digits)
+			validKey := "1234512345123451234512345123451234512345"
+			if tc.input == "" {
+				tc.input = validKey + "\n"
+			}
+
+			ptmx, tty, err := pty.Open()
+			is.NoErr(err) // Setup: could not create fake terminal
+			defer ptmx.Close()
+			defer tty.Close()
+
+			if tc.ttyReadError {
+				tty = nil
+			}
+
+			var out strings.Builder
+			tt := tui.New(tty, &out)
+
+			done := make(chan struct{})
+			go func() {
+				defer close(done)
+				fmt.Fprint(ptmx, tc.input)
+			}()
+
+			key, err := tt.ReadRecoveryKey()
+
+			if testutils.CheckError(is, err, tc.wantErr) {
+				return
+			}
+			is.NoErr(err)
+			is.True(len(key) <= tui.MaxInputLen)
+
+			got := struct {
+				Out string
+				Key string
+			}{
+				Out: out.String(),
+				Key: key,
+			}
+
+			golden.CheckOrUpdate(t, got) // TestReadRecoveryKey returns the expected output
+		})
+	}
 }
 
 func getEscapes(t *testing.T) string {
