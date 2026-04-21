@@ -25,7 +25,7 @@ func TestMountVolume(t *testing.T) {
 		recoveryKey      string
 		syscall          tpmtestutils.TestSyscall
 		emptyDeviceError bool
-		mountDirError    bool
+		emptyDirError    bool
 		ttyReadError     bool
 		deviceStatError  bool
 
@@ -33,11 +33,11 @@ func TestMountVolume(t *testing.T) {
 	}{
 		"Success on mounting volume": {},
 
-		"Error out when authRequestor fails":     {ttyReadError: true, wantErr: true},
-		"Error out when mount fails":             {syscall: tpmtestutils.TestSyscall{WantErr: true}, wantErr: true},
-		"Error out when device is empty":         {emptyDeviceError: true, wantErr: true},
-		"Error out when device doesn't exists":   {deviceStatError: true, wantErr: true},
-		"Error out when dir path isn't absolute": {mountDirError: true, wantErr: true},
+		"Error out when authRequestor fails":   {ttyReadError: true, wantErr: true},
+		"Error out when mount fails":           {syscall: tpmtestutils.TestSyscall{WantErr: true}, wantErr: true},
+		"Error out when device doesn't exists": {deviceStatError: true, wantErr: true},
+		"Error out when device is empty":       {emptyDeviceError: true, wantErr: true},
+		"Error out when dir path is empty":     {emptyDirError: true, wantErr: true},
 	}
 
 	for name, tc := range tests {
@@ -64,9 +64,10 @@ func TestMountVolume(t *testing.T) {
 				defer f.Close()
 			}
 
-			if tc.dir == "" && !tc.mountDirError {
+			if tc.dir == "" {
 				tc.dir = "mount-dir"
 			}
+			tc.dir = filepath.Join(root, tc.dir) // Convert to an absolute path
 
 			if tc.recoveryKey == "" {
 				tc.recoveryKey = "11272-47509-28031-54818-41671-38673-11053-06376"
@@ -87,11 +88,15 @@ func TestMountVolume(t *testing.T) {
 			done := make(chan struct{})
 			go func() {
 				defer close(done)
-				fmt.Fprintf(ptmx, "%s\n", tc.recoveryKey)
+				fmt.Fprintln(ptmx, tc.recoveryKey)
 			}()
 
 			if tc.emptyDeviceError {
 				tc.device = ""
+			}
+
+			if tc.emptyDirError {
+				tc.dir = ""
 			}
 
 			s := tpm.New(
@@ -118,14 +123,14 @@ func TestUnmountVolume(t *testing.T) {
 	tests := map[string]struct {
 		dir           string
 		syscall       tpmtestutils.TestSyscall
-		mountDirError bool
+		emptyDirError bool
 
 		wantErr bool
 	}{
 		"Success on unmounting volume": {},
 
-		"Error out when unmount fails":           {syscall: tpmtestutils.TestSyscall{WantErr: true}, wantErr: true},
-		"Error out when dir path isn't absolute": {mountDirError: true, wantErr: true},
+		"Error out when unmount fails":     {syscall: tpmtestutils.TestSyscall{WantErr: true}, wantErr: true},
+		"Error out when dir path is empty": {emptyDirError: true, wantErr: true},
 	}
 
 	for name, tc := range tests {
@@ -152,7 +157,7 @@ func TestUnmountVolume(t *testing.T) {
 			content := fmt.Sprintf("%s %s ext4 rw 0 0\n", filepath.Join(root, "dev", "mapper", "test"), tc.dir)
 			tpmtestutils.SetupProcMount(is, root, content)
 
-			if tc.mountDirError {
+			if tc.emptyDirError {
 				tc.dir = ""
 			}
 
