@@ -27,14 +27,15 @@ func TestAdd(t *testing.T) {
 	}
 
 	tests := map[string]struct {
-		wantUserErr bool
-		wantReadErr bool
-		wantErr     bool
-	}{
-		"Success_on_adding": {},
+		admineUID    int
+		ttyReadError bool
 
-		"Fail_on_user_privilege": {wantUserErr: true, wantErr: true},
-		"Fail_reading_input":     {wantReadErr: true, wantErr: true},
+		wantErr bool
+	}{
+		"Success": {},
+
+		"Fail_on_user_privilege": {admineUID: 1, wantErr: true},
+		"Fail_reading_input":     {ttyReadError: true, wantErr: true},
 		"Fail_wrong_auth_mode":   {wantErr: true},
 		"Fail_on_validating":     {wantErr: true},
 		"Fail_on_adding":         {wantErr: true},
@@ -53,11 +54,11 @@ func TestAdd(t *testing.T) {
 				}
 
 				ptmx, tty, err := pty.Open()
-				is.NoErr(err)
+				is.NoErr(err) // Setup: could not create fake terminal
 				defer ptmx.Close()
 				defer tty.Close()
 
-				if tc.wantReadErr {
+				if tc.ttyReadError {
 					tty = nil
 				}
 
@@ -68,14 +69,9 @@ func TestAdd(t *testing.T) {
 				go func() {
 					defer close(done)
 					for range 2 {
-						fmt.Fprintf(ptmx, "%s\n", input)
+						fmt.Fprintln(ptmx, input)
 					}
 				}()
-
-				euid := 0
-				if tc.wantUserErr {
-					euid = 1
-				}
 
 				c := snapdtestutils.NewMockSnapdServer(t, ctx)
 				s := tpm.New(tpmtestutils.WithSnapdClient(c.Client))
@@ -83,7 +79,7 @@ func TestAdd(t *testing.T) {
 					cmdtestutils.WithSnapTPM(s),
 					cmdtestutils.WithArgs(command),
 					cmdtestutils.WithTui(tui),
-					cmdtestutils.WithEuid(euid),
+					cmdtestutils.WithEuid(tc.admineUID),
 				)
 
 				err = app.Run(ctx)

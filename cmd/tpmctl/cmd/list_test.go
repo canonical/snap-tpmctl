@@ -22,16 +22,16 @@ func TestListAll(t *testing.T) {
 	t.Parallel()
 
 	tests := map[string]struct {
-		hideHeaders bool
+		hideHeaders   bool
+		tuiWriteError bool
 
-		writeErr bool
-		wantErr  bool
+		wantErr bool
 	}{
 		"Success_on_getting_keyslots":                 {},
 		"Success_on_getting_keyslots_without_headers": {hideHeaders: true},
 
 		"Error_on_getting_keyslots":    {wantErr: true},
-		"Error_on_displaying_keyslots": {writeErr: true, wantErr: true},
+		"Error_on_displaying_keyslots": {tuiWriteError: true, wantErr: true},
 	}
 
 	for name, tc := range tests {
@@ -49,7 +49,7 @@ func TestListAll(t *testing.T) {
 			}
 
 			var out strings.Builder
-			w := testWriter{io.Writer(&out), tc.writeErr}
+			w := testWriter{io.Writer(&out), tc.tuiWriteError}
 			tui := tui.New(nil, w)
 
 			c := snapdtestutils.NewMockSnapdServer(t, ctx)

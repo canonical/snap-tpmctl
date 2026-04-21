@@ -25,12 +25,13 @@ func TestRemove(t *testing.T) {
 	}
 
 	tests := map[string]struct {
-		wantUserErr bool
-		wantErr     bool
+		admineUID int
+
+		wantErr bool
 	}{
 		"Success_on_removing": {},
 
-		"Fail_on_user_privilege": {wantUserErr: true, wantErr: true},
+		"Fail_on_user_privilege": {admineUID: 1, wantErr: true},
 		"Fail_on_removing":       {wantErr: true},
 	}
 	for _, command := range commands {
@@ -41,11 +42,6 @@ func TestRemove(t *testing.T) {
 				is := is.New(t)
 				ctx, logs := testutils.TestLoggerWithBuffer(t)
 
-				euid := 0
-				if tc.wantUserErr {
-					euid = 1
-				}
-
 				var out strings.Builder
 				tui := tui.New(nil, &out)
 
@@ -55,7 +51,7 @@ func TestRemove(t *testing.T) {
 					cmdtestutils.WithSnapTPM(s),
 					cmdtestutils.WithArgs(command),
 					cmdtestutils.WithTui(tui),
-					cmdtestutils.WithEuid(euid),
+					cmdtestutils.WithEuid(tc.admineUID),
 				)
 
 				err := app.Run(ctx)

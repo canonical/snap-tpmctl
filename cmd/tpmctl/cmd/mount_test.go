@@ -20,24 +20,24 @@ import (
 
 func TestMountVolume(t *testing.T) {
 	tests := map[string]struct {
-		device      string
-		dir         string
-		recoveryKey string
-		syscall     tpmtestutils.TestSyscall
+		device           string
+		dir              string
+		recoveryKey      string
+		syscall          tpmtestutils.TestSyscall
+		emptyDeviceError bool
+		mountDirError    bool
+		ttyReadError     bool
+		deviceStatError  bool
 
-		wantDeviceErr bool
-		wantDirErr    bool
-		wantReadErr   bool
-		wantStatErr   bool
-		wantErr       bool
+		wantErr bool
 	}{
 		"Success on mounting volume": {},
 
-		"Error out when authRequestor fails":     {wantReadErr: true, wantErr: true},
+		"Error out when authRequestor fails":     {ttyReadError: true, wantErr: true},
 		"Error out when mount fails":             {syscall: tpmtestutils.TestSyscall{WantErr: true}, wantErr: true},
-		"Error out when device is empty":         {wantDeviceErr: true, wantErr: true},
-		"Error out when device doesn't exists":   {wantStatErr: true, wantErr: true},
-		"Error out when dir path isn't absolute": {wantDirErr: true, wantErr: true},
+		"Error out when device is empty":         {emptyDeviceError: true, wantErr: true},
+		"Error out when device doesn't exists":   {deviceStatError: true, wantErr: true},
+		"Error out when dir path isn't absolute": {mountDirError: true, wantErr: true},
 	}
 
 	for name, tc := range tests {
@@ -58,13 +58,13 @@ func TestMountVolume(t *testing.T) {
 			}
 			tc.device = filepath.Join(root, tc.device) // Convert to an absolute path
 
-			if !tc.wantStatErr {
+			if !tc.deviceStatError {
 				f, err := os.Create(tc.device)
 				is.NoErr(err) // Setup: device should exist before mounting
 				defer f.Close()
 			}
 
-			if tc.dir == "" && !tc.wantDirErr {
+			if tc.dir == "" && !tc.mountDirError {
 				tc.dir = "mount-dir"
 			}
 
@@ -77,7 +77,7 @@ func TestMountVolume(t *testing.T) {
 			defer ptmx.Close()
 			defer tty.Close()
 
-			if tc.wantReadErr {
+			if tc.ttyReadError {
 				tty = nil
 			}
 
@@ -90,7 +90,7 @@ func TestMountVolume(t *testing.T) {
 				fmt.Fprintf(ptmx, "%s\n", tc.recoveryKey)
 			}()
 
-			if tc.wantDeviceErr {
+			if tc.emptyDeviceError {
 				tc.device = ""
 			}
 
@@ -116,16 +116,16 @@ func TestMountVolume(t *testing.T) {
 
 func TestUnmountVolume(t *testing.T) {
 	tests := map[string]struct {
-		dir     string
-		syscall tpmtestutils.TestSyscall
+		dir           string
+		syscall       tpmtestutils.TestSyscall
+		mountDirError bool
 
-		wantDirErr bool
-		wantErr    bool
+		wantErr bool
 	}{
 		"Success on unmounting volume": {},
 
 		"Error out when unmount fails":           {syscall: tpmtestutils.TestSyscall{WantErr: true}, wantErr: true},
-		"Error out when dir path isn't absolute": {wantDirErr: true, wantErr: true},
+		"Error out when dir path isn't absolute": {mountDirError: true, wantErr: true},
 	}
 
 	for name, tc := range tests {
@@ -152,7 +152,7 @@ func TestUnmountVolume(t *testing.T) {
 			content := fmt.Sprintf("%s %s ext4 rw 0 0\n", filepath.Join(root, "dev", "mapper", "test"), tc.dir)
 			tpmtestutils.SetupProcMount(is, root, content)
 
-			if tc.wantDirErr {
+			if tc.mountDirError {
 				tc.dir = ""
 			}
 
@@ -180,18 +180,18 @@ func TestGetLuksKeyFromRecoveryKey(t *testing.T) {
 	t.Parallel()
 
 	tests := map[string]struct {
-		recoveryKey string
-		hexFlag     bool
-		escapedFlag bool
+		recoveryKey  string
+		hexFlag      bool
+		escapedFlag  bool
+		ttyReadError bool
 
-		wantReadErr bool
-		wantErr     bool
+		wantErr bool
 	}{
 		"Success_getting_luks_key":                   {},
 		"Success_getting_luks_key_with_hex_flag":     {hexFlag: true},
 		"Success_getting_luks_key_with_escaped_flag": {escapedFlag: true},
 
-		"Fail_reading_input":      {wantReadErr: true, wantErr: true},
+		"Fail_reading_input":      {ttyReadError: true, wantErr: true},
 		"Fail_getting_luks_key":   {recoveryKey: "invalid", wantErr: true},
 		"Fail_for_too_many_flags": {wantErr: true, hexFlag: true, escapedFlag: true},
 	}
@@ -222,7 +222,7 @@ func TestGetLuksKeyFromRecoveryKey(t *testing.T) {
 			defer ptmx.Close()
 			defer tty.Close()
 
-			if tc.wantReadErr {
+			if tc.ttyReadError {
 				tty = nil
 			}
 
