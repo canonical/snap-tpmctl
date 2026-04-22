@@ -26,9 +26,9 @@ func TestCreateKey(t *testing.T) {
 	}{
 		"Success_on_creting_recovery_key": {},
 
-		"Error_on_empty_name":            {wantErr: true},
-		"Error_on_unique_name":           {recoveryKeyName: "test-duplicate", wantErr: true},
-		"Error_on_creating_recovery_key": {wantErr: true},
+		"Error_from_snapd_on_empty_name":  {wantErr: true},
+		"Error_from_snapd_on_unique_name": {recoveryKeyName: "test-duplicate", wantErr: true},
+		"Error_on_creating_recovery_key":  {wantErr: true},
 	}
 
 	//nolint:dupl // regreneate and create have similar behaviour
