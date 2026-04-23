@@ -32,10 +32,6 @@ func (a App) newReplacePassphraseCmd() *cli.Command {
 				return fmt.Errorf("passphrase confirmation does not match")
 			}
 
-			if err := a.tpm.IsValidPassphrase(ctx, newPassphrase); err != nil {
-				return err
-			}
-
 			stop := a.tui.Spin("Replacing passphrase...")
 			defer stop()
 
@@ -74,10 +70,6 @@ func (a App) newReplacePINCmd() *cli.Command {
 
 			if newPIN != confirmPIN {
 				return fmt.Errorf("PIN confirmation does not match")
-			}
-
-			if err := a.tpm.IsValidPIN(ctx, newPIN); err != nil {
-				return err
 			}
 
 			stop := a.tui.Spin("Replacing PIN...")

@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/canonical/snap-tpmctl/internal/snapd"
 	"github.com/urfave/cli/v3"
 )
 
@@ -19,11 +18,6 @@ func (a App) newAddPassphraseCmd() *cli.Command {
 				return fmt.Errorf("this command requires elevated privileges. Please run with sudo")
 			}
 
-			// Validate auth mode is currently none
-			if err := a.tpm.ValidateAuthMode(ctx, snapd.AuthModeNone); err != nil {
-				return err
-			}
-
 			newPassphrase, err := a.tui.ReadUserSecret("Enter new passphrase: ")
 			if err != nil {
 				return err
@@ -36,10 +30,6 @@ func (a App) newAddPassphraseCmd() *cli.Command {
 
 			if newPassphrase != confirmPassphrase {
 				return fmt.Errorf("passphrase confirmation does not match")
-			}
-
-			if err := a.tpm.IsValidPassphrase(ctx, newPassphrase); err != nil {
-				return err
 			}
 
 			stop := a.tui.Spin("Adding passphrase...")
@@ -67,11 +57,6 @@ func (a App) newAddPINCmd() *cli.Command {
 				return fmt.Errorf("this command requires elevated privileges. Please run with sudo")
 			}
 
-			// Validate auth mode is currently none
-			if err := a.tpm.ValidateAuthMode(ctx, snapd.AuthModeNone); err != nil {
-				return err
-			}
-
 			newPIN, err := a.tui.ReadUserSecret("Enter new PIN: ")
 			if err != nil {
 				return err
@@ -86,9 +71,6 @@ func (a App) newAddPINCmd() *cli.Command {
 				return fmt.Errorf("PIN confirmation does not match")
 			}
 
-			if err := a.tpm.IsValidPIN(ctx, newPIN); err != nil {
-				return err
-			}
 			stop := a.tui.Spin("Adding PIN...")
 			defer stop()
 

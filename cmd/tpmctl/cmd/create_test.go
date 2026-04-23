@@ -24,13 +24,14 @@ func TestCreateKey(t *testing.T) {
 
 		wantErr bool
 	}{
-		"Success_on_creting_recovery_key": {recoveryKeyName: "test"},
+		"Success_on_creting_recovery_key": {},
 
-		"Error_on_empty_name":            {wantErr: true},
-		"Error_on_unique_name":           {recoveryKeyName: "test-duplicate", wantErr: true},
-		"Error_on_creating_recovery_key": {recoveryKeyName: "test", wantErr: true},
+		"Error_from_snapd_on_empty_name":  {wantErr: true},
+		"Error_from_snapd_on_unique_name": {recoveryKeyName: "test-duplicate", wantErr: true},
+		"Error_on_creating_recovery_key":  {wantErr: true},
 	}
 
+	//nolint:dupl // regreneate and create have similar behaviour
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
@@ -39,6 +40,10 @@ func TestCreateKey(t *testing.T) {
 			ctx, logs := testutils.TestLoggerWithBuffer(t)
 
 			command := "create-recovery-key"
+
+			if tc.recoveryKeyName == "" {
+				tc.recoveryKeyName = "test"
+			}
 
 			var out strings.Builder
 			tui := tui.New(os.Stdin, &out)

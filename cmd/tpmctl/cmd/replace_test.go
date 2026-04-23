@@ -27,12 +27,13 @@ func TestReplace(t *testing.T) {
 	}
 
 	tests := map[string]struct {
-		wantReadErr bool
-		wantErr     bool
+		ttyReadError bool
+
+		wantErr bool
 	}{
 		"Success_on_replacing": {},
 
-		"Fail_reading_input": {wantReadErr: true, wantErr: true},
+		"Fail_reading_input": {ttyReadError: true, wantErr: true},
 		"Fail_on_validating": {wantErr: true},
 		"Fail_on_replacing":  {wantErr: true},
 	}
@@ -55,7 +56,7 @@ func TestReplace(t *testing.T) {
 				defer ptmx.Close()
 				defer tty.Close()
 
-				if tc.wantReadErr {
+				if tc.ttyReadError {
 					tty = nil
 				}
 

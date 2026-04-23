@@ -21,17 +21,17 @@ func TestCheck(t *testing.T) {
 	t.Parallel()
 
 	tests := map[string]struct {
-		key string
+		key          string
+		ttyReadError bool
 
-		wantReadErr bool
-		wantErr     bool
+		wantErr bool
 	}{
-		"Success_checking_recovery_key":       {},
-		"Success_on_not_working_recovery_key": {},
+		"Success_checking_recovery_key":            {},
+		"Success_even_with_invalid_recovery_key":   {},
+		"Success_even_with_incorrect_recovery_key": {key: "incorrect"},
 
-		"Fail_reading_input":             {wantReadErr: true, wantErr: true},
-		"Fail_with_invalid_recovery_key": {key: "invalid", wantErr: true},
-		"Fail_checking_recovery_key":     {wantErr: true},
+		"Fail_reading_input":         {ttyReadError: true, wantErr: true},
+		"Fail_checking_recovery_key": {wantErr: true},
 	}
 
 	for name, tc := range tests {
@@ -47,11 +47,11 @@ func TestCheck(t *testing.T) {
 			}
 
 			ptmx, tty, err := pty.Open()
-			is.NoErr(err)
+			is.NoErr(err) // Setup: could not create fake terminal
 			defer ptmx.Close()
 			defer tty.Close()
 
-			if tc.wantReadErr {
+			if tc.ttyReadError {
 				tty = nil
 			}
 
@@ -61,7 +61,7 @@ func TestCheck(t *testing.T) {
 			done := make(chan struct{})
 			go func() {
 				defer close(done)
-				fmt.Fprintf(ptmx, "%s\n", tc.key)
+				fmt.Fprintln(ptmx, tc.key)
 			}()
 
 			c := snapdtestutils.NewMockSnapdServer(t, ctx)

@@ -22,11 +22,6 @@ func (a App) newCreateKeyCmd() *cli.Command {
 			},
 		},
 		Action: func(ctx context.Context, cmd *cli.Command) error {
-			// Validate the recovery key name
-			if err := a.tpm.ValidateRecoveryKeyNameUnique(ctx, recoveryKeyName); err != nil {
-				return err
-			}
-
 			stop := a.tui.Spin("Generating recovery key...")
 			defer stop()
 
