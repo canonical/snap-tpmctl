@@ -16,17 +16,22 @@ type authRequestor struct {
 	tui.Tui
 }
 
-func (r *authRequestor) RequestUserCredential(ctx context.Context, name, path string, authTypes secboot.UserAuthType) (string, error) {
+func (r *authRequestor) RequestUserCredential(ctx context.Context, name, path string, authTypes secboot.UserAuthType) (string, secboot.UserAuthType, error) {
 	if authTypes != secboot.UserAuthTypeRecoveryKey {
-		return "", fmt.Errorf("authentication type not supported")
+		return "", 0, secboot.ErrAuthRequestorNotAvailable
 	}
 
 	key, err := r.ReadRecoveryKey()
 	if err != nil {
-		return "", err
+		return "", 0, err
 	}
 
-	return key, nil
+	return key, authTypes, nil
+}
+
+// NotifyUserAuthResult isn't used in our implementation.
+func (r *authRequestor) NotifyUserAuthResult(ctx context.Context, result secboot.UserAuthResult, authTypes, exhaustedAuthTypes secboot.UserAuthType) error {
+	return nil
 }
 
 func (a App) newMountVolumeCmd() *cli.Command {

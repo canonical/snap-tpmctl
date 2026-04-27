@@ -240,10 +240,14 @@ type authRequestor struct {
 	wantErr bool
 }
 
-func (r *authRequestor) RequestUserCredential(ctx context.Context, name, path string, authTypes secboot.UserAuthType) (string, error) {
+func (r *authRequestor) RequestUserCredential(ctx context.Context, name, path string, authTypes secboot.UserAuthType) (string, secboot.UserAuthType, error) {
 	if r.wantErr {
-		return "", errors.New("test error")
+		return "", 0, errors.New("test error")
 	}
 	r.requested = true
-	return "22003-18216-51619-31723-49692-17125-14174-57839", nil
+	return "22003-18216-51619-31723-49692-17125-14174-57839", secboot.UserAuthTypeRecoveryKey, nil
+}
+
+func (r *authRequestor) NotifyUserAuthResult(ctx context.Context, result secboot.UserAuthResult, authTypes, exhaustedAuthTypes secboot.UserAuthType) error {
+	return nil
 }
