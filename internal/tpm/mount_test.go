@@ -18,17 +18,18 @@ import (
 
 func TestMountVolume(t *testing.T) {
 	tests := map[string]struct {
-		device        string
-		target        string
-		syscall       tpmtestutils.TestSyscall
-		authRequestor authRequestor
-		targetExists  bool
+		device            string
+		target            string
+		syscall           tpmtestutils.TestSyscall
+		authRequestor     authRequestor
+		targetExists      bool
+		mkdirErr          bool
+		alreadyMountedErr bool
 
 		wantMounted   bool
 		wantRequested bool
 
-		wantErr      bool
-		wantMkdirErr bool
+		wantErr bool
 	}{
 		"Success on mounting volume": {wantRequested: true, wantMounted: true},
 		"Success when target already exists": {
@@ -38,9 +39,10 @@ func TestMountVolume(t *testing.T) {
 			wantMounted:   true,
 		},
 
-		"Error out when unable to crate directory": {wantMkdirErr: true, wantErr: true},
+		"Error out when unable to crate directory": {mkdirErr: true, wantErr: true},
 		"Error out when authRequestor fails":       {authRequestor: authRequestor{wantErr: true}, wantErr: true},
 		"Error out when unable to mount volume":    {syscall: tpmtestutils.TestSyscall{WantErr: true}, wantRequested: true, wantErr: true},
+		"Error out when volume is already mounted": {alreadyMountedErr: true, wantErr: true},
 		"Error out when systemd-cryptsetup fails":  {device: "exit-with-failure", wantRequested: true, wantErr: true},
 	}
 
@@ -65,13 +67,20 @@ func TestMountVolume(t *testing.T) {
 			}
 			tc.target = filepath.Join(root, tc.target) // Convert to an absolute path
 
+			content := ""
+			if tc.alreadyMountedErr {
+				mapper := filepath.Join(root, "dev/mapper", tpmtestutils.LuksVolumeName(tc.device))
+				content = fmt.Sprintf("%s %s ext4 rw 0 0\n", mapper, tc.target)
+			}
+			tpmtestutils.SetupProcMount(is, root, content)
+
 			if tc.targetExists {
 				err := os.MkdirAll(tc.target, 0750)
 				is.NoErr(err) // Setup: target directory should exist before mounting
 			}
 
 			// In order to test the `MkdirAll` failure, we need create a target file with the supposed target folder name.
-			if tc.wantMkdirErr {
+			if tc.mkdirErr {
 				f, err := os.Create(tc.target)
 				is.NoErr(err) // Setup: target should exist before mounting as a file
 				defer f.Close()
@@ -172,17 +181,18 @@ func TestGetMapperFromMount(t *testing.T) {
 	t.Parallel()
 
 	tests := map[string]struct {
-		target string
+		target  string
+		mapper  string
+		fileErr bool
+		readErr bool
 
-		wantFileErr bool
-		wantReadErr bool
-		wantErr     bool
+		wantErr bool
 	}{
-		"Success on getting mapper": {},
+		"Success on getting mapper":                 {},
+		"Success with mapper found in /proc/mounts": {target: "wrong-target"},
 
-		"Fail to find mapper /proc/mounts": {target: "wrong-target", wantErr: true},
-		"Fail to open /proc/mounts":        {wantFileErr: true, wantErr: true},
-		"Fail to read /proc/mounts":        {wantReadErr: true, wantErr: true},
+		"Fail to open /proc/mounts": {fileErr: true, wantErr: true},
+		"Fail to read /proc/mounts": {readErr: true, wantErr: true},
 	}
 
 	for name, tc := range tests {
@@ -192,23 +202,24 @@ func TestGetMapperFromMount(t *testing.T) {
 
 			root := t.TempDir()
 
-			mapper := filepath.Join(root, "dev", "mapper", "test-device")
-			target := "mount-dir"
+			if tc.mapper == "" && tc.target == "" {
+				tc.mapper = filepath.Join(root, "dev", "mapper", "test-device")
+			}
 
 			if tc.target == "" {
-				tc.target = target
+				tc.target = "mount-dir"
 			}
 			tc.target = filepath.Join(root, tc.target) // Convert to an absolute path
 
-			content := fmt.Sprintf("%s %s ext4 rw 0 0\n", mapper, filepath.Join(root, target))
-			if tc.wantReadErr {
+			content := fmt.Sprintf("%s %s ext4 rw 0 0\n", tc.mapper, tc.target)
+			if tc.readErr {
 				// Scanner default max token: 64K. This will return a read error
 				content = strings.Repeat("a", 70*1024) + "\n"
 			}
 
 			tpmtestutils.SetupProcMount(is, root, content)
 
-			if tc.wantFileErr {
+			if tc.fileErr {
 				err := os.Remove(filepath.Join(root, "proc", "mounts"))
 				is.NoErr(err) // Setup: /proc/mounts should be deleted for a file error
 			}
@@ -220,7 +231,66 @@ func TestGetMapperFromMount(t *testing.T) {
 				return
 			}
 
-			is.Equal(m, mapper) // the device mapper is the expected one
+			is.Equal(m, tc.mapper) // the device mapper is the expected one
+		})
+	}
+}
+
+func TestGetMountFromMapper(t *testing.T) {
+	t.Parallel()
+
+	tests := map[string]struct {
+		mapper  string
+		mount   string
+		fileErr bool
+		readErr bool
+
+		wantErr bool
+	}{
+		"Success on getting mount":                 {},
+		"Success with mount found in /proc/mounts": {mapper: "wrong-mapper"},
+
+		"Fail to open /proc/mounts": {fileErr: true, wantErr: true},
+		"Fail to read /proc/mounts": {readErr: true, wantErr: true},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+			is := is.New(t)
+
+			root := t.TempDir()
+
+			if tc.mount == "" && tc.mapper == "" {
+				tc.mount = "mount-dir"
+			}
+
+			mapper := filepath.Join(root, "dev", "mapper", "test-device") // Convert to an absolute path
+			if tc.mapper == "" {
+				tc.mapper = mapper
+			}
+
+			content := fmt.Sprintf("%s %s ext4 rw 0 0\n", mapper, tc.mount)
+			if tc.readErr {
+				// Scanner default max token: 64K. This will return a read error
+				content = strings.Repeat("a", 70*1024) + "\n"
+			}
+
+			tpmtestutils.SetupProcMount(is, root, content)
+
+			if tc.fileErr {
+				err := os.Remove(filepath.Join(root, "proc", "mounts"))
+				is.NoErr(err) // Setup: /proc/mounts should be deleted for a file error
+			}
+
+			s := tpm.New(tpmtestutils.WithRoot(root))
+
+			m, err := tpm.GetMountFromMapper(s, tc.mapper)
+			if testutils.CheckError(is, err, tc.wantErr) {
+				return
+			}
+
+			is.Equal(m, tc.mount) // the mount path is the expected one
 		})
 	}
 }

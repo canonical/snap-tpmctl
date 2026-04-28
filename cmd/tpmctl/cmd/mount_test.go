@@ -20,24 +20,26 @@ import (
 
 func TestMountVolume(t *testing.T) {
 	tests := map[string]struct {
-		device           string
-		dir              string
-		recoveryKey      string
-		syscall          tpmtestutils.TestSyscall
-		emptyDeviceError bool
-		emptyDirError    bool
-		ttyReadError     bool
-		deviceStatError  bool
+		device            string
+		dir               string
+		recoveryKey       string
+		syscall           tpmtestutils.TestSyscall
+		emptyDeviceError  bool
+		emptyDirError     bool
+		ttyReadError      bool
+		deviceStatError   bool
+		alreadyMountedErr bool
 
 		wantErr bool
 	}{
 		"Success on mounting volume": {},
 
-		"Error out when authRequestor fails":   {ttyReadError: true, wantErr: true},
-		"Error out when mount fails":           {syscall: tpmtestutils.TestSyscall{WantErr: true}, wantErr: true},
-		"Error out when device doesn't exists": {deviceStatError: true, wantErr: true},
-		"Error out when device is empty":       {emptyDeviceError: true, wantErr: true},
-		"Error out when dir path is empty":     {emptyDirError: true, wantErr: true},
+		"Error out when authRequestor fails":       {ttyReadError: true, wantErr: true},
+		"Error out when mount fails":               {syscall: tpmtestutils.TestSyscall{WantErr: true}, wantErr: true},
+		"Error out when volume is already mounted": {alreadyMountedErr: true, wantErr: true},
+		"Error out when device doesn't exists":     {deviceStatError: true, wantErr: true},
+		"Error out when device is empty":           {emptyDeviceError: true, wantErr: true},
+		"Error out when dir path is empty":         {emptyDirError: true, wantErr: true},
 	}
 
 	for name, tc := range tests {
@@ -72,6 +74,13 @@ func TestMountVolume(t *testing.T) {
 			if tc.recoveryKey == "" {
 				tc.recoveryKey = "11272-47509-28031-54818-41671-38673-11053-06376"
 			}
+
+			content := ""
+			if tc.alreadyMountedErr {
+				mapper := tpmtestutils.LuksVolumeName(tc.device)
+				content = fmt.Sprintf("%s %s ext4 rw 0 0\n", filepath.Join(root, "dev", "mapper", mapper), tc.dir)
+			}
+			tpmtestutils.SetupProcMount(is, root, content)
 
 			ptmx, tty, err := pty.Open()
 			is.NoErr(err)
