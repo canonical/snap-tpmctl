@@ -3,6 +3,7 @@ package tpm
 import (
 	"bufio"
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -29,6 +30,15 @@ func (s SnapTPM) Mount(ctx context.Context, device, target string, authRequestor
 
 	if err := os.MkdirAll(target, 0750); err != nil {
 		return fmt.Errorf("unable to create directory: %v", err)
+	}
+
+	// Check if the volume is already mounted by the tool
+	p, err := s.getMountFromMapper(mapperPath)
+	if err != nil {
+		return fmt.Errorf("unable to locate volume: %v", err)
+	}
+	if p != "" {
+		return fmt.Errorf("unable to activate volume: resource is already mounted as %q", p)
 	}
 
 	// Check if volume is already active
@@ -79,8 +89,27 @@ func (s SnapTPM) Unmount(ctx context.Context, target string) error {
 	return nil
 }
 
+type mountsFieldType int
+
+const (
+	// deviceField is the field index for the device in /proc/mounts.
+	deviceField mountsFieldType = iota
+	// mountPointField is the field index for the mount point in /proc/mounts.
+	mountPointField
+)
+
 // getMapperFromMount parses /proc/mounts and returns the mapper path for the given mount point.
 func (s SnapTPM) getMapperFromMount(mountPoint string) (string, error) {
+	return s.searchInProcMounts(mountPoint, mountPointField, deviceField)
+}
+
+// mountFromMapper parses /proc/mounts and returns the mapper path for the given mount point.
+func (s SnapTPM) getMountFromMapper(mapperPath string) (string, error) {
+	return s.searchInProcMounts(mapperPath, deviceField, mountPointField)
+}
+
+// searchInProcMounts searches /proc/mounts for a specific path in the specified field and returns the corresponding field result.
+func (s SnapTPM) searchInProcMounts(path string, fieldPath, fieldResult mountsFieldType) (string, error) {
 	file, err := os.Open(filepath.Join(s.root, "proc", "mounts"))
 	if err != nil {
 		return "", fmt.Errorf("unable to open /proc/mounts: %v", err)
@@ -90,10 +119,13 @@ func (s SnapTPM) getMapperFromMount(mountPoint string) (string, error) {
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		fields := strings.Fields(scanner.Text())
-
 		// Each line format: device mount_point fstype options dummy dummy
-		if len(fields) >= 2 && fields[1] == mountPoint {
-			return fields[0], nil
+		if len(fields) < 2 {
+			continue
+		}
+
+		if fields[fieldPath] == path {
+			return fields[fieldResult], nil
 		}
 	}
 
@@ -101,7 +133,7 @@ func (s SnapTPM) getMapperFromMount(mountPoint string) (string, error) {
 		return "", fmt.Errorf("error reading /proc/mounts: %v", err)
 	}
 
-	return "", fmt.Errorf("the mount point doesn't exist")
+	return "", errors.New("path not found in /proc/mounts")
 }
 
 // luksVolumeName converts a directory path into a valid LUKS volume name.
