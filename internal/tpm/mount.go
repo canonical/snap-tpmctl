@@ -72,6 +72,9 @@ func (s SnapTPM) Unmount(ctx context.Context, target string) error {
 	if err != nil {
 		return fmt.Errorf("unable to determine device path: %v", err)
 	}
+	if mapperPath == "" {
+		return errors.New("path not found in /proc/mounts")
+	}
 
 	if err := s.syscall.Unmount(target); err != nil {
 		return fmt.Errorf("unable to unmount volume: %v", err)
@@ -133,7 +136,7 @@ func (s SnapTPM) searchInProcMounts(path string, fieldPath, fieldResult mountsFi
 		return "", fmt.Errorf("error reading /proc/mounts: %v", err)
 	}
 
-	return "", errors.New("path not found in /proc/mounts")
+	return "", nil
 }
 
 // luksVolumeName converts a directory path into a valid LUKS volume name.
