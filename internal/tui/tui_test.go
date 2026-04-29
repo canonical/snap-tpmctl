@@ -16,6 +16,7 @@ import (
 	"github.com/canonical/snap-tpmctl/internal/tui"
 	"github.com/creack/pty"
 	"github.com/matryer/is"
+	"golang.org/x/term"
 )
 
 //go:linkname spinnerStdout github.com/snapcore/snapd/progress.stdout
@@ -97,6 +98,12 @@ func TestReadSecret(t *testing.T) {
 			is.NoErr(err) // Setup: could not create fake terminal
 			defer ptmx.Close()
 			defer tty.Close()
+
+			// Put the TTY in raw mode before writing, so control characters
+			// (e.g. \x03) are not consumed by the before readMaskedInput calls MakeRaw.
+			//nolint:gosec // This is used on in tests
+			_, err = term.MakeRaw(int(tty.Fd()))
+			is.NoErr(err) // Setup: could not put tty in raw mode
 
 			if tc.ttyReadError {
 				tty = nil
