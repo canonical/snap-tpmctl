@@ -9,7 +9,7 @@ require (
 	github.com/snapcore/secboot v0.0.0-20260410084611-3f8b98c2db70
 	github.com/snapcore/snapd v0.0.0-20260427144342-788090b139d3
 	github.com/urfave/cli/v3 v3.6.2
-	golang.org/x/term v0.39.0
+	golang.org/x/term v0.42.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 
@@ -32,7 +32,7 @@ require (
 	golang.org/x/exp v0.0.0-20240416160154-fe59bbe5cc7f // indirect
 	golang.org/x/net v0.49.0 // indirect
 	golang.org/x/sync v0.8.0 // indirect
-	golang.org/x/sys v0.40.0 // indirect
+	golang.org/x/sys v0.43.0 // indirect
 	golang.org/x/xerrors v0.0.0-20240903120638-7835f813f4da // indirect
 	gopkg.in/retry.v1 v1.0.3 // indirect
 	gopkg.in/tomb.v2 v2.0.0-20161208151619-d5d1b5820637 // indirect
