@@ -56,8 +56,8 @@ github.com/rogpeppe/go-internal v1.14.1 h1:UQB4HGPB6osV0SQTLymcB4TgvyWu6ZyliaW0t
 github.com/rogpeppe/go-internal v1.14.1/go.mod h1:MaRKkUm5W0goXpeCfT7UZI6fk/L7L7so1lCWt35ZSgc=
 github.com/snapcore/secboot v0.0.0-20260410084611-3f8b98c2db70 h1:EewX3F1DSpJz8wPZxFxC3MdOnFiFVAazbOIv1OQNDME=
 github.com/snapcore/secboot v0.0.0-20260410084611-3f8b98c2db70/go.mod h1:+qs2Juv0XZeTmQHJgFTtAd9520h7QUWRDyvSwbJ3xEU=
-github.com/snapcore/snapd v0.0.0-20260427144342-788090b139d3 h1:TV0LQ2WWANTXttPwC+QyehkBZlr+q7sx+WXuc1qfiEI=
-github.com/snapcore/snapd v0.0.0-20260427144342-788090b139d3/go.mod h1:/AQQI3QsxNCnm/QAsKz3+3+swEzLqtj/CU82kHz+s5w=
+github.com/snapcore/snapd v0.0.0-20260429110650-3ec19b32c703 h1:3mizw7VmMLNsTB9dcWWKcK0q9Zwm6OaRT7xkj3qQyEI=
+github.com/snapcore/snapd v0.0.0-20260429110650-3ec19b32c703/go.mod h1:/AQQI3QsxNCnm/QAsKz3+3+swEzLqtj/CU82kHz+s5w=
 github.com/stretchr/testify v1.11.1 h1:7s2iGBzp5EwR7/aIZr8ao5+dra3wiQyKjjFuvgVKu7U=
 github.com/stretchr/testify v1.11.1/go.mod h1:wZwfW3scLgRK+23gO65QZefKpKQRnfz6sD981Nm4B6U=
 github.com/urfave/cli/v3 v3.6.2 h1:lQuqiPrZ1cIz8hz+HcrG0TNZFxU70dPZ3Yl+pSrH9A8=
