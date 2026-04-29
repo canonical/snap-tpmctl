@@ -25,6 +25,7 @@ func TestMountVolume(t *testing.T) {
 		targetExists      bool
 		mkdirErr          bool
 		alreadyMountedErr bool
+		readErr           bool
 
 		wantMounted   bool
 		wantRequested bool
@@ -43,6 +44,7 @@ func TestMountVolume(t *testing.T) {
 		"Error out when authRequestor fails":       {authRequestor: authRequestor{wantErr: true}, wantErr: true},
 		"Error out when unable to mount volume":    {syscall: tpmtestutils.TestSyscall{WantErr: true}, wantRequested: true, wantErr: true},
 		"Error out when volume is already mounted": {alreadyMountedErr: true, wantErr: true},
+		"Error out when unable to locate volume":   {readErr: true, wantErr: true},
 		"Error out when systemd-cryptsetup fails":  {device: "exit-with-failure", wantRequested: true, wantErr: true},
 	}
 
@@ -72,6 +74,11 @@ func TestMountVolume(t *testing.T) {
 				mapper := filepath.Join(root, "dev/mapper", tpmtestutils.LuksVolumeName(tc.device))
 				content = fmt.Sprintf("%s %s ext4 rw 0 0\n", mapper, tc.target)
 			}
+			if tc.readErr {
+				// Scanner default max token: 64K. This will return a read error
+				content = strings.Repeat("a", 70*1024) + "\n"
+			}
+
 			tpmtestutils.SetupProcMount(is, root, content)
 
 			if tc.targetExists {
