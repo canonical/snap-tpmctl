@@ -43,6 +43,11 @@ type syscaller interface {
 //go:linkname WithSyscall github.com/canonical/snap-tpmctl/internal/tpm.withSyscall
 func WithSyscall(s syscaller) tpm.Option
 
+// LuksVolumeName converts a directory path into a valid LUKS volume name.
+//
+//go:linkname LuksVolumeName github.com/canonical/snap-tpmctl/internal/tpm.luksVolumeName
+func LuksVolumeName(p string) string
+
 // OneRequestBodyContains checks that at least one request contains all the expected wanted contents.
 func OneRequestBodyContains(is *is.I, requests []snapdtestutils.RecordedRequest, wants ...string) {
 	is.Helper()

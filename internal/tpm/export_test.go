@@ -1,3 +1,5 @@
 package tpm
 
-var GetMapperFromMount = SnapTPM.getMapperFromMount
+type MountsFiledType = mountsFieldType
+
+var SearchInProcMounts = SnapTPM.searchInProcMounts
