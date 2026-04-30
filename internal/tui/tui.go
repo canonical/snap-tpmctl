@@ -57,7 +57,7 @@ func (t Tui) Reader() io.Reader {
 
 // ClearPreviousLines clears the previous lines in the terminal.
 func (t Tui) ClearPreviousLines(lines int) {
-	clr := fmt.Sprint(t.w, "\r", cursorUp, clrEOL)
+	clr := "\r" + cursorUp + clrEOL
 	fmt.Fprint(t.w, strings.Repeat(clr, lines))
 }
 
