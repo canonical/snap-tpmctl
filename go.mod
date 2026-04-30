@@ -6,7 +6,7 @@ require (
 	github.com/creack/pty v1.1.24
 	github.com/google/go-cmp v0.7.0
 	github.com/matryer/is v1.4.1
-	github.com/snapcore/secboot v0.0.0-20260410084611-3f8b98c2db70
+	github.com/snapcore/secboot v0.0.0-20260424115705-c00dcfff2f83
 	github.com/snapcore/snapd v0.0.0-20260427144342-788090b139d3
 	github.com/urfave/cli/v3 v3.6.2
 	golang.org/x/term v0.42.0
