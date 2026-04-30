@@ -25,15 +25,24 @@ func (s SnapTPM) Mount(ctx context.Context, device, target string, authRequestor
 		systemdCryptsetupPath = filepath.Join(snapPath, "usr/bin/systemd-cryptsetup")
 	}
 
+	// Check if the volume is active and mapped by other tools
+	p, err := s.getMapperFromDevice(device)
+	if err != nil {
+		return fmt.Errorf("unable to locate device: %v", err)
+	}
+	if p != "" {
+		return fmt.Errorf("unable to activate device: resource is already mapped as %q", p)
+	}
+
 	volumeName := luksVolumeName(device)
-	mapperPath := filepath.Join(s.root, "dev/mapper/", volumeName)
+	mapperPath := filepath.Join(s.root, "dev", "mapper", volumeName)
 
 	if err := os.MkdirAll(target, 0750); err != nil {
 		return fmt.Errorf("unable to create directory: %v", err)
 	}
 
 	// Check if the volume is already mounted by the tool
-	p, err := s.getMountFromMapper(mapperPath)
+	p, err = s.getMountFromMapper(mapperPath)
 	if err != nil {
 		return fmt.Errorf("unable to locate volume: %v", err)
 	}
@@ -137,6 +146,27 @@ func (s SnapTPM) searchInProcMounts(path string, fieldPath, fieldResult mountsFi
 	}
 
 	return "", nil
+}
+
+func (s SnapTPM) getMapperFromDevice(device string) (string, error) {
+	holdersPath := filepath.Join(s.root, "sys", "class", "block", filepath.Base(device), "holders")
+	holders, err := os.ReadDir(holdersPath)
+	if err != nil {
+		return "", fmt.Errorf("unable to read holders: %v", err)
+	}
+
+	if len(holders) == 0 {
+		return "", nil
+	}
+
+	// /sys/class/block/<holder>/dm/name contains the device mapper name.
+	dmNamePath := filepath.Join(s.root, "sys", "class", "block", holders[0].Name(), "dm", "name")
+	mapperName, err := os.ReadFile(dmNamePath)
+	if err != nil {
+		return "", fmt.Errorf("unable to read mapper: %v", err)
+	}
+
+	return filepath.Join(s.root, "dev", "mapper", strings.TrimSpace(string(mapperName))), nil
 }
 
 // luksVolumeName converts a directory path into a valid LUKS volume name.
