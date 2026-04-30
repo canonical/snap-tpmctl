@@ -94,6 +94,30 @@ func SetupMockBinary(is *is.I, root string) {
 	is.NoErr(err) // Setup: could not create symlink for mock cryptsetup binary
 }
 
+// SetupSysClassBlock creates a mock /sys/class/block/<devname>/holders/ directory
+// with a fake holder entry, simulating a device already open by another tool.
+func SetupSysClassBlock(is *is.I, root, device string, deviceInUse bool) {
+	is.Helper()
+
+	holdersDir := filepath.Join(root, "sys", "class", "block", filepath.Base(device), "holders")
+	err := os.MkdirAll(holdersDir, 0750)
+	is.NoErr(err) // Setup: could not create mock holders directory
+
+	if deviceInUse {
+		// Create the holder entry under holders/
+		holderDir := filepath.Join(holdersDir, "dm-0")
+		err := os.MkdirAll(holderDir, 0750)
+		is.NoErr(err) // Setup: could not create mock holder entry
+
+		// Create /sys/class/block/dm-0/dm/name
+		dmNamePath := filepath.Join(root, "sys", "class", "block", "dm-0", "dm")
+		err = os.MkdirAll(dmNamePath, 0750)
+		is.NoErr(err) // Setup: could not create mock dm/name directory
+		err = os.WriteFile(filepath.Join(dmNamePath, "name"), []byte("mapper-name"), 0600)
+		is.NoErr(err) // Setup: could not write mock dm/name file
+	}
+}
+
 // SetupProcMount creates a mock /proc/mounts file with the provided content under root.
 func SetupProcMount(is *is.I, root, content string) {
 	is.Helper()
