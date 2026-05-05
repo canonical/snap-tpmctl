@@ -13,8 +13,10 @@ type app interface {
 	Run(ctx context.Context) error
 }
 
+var mainApp = cmd.New()
+
 func main() {
-	os.Exit(run(context.Background(), cmd.New()))
+	os.Exit(run(context.Background(), mainApp))
 }
 
 func run(ctx context.Context, a app) int {
