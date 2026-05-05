@@ -1,0 +1,66 @@
+{
+  "result": {
+    "err": "cannot perform the following tasks:\n- Add temporary pin key slots (cannot add platform key slot (container-role: \"system-data\", name: \"snapd-tmp-3\"): cannot add key: cannot add key: cryptsetup failed with: No key available with this passphrase.)",
+    "id": "670",
+    "kind": "fde-replace-platform-key",
+    "ready": true,
+    "ready-time": "2026-04-13T18:07:43.821644303+02:00",
+    "spawn-time": "2026-04-13T18:07:42.020416694+02:00",
+    "status": "Error",
+    "summary": "Replace platform key",
+    "tasks": [
+      {
+        "data": {
+          "affected-snaps": [
+            "pc",
+            "pc-kernel",
+            "core24"
+          ]
+        },
+        "id": "2676",
+        "kind": "fde-add-platform-keys",
+        "log": [
+          "2026-04-13T18:07:43+02:00 ERROR cannot add platform key slot (container-role: \"system-data\", name: \"snapd-tmp-3\"): cannot add key: cannot add key: cryptsetup failed with: No key available with this passphrase."
+        ],
+        "progress": {
+          "done": 1,
+          "label": "",
+          "total": 1
+        },
+        "ready-time": "2026-04-13T18:07:43.821642285+02:00",
+        "spawn-time": "2026-04-13T18:07:42.020392997+02:00",
+        "status": "Error",
+        "summary": "Add temporary pin key slots"
+      },
+      {
+        "id": "2677",
+        "kind": "fde-remove-keys",
+        "progress": {
+          "done": 1,
+          "label": "",
+          "total": 1
+        },
+        "ready-time": "2026-04-13T18:07:43.821622634+02:00",
+        "spawn-time": "2026-04-13T18:07:42.020407658+02:00",
+        "status": "Hold",
+        "summary": "Remove old pin key slots"
+      },
+      {
+        "id": "2678",
+        "kind": "fde-rename-keys",
+        "progress": {
+          "done": 1,
+          "label": "",
+          "total": 1
+        },
+        "ready-time": "2026-04-13T18:07:43.821624425+02:00",
+        "spawn-time": "2026-04-13T18:07:42.020409538+02:00",
+        "status": "Hold",
+        "summary": "Rename temporary pin key slots"
+      }
+    ]
+  },
+  "status": "OK",
+  "status-code": 200,
+  "type": "sync"
+}
