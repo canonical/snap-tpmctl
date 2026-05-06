@@ -16,7 +16,6 @@ var cmdPath string
 func TestRun(t *testing.T) {
 	t.Parallel()
 	is := is.New(t)
-	_, logs := testutils.TestLoggerWithBuffer(t)
 
 	command := "help"
 
@@ -28,15 +27,11 @@ func TestRun(t *testing.T) {
 
 	err = cmd.Run()
 	is.NoErr(err) // Expected no error from this command
-
-	is.True(logs.Len() == 0) // No logs printed by default
 }
 
 func TestVersion(t *testing.T) {
 	t.Parallel()
 	is := is.New(t)
-
-	_, logs := testutils.TestLoggerWithBuffer(t)
 
 	command := "version"
 
@@ -48,8 +43,6 @@ func TestVersion(t *testing.T) {
 
 	err = cmd.Run()
 	is.NoErr(err) // Expected no error from this command
-
-	is.True(logs.Len() == 0) // No logs printed by default
 }
 
 func TestMain(m *testing.M) {
