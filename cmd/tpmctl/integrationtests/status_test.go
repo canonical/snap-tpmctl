@@ -30,7 +30,7 @@ func TestStatus(t *testing.T) {
 			command := "status"
 
 			root, err := filepath.Abs(testutils.TestPath(t))
-			is.NoErr(err)
+			is.NoErr(err) // Setup: could not find test path
 
 			cmd := exec.Command(cmdPath, command)
 			cmd.Env = append(cmd.Env, testutils.WithRootDir(root), testutils.WithUserAsRoot())

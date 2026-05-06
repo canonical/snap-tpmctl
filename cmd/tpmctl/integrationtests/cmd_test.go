@@ -20,7 +20,7 @@ func TestRun(t *testing.T) {
 	command := "help"
 
 	root, err := filepath.Abs(testutils.TestPath(t))
-	is.NoErr(err)
+	is.NoErr(err) // Setup: could not find test path
 
 	cmd := exec.Command(cmdPath, command)
 	cmd.Env = append(cmd.Env, testutils.WithRootDir(root), testutils.WithUserAsNonRoot())
@@ -36,7 +36,7 @@ func TestVersion(t *testing.T) {
 	command := "version"
 
 	root, err := filepath.Abs(testutils.TestPath(t))
-	is.NoErr(err)
+	is.NoErr(err) // Setup: could not find test path
 
 	cmd := exec.Command(cmdPath, command)
 	cmd.Env = append(cmd.Env, testutils.WithRootDir(root), testutils.WithUserAsNonRoot())
