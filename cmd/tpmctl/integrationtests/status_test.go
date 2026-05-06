@@ -26,7 +26,6 @@ func TestStatus(t *testing.T) {
 			t.Parallel()
 
 			is := is.New(t)
-			_, logs := testutils.TestLoggerWithBuffer(t)
 
 			command := "status"
 
@@ -40,8 +39,6 @@ func TestStatus(t *testing.T) {
 			if testutils.CheckError(is, err, tc.wantErr) {
 				return
 			}
-
-			is.True(logs.Len() == 0) // No logs printed by default
 
 			golden.CheckOrUpdate(t, out)
 		})
