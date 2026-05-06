@@ -26,7 +26,9 @@ func TestMountVolume(t *testing.T) {
 		targetExists      bool
 		mkdirErr          bool
 		alreadyMountedErr bool
+		deviceInUse       bool
 		readErr           bool
+		classBlockErr     bool
 
 		wantMounted   bool
 		wantRequested bool
@@ -41,12 +43,14 @@ func TestMountVolume(t *testing.T) {
 			wantMounted:   true,
 		},
 
-		"Error out when unable to crate directory": {mkdirErr: true, wantErr: true},
-		"Error out when authRequestor fails":       {authRequestor: authRequestor{wantErr: true}, wantErr: true},
-		"Error out when unable to mount volume":    {syscall: tpmtestutils.TestSyscall{WantErr: true}, wantRequested: true, wantErr: true},
-		"Error out when volume is already mounted": {alreadyMountedErr: true, wantErr: true},
-		"Error out when unable to locate volume":   {readErr: true, wantErr: true},
-		"Error out when systemd-cryptsetup fails":  {device: "exit-with-failure", wantRequested: true, wantErr: true},
+		"Error out when unable to crate directory":                {mkdirErr: true, wantErr: true},
+		"Error out when authRequestor fails":                      {authRequestor: authRequestor{wantErr: true}, wantErr: true},
+		"Error out when unable to mount volume":                   {syscall: tpmtestutils.TestSyscall{WantErr: true}, wantRequested: true, wantErr: true},
+		"Error out when volume is already mounted":                {alreadyMountedErr: true, wantErr: true},
+		"Error out when unable to locate volume":                  {readErr: true, wantErr: true},
+		"Error out when systemd-cryptsetup fails":                 {device: "exit-with-failure", wantRequested: true, wantErr: true},
+		"Error out when device is already in use by another tool": {deviceInUse: true, wantErr: true},
+		"Error out when device is cannot be located":              {deviceInUse: true, classBlockErr: true, wantErr: true},
 	}
 
 	for name, tc := range tests {
@@ -81,6 +85,10 @@ func TestMountVolume(t *testing.T) {
 			}
 
 			tpmtestutils.SetupProcMount(is, root, content)
+
+			if !tc.classBlockErr {
+				tpmtestutils.SetupSysClassBlock(is, root, tc.device, tc.deviceInUse)
+			}
 
 			if tc.targetExists {
 				err := os.MkdirAll(tc.target, 0750)
