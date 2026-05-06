@@ -50,10 +50,10 @@ func TestAdd(t *testing.T) {
 				}
 
 				root, err := filepath.Abs(testutils.TestPath(t))
-				is.NoErr(err)
+				is.NoErr(err) // Setup: could not find test root
 
 				ptmx, tty, err := pty.Open()
-				is.NoErr(err)
+				is.NoErr(err) // Setup: could not create fake terminal
 				defer ptmx.Close()
 				defer tty.Close()
 
