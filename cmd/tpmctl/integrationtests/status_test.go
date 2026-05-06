@@ -1,8 +1,6 @@
 package main_test
 
 import (
-	"log"
-	"os"
 	"os/exec"
 	"path/filepath"
 	"testing"
@@ -11,8 +9,6 @@ import (
 	"github.com/canonical/snap-tpmctl/internal/testutils/golden"
 	"github.com/matryer/is"
 )
-
-var cmdPath string
 
 func TestStatus(t *testing.T) {
 	t.Parallel()
@@ -50,18 +46,4 @@ func TestStatus(t *testing.T) {
 			golden.CheckOrUpdate(t, out)
 		})
 	}
-}
-
-func TestMain(m *testing.M) {
-	var cleanup func()
-	var err error
-
-	cmdPath, cleanup, err = testutils.BuildSnapTpmCtl()
-	if err != nil {
-		log.Printf("Setup: failed to build snap-tpmctl: %v", err)
-		os.Exit(1)
-	}
-	defer cleanup()
-
-	m.Run()
 }
