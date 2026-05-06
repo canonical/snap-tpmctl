@@ -82,7 +82,7 @@ func TestListFiltered(t *testing.T) {
 
 				//nolint:gosec // The test intentionally executes the binary built in TestMain.
 				cmd := exec.Command(cmdPath, command)
-				cmd.Env = append(cmd.Env, testutils.WithRootDir(root), testutils.WithUserAsRoot())
+				cmd.Env = append(cmd.Env, testutils.WithRootDir(root), testutils.WithUserAsNonRoot())
 
 				out, err := cmd.CombinedOutput()
 				if testutils.CheckError(is, err, tc.wantErr) {
