@@ -1,0 +1,3 @@
+container-with-keyslots  ubuntu-data  pc  true  default           passphrase  tpm2  run+recover  platform
+container-with-keyslots  ubuntu-data  pc  true  default-recovery  -           -     -            recovery
+container-with-keyslots  ubuntu-data  pc  true  test-duplicate    passphrase  tpm2  run+recover  platform
