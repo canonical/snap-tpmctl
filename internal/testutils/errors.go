@@ -1,3 +1,4 @@
+// Package testutils provides utility functions for testing.
 package testutils
 
 import "github.com/matryer/is"
