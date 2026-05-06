@@ -20,30 +20,17 @@ func init() {
 	testsdetection.MustBeTesting()
 }
 
-type MockSnapdIntegrationServer struct {
-	*snapd.Client
-
-	Requests        []RecordedRequest
-	currentRequests map[string]int
-}
-
-// NewMockSnapdServer creates a new snapd client with a mock server that responds with the contents of the test file asset.
-// We are looking first at root/<method>/<url-path>:<currentRequest> and fallacbk to
-//
-//	root/<method>/<url-path> for the test response file asset, where <method> is the HTTP method of the request,
-//
-// <url-path> is the URL path of the request and <currentRequest> is the number of times that a request with
-// the same method and URL path has been received by the server.
-// If no match is found, a 404 response is returned.
-func NewMockSnapdIntegrationServer(root string) *MockSnapdIntegrationServer {
-	m := MockSnapdIntegrationServer{
+// NewMockSnapdServerWithPath creates a new snapd client with a mock server that responds with the contents of the test file asset from the specified path.
+// This is almost identical to NewMockSnapdServer, but it's meant to be used only for integration tests.
+func NewMockSnapdServerWithPath(root string) *MockSnapdServer {
+	m := MockSnapdServer{
 		currentRequests: map[string]int{},
 	}
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		b, err := io.ReadAll(r.Body)
 		if err != nil {
-			panic("err")
+			panic(fmt.Sprintf("read request body: %v", err))
 		}
 
 		m.Requests = append(m.Requests, RecordedRequest{
@@ -62,7 +49,7 @@ func NewMockSnapdIntegrationServer(root string) *MockSnapdIntegrationServer {
 				continue
 			}
 			if err != nil {
-				panic("err")
+				panic(fmt.Sprintf("read mock response file %q: %v", r, err))
 			}
 
 			break
@@ -78,13 +65,13 @@ func NewMockSnapdIntegrationServer(root string) *MockSnapdIntegrationServer {
 		}
 		err = json.Unmarshal(resp, &response)
 		if err != nil {
-			panic("err")
+			panic(fmt.Sprintf("decode mock response JSON: %v", err))
 		}
 
 		w.WriteHeader(response.StatusCode)
 		_, err = w.Write(resp)
 		if err != nil {
-			panic("err")
+			panic(fmt.Sprintf("write mock response: %v", err))
 		}
 
 	}))
