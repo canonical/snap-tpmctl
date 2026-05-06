@@ -1,0 +1,21 @@
+{
+    "result": [
+        {
+            "expire-after": "168h0m0s",
+            "first-occurred": "2026-02-13T14:22:29.924772166Z",
+            "id": "287",
+            "key": "287",
+            "last-data": {
+                "kind": "fde-replace-recovery-key"
+            },
+            "last-occurred": "2026-02-13T14:22:31.61904012Z",
+            "last-repeated": "2026-02-13T14:22:31.61904012Z",
+            "occurrences": 3,
+            "type": "change-update",
+            "user-id": null
+        }
+    ],
+    "status": "OK",
+    "status-code": 200,
+    "type": "sync"
+}

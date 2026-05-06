@@ -1,0 +1,10 @@
+{
+    "result": {
+        "entropy-bits": 42,
+        "min-entropy-bits": 42,
+        "optimal-entropy-bits": 100
+    },
+    "status": "OK",
+    "status-code": 200,
+    "type": "sync"
+}

@@ -1,0 +1,66 @@
+{
+  "result": {
+    "err": "cannot perform the following tasks:\n- Add temporary passphrase key slots (cannot add platform key slot (container-role: \"system-data\", name: \"snapd-tmp-3\"): cannot add key: cannot add key: cryptsetup failed with: No key available with this passphrase.)",
+    "id": "676",
+    "kind": "fde-replace-platform-key",
+    "ready": true,
+    "ready-time": "2026-04-13T18:46:26.590644405+02:00",
+    "spawn-time": "2026-04-13T18:46:19.948835014+02:00",
+    "status": "Error",
+    "summary": "Replace platform key",
+    "tasks": [
+      {
+        "data": {
+          "affected-snaps": [
+            "pc",
+            "pc-kernel",
+            "core24"
+          ]
+        },
+        "id": "2694",
+        "kind": "fde-add-platform-keys",
+        "log": [
+          "2026-04-13T18:46:26+02:00 ERROR cannot add platform key slot (container-role: \"system-data\", name: \"snapd-tmp-3\"): cannot add key: cannot add key: cryptsetup failed with: No key available with this passphrase."
+        ],
+        "progress": {
+          "done": 1,
+          "label": "",
+          "total": 1
+        },
+        "ready-time": "2026-04-13T18:46:26.590642677+02:00",
+        "spawn-time": "2026-04-13T18:46:19.948787059+02:00",
+        "status": "Error",
+        "summary": "Add temporary passphrase key slots"
+      },
+      {
+        "id": "2695",
+        "kind": "fde-remove-keys",
+        "progress": {
+          "done": 1,
+          "label": "",
+          "total": 1
+        },
+        "ready-time": "2026-04-13T18:46:26.590631624+02:00",
+        "spawn-time": "2026-04-13T18:46:19.948816315+02:00",
+        "status": "Hold",
+        "summary": "Remove old passphrase key slots"
+      },
+      {
+        "id": "2696",
+        "kind": "fde-rename-keys",
+        "progress": {
+          "done": 1,
+          "label": "",
+          "total": 1
+        },
+        "ready-time": "2026-04-13T18:46:26.590633581+02:00",
+        "spawn-time": "2026-04-13T18:46:19.948819625+02:00",
+        "status": "Hold",
+        "summary": "Rename temporary passphrase key slots"
+      }
+    ]
+  },
+  "status": "OK",
+  "status-code": 200,
+  "type": "sync"
+}
