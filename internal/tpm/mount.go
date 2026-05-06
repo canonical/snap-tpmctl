@@ -148,6 +148,8 @@ func (s SnapTPM) searchInProcMounts(path string, fieldPath, fieldResult mountsFi
 	return "", nil
 }
 
+// getMapperFromDevice checks if a device is already mapped by other tools by reading /sys/class/block/holders.
+// It returns the mapper path if the device is in use, or an empty string if not.
 func (s SnapTPM) getMapperFromDevice(device string) (string, error) {
 	holdersPath := filepath.Join(s.root, "sys", "class", "block", filepath.Base(device), "holders")
 	holders, err := os.ReadDir(holdersPath)
