@@ -1,12 +1,10 @@
 package testutils
 
 import (
-	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
-
-	"github.com/matryer/is"
 )
 
 // TestFamilyPath returns the path of the dir for storing fixtures and other files related to the test.
@@ -26,23 +24,17 @@ func TestPath(t *testing.T) string {
 	return filepath.Join("testdata", t.Name())
 }
 
-// TestProjectRootPath returns the repository root path by walking up from the current working directory until go.mod is found.
-func TestProjectRootPath(is *is.I) string {
-	is.Helper()
+// ProjectRoot returns the absolute path to the project root.
+func ProjectRoot() string {
+	// p is the path to the current file, in this case -> {PROJECT_ROOT}/internal/testutils/path.go
+	_, p, _, _ := runtime.Caller(0)
 
-	wd, err := os.Getwd()
-	is.NoErr(err)
+	// Walk up the tree to get the path of the project root
+	l := strings.Split(p, "/")
 
-	dir := filepath.Clean(wd)
+	// Ignores the last 3 elements -> /internal/testutils/path.go
+	l = l[:len(l)-3]
 
-	for {
-		if _, err := os.Stat(filepath.Join(dir, "go.mod")); err == nil {
-			return dir
-		}
-
-		parent := filepath.Dir(dir)
-		is.True(parent != dir) // Setup: root directory not found
-
-		dir = parent
-	}
+	// strings.Split removes the first "/" that indicated an AbsPath, so we append it back in the final string.
+	return "/" + filepath.Join(l...)
 }
