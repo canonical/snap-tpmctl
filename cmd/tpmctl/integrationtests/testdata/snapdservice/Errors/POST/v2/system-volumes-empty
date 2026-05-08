@@ -1,0 +1,8 @@
+{
+  "result": {
+    "message": "cannot add recovery key: invalid key slot reference (container-role: \"system-data\", name: \"\"): name cannot be empty"
+  },
+  "status": "Bad Request",
+  "status-code": 400,
+  "type": "error"
+}

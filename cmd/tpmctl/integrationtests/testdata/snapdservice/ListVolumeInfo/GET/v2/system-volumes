@@ -1,0 +1,40 @@
+{
+  "result": {
+    "by-container-role": {
+      "container1": {
+        "encrypted": false,
+        "name": "mbr",
+        "volume-name": "pc"
+      },
+      "container-with-keyslots": {
+        "encrypted": true,
+        "keyslots": {
+          "test-duplicate": {
+            "auth-mode": "passphrase",
+            "platform-name": "tpm2",
+            "roles": [
+              "run+recover"
+            ],
+            "type": "platform"
+          },
+          "default": {
+            "auth-mode": "passphrase",
+            "platform-name": "tpm2",
+            "roles": [
+              "run+recover"
+            ],
+            "type": "platform"
+          },
+          "default-recovery": {
+            "type": "recovery"
+          }
+        },
+        "name": "ubuntu-data",
+        "volume-name": "pc"
+      }
+    }
+  },
+  "status": "OK",
+  "status-code": 200,
+  "type": "sync"
+}

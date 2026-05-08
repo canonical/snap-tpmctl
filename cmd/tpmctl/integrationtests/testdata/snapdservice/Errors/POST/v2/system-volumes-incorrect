@@ -1,0 +1,12 @@
+{
+  "result": {
+    "kind": "invalid-recovery-key",
+    "message": "cannot parse recovery key: incorrectly formatted: insufficient characters",
+    "value": {
+      "reason": "invalid-format"
+    }
+  },
+  "status": "Bad Request",
+  "status-code": 400,
+  "type": "error"
+}
