@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/canonical/snap-tpmctl/internal/testutils"
+	tpmtestutils "github.com/canonical/snap-tpmctl/internal/tpm/testutils"
 	"github.com/matryer/is"
 )
 
@@ -46,6 +47,11 @@ func TestVersion(t *testing.T) {
 }
 
 func TestMain(m *testing.M) {
+	if filepath.Base(os.Args[0]) == "systemd-cryptsetup" {
+		tpmtestutils.SystemdCryptsetupMock()
+		return
+	}
+
 	var cleanup func()
 	var err error
 

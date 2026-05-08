@@ -9,8 +9,9 @@ import (
 )
 
 const (
-	adminEuidEnv = "SNAP_TPMCTL_INTEGRATION_TESTS_ADMIN_EUID"
-	rootDirEnv   = "SNAP_TPMCTL_INTEGRATION_TESTS_ROOT_DIR"
+	adminEuidEnv  = "SNAP_TPMCTL_INTEGRATION_TESTS_ADMIN_EUID"
+	rootDirEnv    = "SNAP_TPMCTL_INTEGRATION_TESTS_ROOT_DIR"
+	syscallErrEnv = "SNAP_TPMCTL_INTEGRATION_TESTS_SYSCALL_ERR"
 )
 
 // GetEuidEnv returns the admin EUID configured for integration tests.
@@ -48,6 +49,26 @@ func GetRootDirEnv() string {
 // WithRootDir returns an environment assignment string for the integration test root directory.
 func WithRootDir(path string) string {
 	return fmt.Sprintf("%s=%s", rootDirEnv, path)
+}
+
+// GetSyscallErrEnv returns an environment assignment value for the integration test TestSyscall error.
+func GetSyscallErrEnv() bool {
+	value := os.Getenv(syscallErrEnv)
+	if value == "" || value == "0" {
+		return false
+	}
+
+	return true
+}
+
+// WithSyscallErr returns an environment assignment string for the integration test TestSyscall error.
+func WithSyscallErr(wantErr bool) string {
+	var value string
+	if wantErr {
+		value = fmt.Sprintf("%s=1", syscallErrEnv)
+	}
+
+	return value
 }
 
 // BuildSnapTpmCtl builds the executable and returns the binary path.
