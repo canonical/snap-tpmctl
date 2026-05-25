@@ -101,7 +101,6 @@ func TestReadSecret(t *testing.T) {
 
 			// Put the TTY in raw mode before writing, so control characters
 			// (e.g. \x03) are not consumed by the before readMaskedInput calls MakeRaw.
-			//nolint:gosec // This is used on in tests
 			_, err = term.MakeRaw(int(tty.Fd()))
 			is.NoErr(err) // Setup: could not put tty in raw mode
 
