@@ -1,5 +1,22 @@
 # snap-tpmctl
 
+[actions-image]: https://github.com/canonical/snap-tpmctl/actions/workflows/qa.yaml/badge.svg
+[actions-url]: https://github.com/canonical/snap-tpmctl/actions?query=workflow%3AQA
+
+[license-image]: https://img.shields.io/badge/License-GPL3.0-blue.svg
+
+[codecov-image]: https://codecov.io/gh/canonical/snap-tpmctl/graph/badge.svg
+[codecov-url]: https://codecov.io/gh/canonical/snap-tpmctl
+
+[snap-badge-image]: https://snapcraft.io/snap-tpmctl/badge.svg
+[snap-url]: https://snapcraft.io/snap-tpmctl
+
+[![snap-tpmctl][snap-badge-image]][snap-url]
+[![Code quality][actions-image]][actions-url]
+[![License][license-image]](COPYING)
+[![Code coverage][codecov-image]][codecov-url]
+
+
 `snap-tpmctl` is a command-line tool to manage TPM-backed Full Disk Encryption (FDE) on Ubuntu systems.
 
 It provides a single operational interface for:
