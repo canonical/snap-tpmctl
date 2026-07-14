@@ -1,17 +1,1 @@
-{
-    "result": {
-        "kind": "invalid-passphrase",
-        "message": "passphrase did not pass quality checks",
-        "value": {
-            "entropy-bits": 7,
-            "min-entropy-bits": 42,
-            "optimal-entropy-bits": 100,
-            "reasons": [
-                "low-entropy"
-            ]
-        }
-    },
-    "status": "Bad Request",
-    "status-code": 400,
-    "type": "error"
-}
+../../../../snapdservice/Errors/POST/v2/system-volumes-invalid-passphrase

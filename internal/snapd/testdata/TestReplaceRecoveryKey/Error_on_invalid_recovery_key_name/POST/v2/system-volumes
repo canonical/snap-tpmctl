@@ -1,8 +1,1 @@
-{
-    "result": {
-        "message": "cannot replace recovery key: invalid key slot reference (container-role: \"system-data\", name: \"default\"): only system key slot names can start with \"default\""
-    },
-    "status": "Bad Request",
-    "status-code": 400,
-    "type": "error"
-}
+../../../../snapdservice/Errors/POST/v2/system-volumes-invalid-name

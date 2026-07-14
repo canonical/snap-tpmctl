@@ -1,9 +1,1 @@
-{
-    "change": "305",
-    "result": null,
-    "status": "Accepted",
-    "status-code": 202,
-    "type": "async",
-    "warning-count": 2,
-    "warning-timestamp": "2026-02-12T11:34:28.35616551Z"
-}
+../../../../snapdservice/AddRecoveryKey/POST/v2/system-volumes

@@ -1,7 +1,1 @@
-{
-    "change": "287",
-    "result": null,
-    "status": "Accepted",
-    "status-code": 202,
-    "type": "async"
-}
+../../../../snapdservice/ReplaceRecoveryKey/POST/v2/system-volumes

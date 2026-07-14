@@ -1,8 +1,1 @@
-{
-    "result": {
-        "status": "enabled"
-    },
-    "status": "OK",
-    "status-code": 200,
-    "type": "sync"
-}
+../../../../../snapdservice/FdeStatus/GET/v2/system-info/storage-encrypted

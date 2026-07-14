@@ -1,7 +1,1 @@
-{
-  "change": "288",
-  "result": null,
-  "status": "Accepted",
-  "status-code": 202,
-  "type": "async"
-}
+../../../../snapdservice/ReplacePassphrase/POST/v2/system-volumes
