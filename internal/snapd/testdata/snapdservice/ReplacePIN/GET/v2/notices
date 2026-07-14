@@ -1,0 +1,21 @@
+{
+    "result": [
+        {
+            "expire-after": "168h0m0s",
+            "first-occurred": "2026-03-06T18:18:36.360336184Z",
+            "id": "288",
+            "key": "288",
+            "last-data": {
+                "kind": "fde-change-pin"
+            },
+            "last-occurred": "2026-03-06T18:18:47.413133869Z",
+            "last-repeated": "2026-03-06T18:18:47.413133869Z",
+            "occurrences": 3,
+            "type": "change-update",
+            "user-id": null
+        }
+    ],
+    "status": "OK",
+    "status-code": 200,
+    "type": "sync"
+}

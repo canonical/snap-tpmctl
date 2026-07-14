@@ -1,0 +1,19 @@
+{
+  "result": {
+    "kind": "keyslots-already-exist",
+    "message": "key slots [(container-role: \"system-data\", name: \"test-duplicate\"), (container-role: \"system-save\", name: \"test-duplicate\")] already exist",
+    "value": [
+      {
+        "container-role": "system-data",
+        "name": "test-duplicate"
+      },
+      {
+        "container-role": "system-save",
+        "name": "test-duplicate"
+      }
+    ]
+  },
+  "status": "Bad Request",
+  "status-code": 400,
+  "type": "error"
+}
