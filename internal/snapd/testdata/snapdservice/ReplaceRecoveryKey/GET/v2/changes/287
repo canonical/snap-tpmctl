@@ -1,0 +1,57 @@
+{
+    "result": {
+        "id": "287",
+        "kind": "fde-replace-recovery-key",
+        "ready": true,
+        "ready-time": "2026-02-13T15:22:31.619018959+01:00",
+        "spawn-time": "2026-02-13T15:22:29.924766035+01:00",
+        "status": "Done",
+        "summary": "Replace recovery key",
+        "tasks": [
+            {
+                "id": "1604",
+                "kind": "fde-add-recovery-keys",
+                "progress": {
+                    "done": 1,
+                    "label": "",
+                    "total": 1
+                },
+                "ready-time": "2026-02-13T15:22:30.797691311+01:00",
+                "spawn-time": "2026-02-13T15:22:29.924689295+01:00",
+                "status": "Done",
+                "summary": "Add temporary recovery key slots"
+            },
+            {
+                "id": "1605",
+                "kind": "fde-remove-keys",
+                "progress": {
+                    "done": 1,
+                    "label": "",
+                    "total": 1
+                },
+                "ready-time": "2026-02-13T15:22:31.240817028+01:00",
+                "spawn-time": "2026-02-13T15:22:29.92473055+01:00",
+                "status": "Done",
+                "summary": "Remove old recovery key slots"
+            },
+            {
+                "id": "1606",
+                "kind": "fde-rename-keys",
+                "progress": {
+                    "done": 1,
+                    "label": "",
+                    "total": 1
+                },
+                "ready-time": "2026-02-13T15:22:31.619006343+01:00",
+                "spawn-time": "2026-02-13T15:22:29.924735419+01:00",
+                "status": "Done",
+                "summary": "Rename temporary recovery key slots"
+            }
+        ]
+    },
+    "status": "OK",
+    "status-code": 200,
+    "type": "sync",
+    "warning-count": 2,
+    "warning-timestamp": "2026-02-12T11:34:28.35616551Z"
+}
