@@ -36,13 +36,13 @@ func TestMountVolume(t *testing.T) {
 	}{
 		"Success on mounting volume": {},
 
-		"Error out when authRequestor fails":                      {ttyReadError: true, wantErr: true},
-		"Error out when mount fails":                              {syscall: tpmtestutils.TestSyscall{WantErr: true}, wantErr: true},
-		"Error out when volume is already mounted":                {alreadyMountedErr: true, wantErr: true},
-		"Error out when device doesn't exists":                    {deviceStatError: true, wantErr: true},
-		"Error out when device is empty":                          {emptyDeviceError: true, wantErr: true},
-		"Error out when dir path is empty":                        {emptyDirError: true, wantErr: true},
-		"Error out when device is already in use by another tool": {deviceInUse: true, wantErr: true},
+		"Error_when_authRequestor_fails":                      {ttyReadError: true, wantErr: true},
+		"Error_when_mount_fails":                              {syscall: tpmtestutils.TestSyscall{WantErr: true}, wantErr: true},
+		"Error_when_volume_is_already_mounted":                {alreadyMountedErr: true, wantErr: true},
+		"Error_when_device_does_not_exist":                    {deviceStatError: true, wantErr: true},
+		"Error_when_device_is_empty":                          {emptyDeviceError: true, wantErr: true},
+		"Error_when_dir_path_is_empty":                        {emptyDirError: true, wantErr: true},
+		"Error_when_device_is_already_in_use_by_another_tool": {deviceInUse: true, wantErr: true},
 	}
 
 	for name, tc := range tests {
@@ -142,8 +142,8 @@ func TestUnmountVolume(t *testing.T) {
 	}{
 		"Success on unmounting volume": {},
 
-		"Error out when unmount fails":     {syscall: tpmtestutils.TestSyscall{WantErr: true}, wantErr: true},
-		"Error out when dir path is empty": {emptyDirError: true, wantErr: true},
+		"Error_when_unmount_fails":     {syscall: tpmtestutils.TestSyscall{WantErr: true}, wantErr: true},
+		"Error_when_dir_path_is_empty": {emptyDirError: true, wantErr: true},
 	}
 
 	for name, tc := range tests {
@@ -209,9 +209,9 @@ func TestGetLuksKeyFromRecoveryKey(t *testing.T) {
 		"Success_getting_luks_key_with_hex_flag":     {hexFlag: true},
 		"Success_getting_luks_key_with_escaped_flag": {escapedFlag: true},
 
-		"Fail_reading_input":      {ttyReadError: true, wantErr: true},
-		"Fail_getting_luks_key":   {recoveryKey: "invalid", wantErr: true},
-		"Fail_for_too_many_flags": {wantErr: true, hexFlag: true, escapedFlag: true},
+		"Error_reading_input":      {ttyReadError: true, wantErr: true},
+		"Error_getting_luks_key":   {recoveryKey: "invalid", wantErr: true},
+		"Error_for_too_many_flags": {wantErr: true, hexFlag: true, escapedFlag: true},
 	}
 
 	for name, tc := range tests {

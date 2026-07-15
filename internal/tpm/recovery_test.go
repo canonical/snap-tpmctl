@@ -23,8 +23,8 @@ func TestCreateKey(t *testing.T) {
 	}{
 		"Success_creating_recovery_key": {recoveryKeyName: "test", recoveryKey: "11272-47509-28031-54818-41671-38673-11053-06376"},
 
-		"Fail_generating_recovery_key": {wantErr: true},
-		"Fail_adding_recovery_key":     {wantErr: true},
+		"Error_generating_recovery_key": {wantErr: true},
+		"Error_adding_recovery_key":     {wantErr: true},
 	}
 
 	for name, tc := range tests {
@@ -59,8 +59,8 @@ func TestRegenerateKey(t *testing.T) {
 	}{
 		"Success_regenerating_recovery_key": {recoveryKeyName: "test", recoveryKey: "11272-47509-28031-54818-41671-38673-11053-06376"},
 
-		"Fail_generating_recovery_key": {wantErr: true},
-		"Fail_adding_recovery_key":     {wantErr: true},
+		"Error_generating_recovery_key": {wantErr: true},
+		"Error_adding_recovery_key":     {wantErr: true},
 	}
 
 	for name, tc := range tests {
@@ -93,7 +93,7 @@ func TestCheckKey(t *testing.T) {
 	}{
 		"Success_checking_recovery_key": {recoveryKey: "11272-47509-28031-54818-41671-38673-11053-06376"},
 
-		"Fail_checking_recovery_key": {wantErr: true},
+		"Error_checking_recovery_key": {wantErr: true},
 	}
 
 	for name, tc := range tests {
@@ -127,7 +127,7 @@ func TestGetLuksKey(t *testing.T) {
 	}{
 		"Success_getting_luks_key": {recoveryKey: "11272-47509-28031-54818-41671-38673-11053-06376"},
 
-		"Fail_getting_luks_key": {wantErr: true},
+		"Error_getting_luks_key": {wantErr: true},
 	}
 
 	for name, tc := range tests {

@@ -25,8 +25,8 @@ func TestRemove(t *testing.T) {
 	}{
 		"Success_on_removing": {},
 
-		"Fail_on_user_privilege": {nonRootUser: true, wantErr: true},
-		"Fail_on_removing":       {wantErr: true},
+		"Error_on_user_privilege": {nonRootUser: true, wantErr: true},
+		"Error_on_removing":       {wantErr: true},
 	}
 	for _, command := range commands {
 		for name, tc := range tests {
