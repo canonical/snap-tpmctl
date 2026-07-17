@@ -21,7 +21,7 @@ func TestAddPassphrase(t *testing.T) {
 	}{
 		"Success_adding_passphrase": {passphrase: "test"},
 
-		"Fail_adding_passphrase": {wantErr: true},
+		"Error_adding_passphrase": {wantErr: true},
 	}
 
 	for name, tc := range tests {
@@ -54,7 +54,7 @@ func TestReplacePassphrase(t *testing.T) {
 	}{
 		"Success_replacing_passphrase": {old: "old", new: "new"},
 
-		"Fail_replacing_passphrase": {wantErr: true},
+		"Error_replacing_passphrase": {wantErr: true},
 	}
 
 	for name, tc := range tests {
@@ -84,7 +84,7 @@ func TestRemovePassphrase(t *testing.T) {
 	}{
 		"Success_removing_passphrase": {},
 
-		"Fail_removing_passphrase": {wantErr: true},
+		"Error_removing_passphrase": {wantErr: true},
 	}
 
 	for name, tc := range tests {
@@ -116,7 +116,7 @@ func TestAddPIN(t *testing.T) {
 	}{
 		"Success_adding_pin": {pin: "123456"},
 
-		"Fail_adding_pin": {wantErr: true},
+		"Error_adding_pin": {wantErr: true},
 	}
 
 	for name, tc := range tests {
@@ -149,7 +149,7 @@ func TestReplacePIN(t *testing.T) {
 	}{
 		"Success_replacing_pin": {old: "123456", new: "654321"},
 
-		"Fail_replacing_pin": {wantErr: true},
+		"Error_replacing_pin": {wantErr: true},
 	}
 
 	for name, tc := range tests {
@@ -179,7 +179,7 @@ func TestRemovePIN(t *testing.T) {
 	}{
 		"Success_removing_pin": {},
 
-		"Fail_removing_pin": {wantErr: true},
+		"Error_removing_pin": {wantErr: true},
 	}
 
 	for name, tc := range tests {

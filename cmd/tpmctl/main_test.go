@@ -25,8 +25,8 @@ func TestRun(t *testing.T) {
 		want      int
 		wantInLog string
 	}{
-		"Returns 0 on success":        {app: mockApp{err: nil}, want: 0},
-		"Returns 1 when got an error": {app: mockApp{err: errors.New("desired error")}, want: 1, wantInLog: "desired error"},
+		"Returns 0 on success": {app: mockApp{err: nil}, want: 0},
+		"Returns 1 on error":   {app: mockApp{err: errors.New("desired error")}, want: 1, wantInLog: "desired error"},
 	}
 
 	for name, tc := range tests {

@@ -34,11 +34,11 @@ func TestAdd(t *testing.T) {
 	}{
 		"Success": {},
 
-		"Fail_on_user_privilege": {admineUID: 1, wantErr: true},
-		"Fail_reading_input":     {ttyReadError: true, wantErr: true},
-		"Fail_wrong_auth_mode":   {wantErr: true},
-		"Fail_on_validating":     {wantErr: true},
-		"Fail_on_adding":         {wantErr: true},
+		"Error_on_user_privilege": {admineUID: 1, wantErr: true},
+		"Error_reading_input":     {ttyReadError: true, wantErr: true},
+		"Error_wrong_auth_mode":   {wantErr: true},
+		"Error_on_validating":     {wantErr: true},
+		"Error_on_adding":         {wantErr: true},
 	}
 	for _, command := range commands {
 		for name, tc := range tests {

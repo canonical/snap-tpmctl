@@ -27,10 +27,10 @@ func TestAdd(t *testing.T) {
 	}{
 		"Success": {},
 
-		"Fail_on_user_privilege": {nonRootUser: true, wantErr: true},
-		"Fail_wrong_auth_mode":   {wantErr: true},
-		"Fail_on_validating":     {wantErr: true},
-		"Fail_on_adding":         {wantErr: true},
+		"Error_on_user_privilege": {nonRootUser: true, wantErr: true},
+		"Error_wrong_auth_mode":   {wantErr: true},
+		"Error_on_validating":     {wantErr: true},
+		"Error_on_adding":         {wantErr: true},
 	}
 	for _, command := range commands {
 		for name, tc := range tests {

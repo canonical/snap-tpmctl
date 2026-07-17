@@ -24,7 +24,7 @@ func TestCheck(t *testing.T) {
 		"Success_even_with_invalid_recovery_key":   {},
 		"Success_even_with_incorrect_recovery_key": {key: "incorrect"},
 
-		"Fail_checking_recovery_key": {wantErr: true},
+		"Error_checking_recovery_key": {wantErr: true},
 	}
 
 	for name, tc := range tests {

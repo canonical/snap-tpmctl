@@ -24,7 +24,7 @@ func TestCreateKey(t *testing.T) {
 
 		wantErr bool
 	}{
-		"Success_on_creting_recovery_key": {},
+		"Success_on_creating_recovery_key": {},
 
 		"Error_from_snapd_on_empty_name":  {wantErr: true},
 		"Error_from_snapd_on_unique_name": {recoveryKeyName: "test-duplicate", wantErr: true},

@@ -43,14 +43,14 @@ func TestMountVolume(t *testing.T) {
 			wantMounted:   true,
 		},
 
-		"Error out when unable to crate directory":                {mkdirErr: true, wantErr: true},
-		"Error out when authRequestor fails":                      {authRequestor: authRequestor{wantErr: true}, wantErr: true},
-		"Error out when unable to mount volume":                   {syscall: tpmtestutils.TestSyscall{WantErr: true}, wantRequested: true, wantErr: true},
-		"Error out when volume is already mounted":                {alreadyMountedErr: true, wantErr: true},
-		"Error out when unable to locate volume":                  {readErr: true, wantErr: true},
-		"Error out when systemd-cryptsetup fails":                 {device: "exit-with-failure", wantRequested: true, wantErr: true},
-		"Error out when device is already in use by another tool": {deviceInUse: true, wantErr: true},
-		"Error out when device is cannot be located":              {deviceInUse: true, classBlockErr: true, wantErr: true},
+		"Error when unable to create directory":               {mkdirErr: true, wantErr: true},
+		"Error when authRequestor fails":                      {authRequestor: authRequestor{wantErr: true}, wantErr: true},
+		"Error when unable to mount volume":                   {syscall: tpmtestutils.TestSyscall{WantErr: true}, wantRequested: true, wantErr: true},
+		"Error when volume is already mounted":                {alreadyMountedErr: true, wantErr: true},
+		"Error when unable to locate volume":                  {readErr: true, wantErr: true},
+		"Error when systemd cryptsetup fails":                 {device: "exit-with-failure", wantRequested: true, wantErr: true},
+		"Error when device is already in use by another tool": {deviceInUse: true, wantErr: true},
+		"Error when device cannot be located":                 {deviceInUse: true, classBlockErr: true, wantErr: true},
 	}
 
 	for name, tc := range tests {
@@ -132,11 +132,11 @@ func TestUnmountVolume(t *testing.T) {
 	}{
 		"Success on unmounting volume": {wantUnmounted: true},
 
-		"Error out when unable to remove directory":   {wantRmdirErr: true, wantErr: true},
-		"Error out when unable determine device path": {readErr: true, wantErr: true},
-		"Error out when path is not found":            {target: "not-existing-target", wantErr: true},
-		"Error out when unable to unmount volume":     {syscall: tpmtestutils.TestSyscall{WantErr: true}, wantErr: true},
-		"Error out when systemd-cryptsetup fails":     {mapper: "exit-with-failure", wantErr: true},
+		"Error when unable to remove directory":      {wantRmdirErr: true, wantErr: true},
+		"Error when unable to determine device path": {readErr: true, wantErr: true},
+		"Error when path is not found":               {target: "not-existing-target", wantErr: true},
+		"Error when unable to unmount volume":        {syscall: tpmtestutils.TestSyscall{WantErr: true}, wantErr: true},
+		"Error when systemd cryptsetup fails":        {mapper: "exit-with-failure", wantErr: true},
 	}
 
 	for name, tc := range tests {
@@ -218,8 +218,8 @@ func TestSearchInProcMounts(t *testing.T) {
 		"Success on getting mapper":                  {fieldPath: 0, fieldResult: 1},
 		"Success with no path found in /proc/mounts": {path: "wrong-path", notFound: true},
 
-		"Fail to open /proc/mounts": {fileErr: true, wantErr: true},
-		"Fail to read /proc/mounts": {readErr: true, wantErr: true},
+		"Error opening /proc/mounts": {fileErr: true, wantErr: true},
+		"Error reading /proc/mounts": {readErr: true, wantErr: true},
 	}
 
 	for name, tc := range tests {

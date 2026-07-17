@@ -25,8 +25,8 @@ func TestReplace(t *testing.T) {
 	}{
 		"Success_on_replacing": {},
 
-		"Fail_on_validating": {wantErr: true},
-		"Fail_on_replacing":  {wantErr: true},
+		"Error_on_validating": {wantErr: true},
+		"Error_on_replacing":  {wantErr: true},
 	}
 
 	for _, command := range commands {
