@@ -6,8 +6,8 @@ require (
 	github.com/creack/pty v1.1.24
 	github.com/google/go-cmp v0.7.0
 	github.com/matryer/is v1.4.1
-	github.com/snapcore/secboot v0.0.0-20260410084611-3f8b98c2db70
-	github.com/snapcore/snapd v0.0.0-20260427144342-788090b139d3
+	github.com/snapcore/secboot v0.0.0-20260623135244-457b03a16d19
+	github.com/snapcore/snapd v0.0.0-20260724130039-b373311c8620
 	github.com/urfave/cli/v3 v3.6.2
 	golang.org/x/term v0.43.0
 	gopkg.in/yaml.v3 v3.0.1
@@ -15,7 +15,7 @@ require (
 
 require (
 	github.com/canonical/cpuid v0.0.0-20220614022739-219e067757cb // indirect
-	github.com/canonical/go-efilib v1.7.1-0.20260310185303-7166aa858b24 // indirect
+	github.com/canonical/go-efilib v1.8.0 // indirect
 	github.com/canonical/go-kbkdf v0.0.0-20250104172618-3b1308f9acf9 // indirect
 	github.com/canonical/go-password-validator v0.0.0-20250617132709-1b205303ca54 // indirect
 	github.com/canonical/go-sp800.90a-drbg v0.0.0-20210314144037-6eeb1040d6c3 // indirect
