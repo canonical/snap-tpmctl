@@ -1,5 +1,5 @@
 name: snap-tpmctl
-base: core24
+base: core26
 adopt-info: version
 summary: Ubuntu TPM and FDE management tool
 title: Snap TPM/FDE Control Tool
@@ -94,8 +94,9 @@ parts:
   systemd-cryptsetup:
     plugin: nil
     stage-packages:
-      # include systemd-cryptsetup binary package and all its dependencies
-      - systemd
+      # in 26.04 (systemd 259) systemd-cryptsetup is in its own binary
+      # package, no longer in the systemd package
+      - systemd-cryptsetup
     # prime only /usr/bin/systemd-cryptsetup
     override-prime: |
       mkdir -p ${CRAFT_PRIME}/usr/bin
